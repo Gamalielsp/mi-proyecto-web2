@@ -1,0 +1,142 @@
+.dashboard {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 28px 20px 150px !important;
+}
+
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  padding: 28px;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+  margin-bottom: 22px;
+}
+
+:host-context(.dark) .hero {
+  background:
+    linear-gradient(135deg, #111827, #0f172a);
+}
+
+.eyebrow {
+  color: var(--primary);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+h1 {
+  font-size: 38px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -1.3px;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+.subtitle {
+  color: var(--muted);
+  margin-bottom: 0;
+  font-size: 15px;
+}
+
+
+.filters {
+  display: grid;
+  grid-template-columns: 1.5fr 0.8fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.search-box,
+.select-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 0 15px;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.05);
+}
+
+.search-box span,
+.select-box span {
+  font-size: 18px;
+}
+
+input,
+select {
+  width: 100%;
+  min-height: 54px;
+  border: none !important;
+  outline: none;
+  background: transparent !important;
+  color: var(--text) !important;
+  font-size: 15px;
+}
+
+select {
+  cursor: pointer;
+}
+
+.results-info {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 14px;
+  padding-left: 4px;
+}
+
+.books {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.empty-state {
+  background: var(--card);
+  border: 1px dashed var(--border);
+  border-radius: 22px;
+  padding: 36px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.empty-state div {
+  font-size: 42px;
+  margin-bottom: 12px;
+}
+
+.empty-state h2 {
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+@media (max-width: 720px) {
+  .dashboard {
+    padding: 20px 14px 160px !important;
+  }
+
+  .hero {
+    align-items: flex-start;
+    padding: 22px;
+  }
+
+  h1 {
+    font-size: 30px;
+  }
+
+  .hero-badge {
+    display: none;
+  }
+
+  .filters {
+    grid-template-columns: 1fr;
+  }
+}

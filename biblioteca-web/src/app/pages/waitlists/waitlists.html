@@ -1,0 +1,85 @@
+<div class="container">
+
+  <section class="hero">
+
+    <p class="eyebrow">Bibliotecario</p>
+
+    <h1>Listas de Espera</h1>
+
+    <p class="subtitle">
+      Consulta los usuarios que esperan ejemplares de libros actualmente agotados.
+    </p>
+
+  </section>
+
+  <div
+    class="empty-state"
+    *ngIf="entries.length === 0">
+
+    <div>📋</div>
+
+    <h2>No hay usuarios en lista de espera</h2>
+
+    <p>
+      Cuando un usuario se registre en una lista de espera, aparecerá aquí.
+    </p>
+
+  </div>
+
+  <div class="waitlist-grid">
+
+    <div
+      class="waitlist-card"
+      *ngFor="let entry of entries">
+
+      <div class="card-header">
+
+        <div class="position-badge">
+          #{{ entry.position }}
+        </div>
+
+        <div>
+          <span class="status-badge">
+            {{ entry.status }}
+          </span>
+
+          <h3>{{ entry.bookTitle }}</h3>
+        </div>
+
+      </div>
+
+      <div class="details-grid">
+
+        <div class="detail">
+          <span>Usuario</span>
+          <strong>{{ entry.studentName }}</strong>
+        </div>
+
+        <div class="detail">
+          <span>Matrícula / Control</span>
+          <strong>{{ entry.matricula }}</strong>
+        </div>
+
+        <div class="detail">
+          <span>Fecha de solicitud</span>
+          <strong>{{ entry.requestDate }}</strong>
+        </div>
+
+        <div class="detail">
+          <span>Estado</span>
+          <strong>{{ entry.status }}</strong>
+        </div>
+
+      </div>
+
+      <div class="notice">
+        Este usuario conserva su lugar en la cola hasta que exista disponibilidad del libro.
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<app-mobile-nav></app-mobile-nav>

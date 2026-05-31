@@ -1,0 +1,48 @@
+<div
+    class="overlay"
+    *ngIf="open">
+
+    <div class="popup">
+
+        <h2>
+            Reserva Confirmada
+        </h2>
+
+        <h3>
+            {{ folio }}
+        </h3>
+
+        <div *ngIf="book">
+
+            <strong>
+                {{ book.title }}
+            </strong>
+
+            <p>
+                {{ book.author }}
+            </p>
+
+        </div>
+
+        <p>
+
+            Tiempo restante:
+
+            {{ minutes.toString().padStart(2,'0') }}
+
+            :
+
+            {{ remainingSeconds.toString().padStart(2,'0') }}
+
+        </p>
+
+        <button
+            (click)="closePopup()">
+
+            Entendido
+
+        </button>
+
+    </div>
+
+</div>

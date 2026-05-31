@@ -1,0 +1,471 @@
+<div class="container">
+
+  <section class="hero">
+    <p class="eyebrow">Administración</p>
+
+    <h1>Inventario y Usuarios</h1>
+
+    <p class="subtitle">
+      Gestiona libros, disponibilidad, usuarios y altas del sistema.
+    </p>
+  </section>
+
+  <section class="toolbar">
+    <div class="search-box">
+      <span>🔎</span>
+
+      <input
+        type="text"
+        placeholder="Buscar por título, autor o usuario..."
+        [(ngModel)]="search">
+    </div>
+  </section>
+
+  <section class="tabs">
+    <button
+      [class.active]="activeTab === 'books'"
+      (click)="activeTab = 'books'">
+      📚 Libros
+    </button>
+
+    <button
+      [class.active]="activeTab === 'users'"
+      (click)="activeTab = 'users'">
+      👥 Usuarios
+    </button>
+  </section>
+
+  <!-- LIBROS -->
+
+  <section *ngIf="activeTab === 'books'">
+
+    <div class="section-header">
+      <div>
+        <h2>Libros registrados</h2>
+        <p>{{ filteredBooks.length }} resultado{{ filteredBooks.length === 1 ? '' : 's' }}</p>
+      </div>
+
+      <button
+        class="primary-action"
+        (click)="showBookModal = true">
+        + Agregar Libro
+      </button>
+    </div>
+
+    <div
+      class="empty-state"
+      *ngIf="filteredBooks.length === 0">
+      <div>📭</div>
+      <h3>No se encontraron libros</h3>
+      <p>Intenta con otra búsqueda.</p>
+    </div>
+
+    <div
+      class="item-card"
+      *ngFor="let book of filteredBooks">
+
+      <div class="item-main">
+
+        <div class="item-icon book-icon">
+          📘
+        </div>
+
+        <div class="info">
+          <h3>{{ book.title }}</h3>
+
+          <p>
+            {{ book.author }}
+            •
+            {{ book.career }}
+            •
+            {{ book.totalCopies }} copias
+          </p>
+
+          <p>
+            ISBN:
+            {{ book.isbn }}
+          </p>
+        </div>
+
+      </div>
+
+      <div class="right-side">
+
+        <span
+          class="badge available"
+          *ngIf="book.stock > 0">
+          {{ book.stock }} disponibles
+        </span>
+
+        <span
+          class="badge unavailable"
+          *ngIf="book.stock === 0">
+          Agotado
+        </span>
+
+        <div class="item-actions">
+
+          <button
+            class="edit-btn"
+            (click)="openEditBook(book)">
+            ✏️ Editar
+          </button>
+
+          <button
+            class="delete-btn"
+            (click)="deleteBook(book)">
+            🗑️ Eliminar
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- USUARIOS -->
+
+  <section *ngIf="activeTab === 'users'">
+
+    <div class="section-header">
+      <div>
+        <h2>Usuarios registrados</h2>
+        <p>{{ filteredUsers.length }} resultado{{ filteredUsers.length === 1 ? '' : 's' }}</p>
+      </div>
+
+      <button
+        class="primary-action"
+        (click)="showUserModal = true">
+        + Dar de Alta
+      </button>
+    </div>
+
+    <div
+      class="empty-state"
+      *ngIf="filteredUsers.length === 0">
+      <div>👤</div>
+      <h3>No se encontraron usuarios</h3>
+      <p>Intenta con otra búsqueda.</p>
+    </div>
+
+    <div
+      class="item-card"
+      *ngFor="let user of filteredUsers">
+
+      <div class="item-main">
+
+        <div class="item-icon user-icon">
+          👤
+        </div>
+
+        <div class="info">
+          <h3>{{ user.name }}</h3>
+
+          <p>
+            {{ user.matricula }}
+            •
+            {{ user.career }}
+            •
+            {{ user.role }}
+          </p>
+
+          <p *ngIf="user.email">
+            {{ user.email }}
+          </p>
+        </div>
+
+      </div>
+
+      <div class="right-side">
+
+        <span class="badge neutral">
+          {{ user.activeLoans }} préstamos
+        </span>
+
+        <div class="item-actions">
+
+          <button
+            class="edit-btn"
+            (click)="openEditUser(user)">
+            ✏️ Editar
+          </button>
+
+          <button
+            class="delete-btn"
+            (click)="deleteUser(user)">
+            🗑️ Eliminar
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- MODAL AGREGAR LIBRO -->
+
+  <div
+    class="modal-backdrop"
+    *ngIf="showBookModal">
+
+    <div class="modal">
+
+      <h2>Agregar Libro</h2>
+
+      <p class="modal-subtitle">
+        Registra un nuevo libro dentro del inventario.
+      </p>
+
+      <input
+        type="text"
+        placeholder="Título"
+        [(ngModel)]="newBook.title">
+
+      <input
+        type="text"
+        placeholder="Autor"
+        [(ngModel)]="newBook.author">
+
+      <select [(ngModel)]="newBook.career">
+        <option value="">Seleccionar carrera</option>
+
+        <option
+          *ngFor="let c of careers"
+          [value]="c">
+          {{ c }}
+        </option>
+      </select>
+
+      <input
+        type="text"
+        placeholder="ISBN"
+        [(ngModel)]="newBook.isbn">
+
+      <input
+        type="number"
+        placeholder="Número de copias"
+        [(ngModel)]="newBook.stock">
+
+      <div class="modal-buttons">
+        <button
+          class="cancel"
+          (click)="showBookModal = false">
+          Cancelar
+        </button>
+
+        <button
+          class="save"
+          (click)="addBook()">
+          Agregar
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- MODAL EDITAR LIBRO -->
+
+  <div
+    class="modal-backdrop"
+    *ngIf="showEditBookModal">
+
+    <div class="modal">
+
+      <h2>Editar Libro</h2>
+
+      <p class="modal-subtitle">
+        Modifica la información del libro seleccionado.
+      </p>
+
+      <input
+        type="text"
+        placeholder="Título"
+        [(ngModel)]="editBook.title">
+
+      <input
+        type="text"
+        placeholder="Autor"
+        [(ngModel)]="editBook.author">
+
+      <select [(ngModel)]="editBook.career">
+        <option value="">Seleccionar carrera</option>
+
+        <option
+          *ngFor="let c of careers"
+          [value]="c">
+          {{ c }}
+        </option>
+      </select>
+
+      <input
+        type="text"
+        placeholder="ISBN"
+        [(ngModel)]="editBook.isbn">
+
+      <input
+        type="number"
+        placeholder="Stock disponible"
+        [(ngModel)]="editBook.stock">
+
+      <input
+        type="number"
+        placeholder="Copias totales"
+        [(ngModel)]="editBook.totalCopies">
+
+      <div class="modal-buttons">
+        <button
+          class="cancel"
+          (click)="showEditBookModal = false">
+          Cancelar
+        </button>
+
+        <button
+          class="save"
+          (click)="updateBook()">
+          Guardar cambios
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- MODAL AGREGAR USUARIO -->
+
+  <div
+    class="modal-backdrop"
+    *ngIf="showUserModal">
+
+    <div class="modal">
+
+      <h2>Dar de Alta Usuario</h2>
+
+      <p class="modal-subtitle">
+        Registra un usuario dentro del sistema bibliotecario.
+      </p>
+
+      <input
+        type="text"
+        placeholder="Nombre completo"
+        [(ngModel)]="newUser.name">
+
+      <input
+        type="text"
+        placeholder="Matrícula / Número de control"
+        [(ngModel)]="newUser.matricula">
+
+      <select [(ngModel)]="newUser.role">
+        <option value="Alumno">Alumno</option>
+        <option value="Profesor">Profesor</option>
+        <option value="Bibliotecario">Bibliotecario</option>
+      </select>
+
+      <select [(ngModel)]="newUser.career">
+        <option value="">Carrera</option>
+
+        <option
+          *ngFor="let c of careers"
+          [value]="c">
+          {{ c }}
+        </option>
+      </select>
+
+      <input
+        type="email"
+        placeholder="correo@universidad.edu.mx"
+        [(ngModel)]="newUser.email">
+
+      <div class="modal-buttons">
+        <button
+          class="cancel"
+          (click)="showUserModal = false">
+          Cancelar
+        </button>
+
+        <button
+          class="save"
+          (click)="addUser()">
+          Dar de Alta
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- MODAL EDITAR USUARIO -->
+
+  <div
+    class="modal-backdrop"
+    *ngIf="showEditUserModal">
+
+    <div class="modal">
+
+      <h2>Editar Usuario</h2>
+
+      <p class="modal-subtitle">
+        Modifica la información del usuario seleccionado.
+      </p>
+
+      <input
+        type="text"
+        placeholder="Nombre completo"
+        [(ngModel)]="editUser.name">
+
+      <input
+        type="text"
+        placeholder="Matrícula / Número de control"
+        [(ngModel)]="editUser.matricula">
+
+      <select [(ngModel)]="editUser.role">
+        <option value="Alumno">Alumno</option>
+        <option value="Profesor">Profesor</option>
+        <option value="Bibliotecario">Bibliotecario</option>
+      </select>
+
+      <select [(ngModel)]="editUser.career">
+        <option value="">Carrera</option>
+
+        <option
+          *ngFor="let c of careers"
+          [value]="c">
+          {{ c }}
+        </option>
+      </select>
+
+      <input
+        type="number"
+        placeholder="Préstamos activos"
+        [(ngModel)]="editUser.activeLoans">
+
+      <input
+        type="email"
+        placeholder="correo@universidad.edu.mx"
+        [(ngModel)]="editUser.email">
+
+      <div class="modal-buttons">
+        <button
+          class="cancel"
+          (click)="showEditUserModal = false">
+          Cancelar
+        </button>
+
+        <button
+          class="save"
+          (click)="updateUser()">
+          Guardar cambios
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<app-mobile-nav></app-mobile-nav>

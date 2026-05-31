@@ -1,0 +1,106 @@
+<div class="container">
+
+  <section class="hero">
+
+    <div>
+      <p class="eyebrow">Administración</p>
+
+      <h1>Panel Bibliotecario</h1>
+
+      <p class="subtitle">
+        Resumen general de préstamos, inventario, reservas, devoluciones y multas.
+      </p>
+    </div>
+
+  </section>
+
+  <section class="grid">
+
+    <div class="stat-card blue">
+      <div class="icon">📚</div>
+      <h2>{{ totalBooks }}</h2>
+      <p>Libros registrados</p>
+    </div>
+
+    <div class="stat-card green">
+      <div class="icon">✅</div>
+      <h2>{{ availableBooks }}</h2>
+      <p>Libros disponibles</p>
+    </div>
+
+    <div class="stat-card purple">
+      <div class="icon">📖</div>
+      <h2>{{ activeLoans }}</h2>
+      <p>Préstamos activos</p>
+    </div>
+
+    <div class="stat-card warning">
+      <div class="icon">⚠️</div>
+      <h2>{{ overdueLoans }}</h2>
+      <p>Préstamos vencidos</p>
+    </div>
+
+    <div class="stat-card cyan">
+      <div class="icon">↩️</div>
+      <h2>{{ pendingReturns }}</h2>
+      <p>Devoluciones pendientes</p>
+    </div>
+
+    <div class="stat-card yellow">
+      <div class="icon">🎟️</div>
+      <h2>{{ pendingReservations }}</h2>
+      <p>Reservas pendientes</p>
+    </div>
+
+    <div class="stat-card orange">
+      <div class="icon">📋</div>
+      <h2>{{ waitlistUsers }}</h2>
+      <p>Usuarios en espera</p>
+    </div>
+
+    <div class="stat-card danger">
+      <div class="icon">💰</div>
+      <h2>${{ totalFines }}</h2>
+      <p>Multas acumuladas</p>
+    </div>
+
+  </section>
+
+  <section class="quick-actions">
+
+    <h2>Accesos rápidos</h2>
+
+    <div class="actions-grid">
+
+      <a routerLink="/reservations">
+        🎟️
+        <span>Reservas pendientes</span>
+      </a>
+
+      <a routerLink="/inventory">
+        📦
+        <span>Inventario</span>
+      </a>
+
+      <a routerLink="/alerts">
+        ⚠️
+        <span>Alertas</span>
+      </a>
+
+      <a routerLink="/returns">
+        ↩️
+        <span>Devoluciones</span>
+      </a>
+
+      <a routerLink="/waitlists">
+        📋
+        <span>Lista de espera</span>
+      </a>
+
+    </div>
+
+  </section>
+
+</div>
+
+<app-mobile-nav></app-mobile-nav>

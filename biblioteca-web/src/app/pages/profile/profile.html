@@ -1,0 +1,111 @@
+<div class="container">
+
+    <section class="hero">
+
+        <div class="avatar">
+            {{ fullName.charAt(0) }}
+        </div>
+
+        <div class="hero-info">
+
+            <p class="eyebrow">Mi cuenta</p>
+
+            <h1>{{ fullName }}</h1>
+
+            <span class="role-badge">
+                {{ userRole }}
+            </span>
+
+        </div>
+
+    </section>
+
+    <section class="stats-grid">
+
+        <div class="stat-card">
+            <span>📖</span>
+            <h2>{{ activeLoans.length }}</h2>
+            <p>Préstamos activos</p>
+        </div>
+
+        <div class="stat-card">
+            <span>📚</span>
+            <h2>{{ history.length }}</h2>
+            <p>Historial</p>
+        </div>
+
+        <div class="stat-card danger">
+            <span>💰</span>
+            <h2>${{ totalFines }}</h2>
+            <p>Multas activas</p>
+        </div>
+
+    </section>
+
+    <section class="profile-card">
+
+        <h2>Información personal</h2>
+
+        <div class="details-grid">
+
+            <div class="detail">
+                <span>Nombre completo</span>
+                <strong>{{ fullName }}</strong>
+            </div>
+
+            <div class="detail">
+                <span>
+                    {{ isStudent ? 'Matrícula' : 'Número de control' }}
+                </span>
+                <strong>{{ matricula }}</strong>
+            </div>
+
+            <div class="detail">
+                <span>Tipo de usuario</span>
+                <strong>{{ userRole }}</strong>
+            </div>
+
+            <div class="detail">
+                <span>
+                    {{ isLibrarian ? 'Área' : 'Carrera / Departamento' }}
+                </span>
+                <strong>{{ career }}</strong>
+            </div>
+
+            <div class="detail">
+                <span>Correo institucional</span>
+                <strong>{{ email }}</strong>
+            </div>
+
+        </div>
+
+    </section>
+
+    <section
+        class="profile-card"
+        *ngIf="!isLibrarian">
+
+        <h2>Estado bibliotecario</h2>
+
+        <div
+            class="status-box clean"
+            *ngIf="totalFines === 0">
+
+            ✅ Tu cuenta no presenta multas activas.
+
+        </div>
+
+        <div
+            class="status-box blocked"
+            *ngIf="totalFines > 0">
+
+            ⚠️ Tu cuenta presenta multas activas por ${{ totalFines }}.
+            No podrás solicitar nuevos libros hasta resolver el atraso.
+
+        </div>
+
+    </section>
+
+</div>
+
+<app-mobile-nav></app-mobile-nav>

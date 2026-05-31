@@ -1,0 +1,174 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #f3f6fb;
+  --card: #ffffff;
+  --text: #172033;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --primary: #2563eb;
+  --primary-soft: #eff6ff;
+  --danger: #dc2626;
+  --success: #16a34a;
+  --warning: #d97706;
+}
+
+html.dark,
+html.dark body {
+  background: #020617;
+}
+
+.dark {
+  --bg: #020617;
+  --card: #111827;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --border: #374151;
+  --primary: #60a5fa;
+  --primary-soft: #1e3a8a;
+  --danger: #f87171;
+  --success: #4ade80;
+  --warning: #fbbf24;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+button {
+  font-family: inherit;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  filter: brightness(0.92);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.16);
+}
+
+input,
+select {
+  font-family: inherit;
+  background: var(--card) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border);
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  word-break: break-word;
+}
+
+.container,
+.dashboard,
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 20px 140px !important;
+}
+
+.hero {
+  margin-top: 0 !important;
+}
+
+.page-title {
+  font-size: 30px;
+  font-weight: 850;
+  letter-spacing: -0.8px;
+  margin-bottom: 6px;
+}
+
+.page-subtitle {
+  color: var(--muted);
+  margin-bottom: 22px;
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 11px 16px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.secondary-btn {
+  background: var(--border);
+  color: var(--text);
+  border: none;
+  border-radius: 12px;
+  padding: 11px 16px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.app-card,
+.card,
+.stat-card,
+.modal,
+.popup {
+  background: var(--card) !important;
+  color: var(--text);
+  border-color: var(--border) !important;
+}
+
+.danger-text {
+  color: var(--danger);
+}
+
+.success-text {
+  color: var(--success);
+}
+
+.warning-text {
+  color: var(--warning);
+}
+
+@media (max-width: 1200px) {
+
+  .container,
+  .dashboard,
+  .page {
+    width: 100%;
+    max-width: 100%;
+    padding: 18px 18px 160px !important;
+  }
+
+}
+
+@media (max-width: 768px) {
+  .container,
+  .dashboard,
+  .page {
+    padding: 14px 14px 170px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .container,
+  .dashboard,
+  .page {
+    padding: 12px 12px 175px !important;
+  }
+
+  h1 {
+    font-size: 30px;
+  }
+}

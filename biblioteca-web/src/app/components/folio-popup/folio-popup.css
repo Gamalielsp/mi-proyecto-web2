@@ -1,0 +1,35 @@
+.overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.5);
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    z-index:999;
+}
+
+.popup{
+
+    background:white;
+
+    padding:25px;
+
+    border-radius:12px;
+
+    width:350px;
+
+    text-align:center;
+
+}
+
+button{
+
+    margin-top:15px;
+
+    padding:10px 20px;
+
+    cursor:pointer;
+
+}

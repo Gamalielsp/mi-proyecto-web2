@@ -1,0 +1,229 @@
+.container {
+  max-width: 1000px;
+  margin: auto;
+  padding: 20px 20px 140px;
+}
+
+section {
+  margin-top: 30px;
+}
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 15px;
+  background: var(--card);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+}
+
+h1 {
+  font-size: 40px;
+  font-weight: 900;
+  letter-spacing: -1px;
+  color: var(--text);
+}
+
+h2 {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 18px;
+}
+
+h3 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.card p {
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.pending {
+  color: #b45309 !important;
+  font-weight: 700;
+}
+
+.folio {
+  color: #2563eb !important;
+  font-weight: 700;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* RESERVAS */
+
+.reservation-card {
+  border-left: 6px solid var(--primary);
+}
+
+.status-row {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 12px;
+}
+
+.reservation-status {
+  display: inline-block;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.status-pending {
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.status-delivered {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-expired {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-cancelled {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.reservation-message {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.reservation-pending {
+  border-color: rgba(245, 158, 11, 0.45);
+}
+
+.reservation-delivered {
+  border-color: rgba(22, 163, 74, 0.45);
+}
+
+.reservation-expired {
+  border-color: rgba(220, 38, 38, 0.45);
+}
+
+.reservation-cancelled {
+  border-color: rgba(107, 114, 128, 0.45);
+}
+
+/* PRÉSTAMOS */
+
+.overdue-card {
+  border: 2px solid #dc2626;
+  background: #fef2f2;
+}
+
+.overdue-box {
+  margin-top: 12px;
+  padding: 14px;
+  background: #fee2e2;
+  border-radius: 12px;
+  color: #991b1b;
+  font-weight: 700;
+}
+
+.overdue-box p {
+  color: #991b1b;
+  margin-bottom: 8px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+.renew-btn {
+  border: none;
+  border-radius: 12px;
+  padding: 12px 18px;
+  cursor: pointer;
+  font-weight: 800;
+  color: white;
+  background: linear-gradient(
+    135deg,
+    #f59e0b,
+    #fbbf24
+  );
+  box-shadow:
+    0 10px 24px rgba(245, 158, 11, 0.25);
+}
+
+.return-btn {
+  border: none;
+  border-radius: 12px;
+  padding: 12px 18px;
+  cursor: pointer;
+  font-weight: 800;
+  color: white;
+  background: linear-gradient(
+    135deg,
+    #16a34a,
+    #22c55e
+  );
+  box-shadow:
+    0 10px 24px rgba(34, 197, 94, 0.25);
+}
+
+.renew-btn:hover,
+.return-btn:hover {
+  transform: translateY(-2px);
+}
+
+.renew-btn:disabled,
+.return-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 16px 14px 160px;
+  }
+
+  h1 {
+    font-size: 32px;
+  }
+
+  h2 {
+    font-size: 24px;
+  }
+
+  h3 {
+    font-size: 20px;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .renew-btn,
+  .return-btn {
+    width: 100%;
+  }
+}

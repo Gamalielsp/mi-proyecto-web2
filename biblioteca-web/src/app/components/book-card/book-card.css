@@ -1,0 +1,143 @@
+.card {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 18px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 18px;
+  background: var(--card);
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 42px rgba(15, 23, 42, 0.12);
+  border-color: rgba(37, 99, 235, 0.35);
+}
+
+img {
+  width: 120px;
+  height: 166px;
+  object-fit: cover;
+  border-radius: 18px;
+  background: #e5e7eb;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+h3 {
+  color: var(--text);
+  font-size: 21px;
+  font-weight: 850;
+  letter-spacing: -0.4px;
+  margin-bottom: 8px;
+}
+
+p {
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.career {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 800;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.stock {
+  font-weight: 850;
+  margin-bottom: 14px;
+}
+
+.available {
+  color: var(--success);
+}
+
+.unavailable {
+  color: var(--warning);
+}
+
+button {
+  border: none;
+  border-radius: 13px;
+  padding: 11px 16px;
+  cursor: pointer;
+  font-weight: 800;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.22);
+}
+
+button:hover {
+  filter: brightness(0.93);
+}
+
+button[ng-reflect-ng-if="false"] {
+  display: none;
+}
+
+.waitlist {
+  width: 100%;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 16px;
+  background: #fffbeb;
+  color: #92400e;
+}
+
+:host-context(.dark) .waitlist {
+  background: rgba(120, 53, 15, 0.35);
+  border-color: rgba(251, 191, 36, 0.35);
+  color: #fbbf24;
+}
+
+.waitlist p {
+  color: inherit;
+  margin-bottom: 8px;
+}
+
+.waitlist button {
+  margin-top: 4px;
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+  box-shadow: 0 10px 24px rgba(245, 158, 11, 0.22);
+}
+
+@media (max-width: 640px) {
+  .card {
+    grid-template-columns: 92px 1fr;
+    gap: 14px;
+    padding: 14px;
+    border-radius: 20px;
+  }
+
+  img {
+    width: 92px;
+    height: 132px;
+    border-radius: 14px;
+  }
+
+  h3 {
+    font-size: 17px;
+  }
+
+  button {
+    width: 100%;
+  }
+}

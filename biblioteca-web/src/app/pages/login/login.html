@@ -1,0 +1,89 @@
+<div class="container">
+
+    <button
+        class="theme-btn"
+        (click)="toggleTheme()">
+
+        {{ dark ? '☀️' : '🌙' }}
+
+    </button>
+
+    <div class="card">
+
+        <div class="login-logo">
+
+            <img
+                class="logo-light"
+                src="/logo-light.png"
+                alt="Logo Biblioteca">
+
+            <img
+                class="logo-dark"
+                src="/logo-dark.png"
+                alt="Logo Biblioteca">
+
+        </div>
+
+        <h1>UNIST-K</h1>
+
+        <p>
+            Sistema de Gestión Bibliotecaria | UNISTMO
+        </p>
+
+        <div class="roles">
+
+            <button
+                [class.active]="role === 'alumno'"
+                (click)="role = 'alumno'">
+                Alumno
+            </button>
+
+            <button
+                [class.active]="role === 'profesor'"
+                (click)="role = 'profesor'">
+                Profesor
+            </button>
+
+            <button
+                [class.active]="role === 'bibliotecario'"
+                (click)="role = 'bibliotecario'">
+                Bibliotecario
+            </button>
+
+        </div>
+
+        <label>
+            {{ role === 'alumno' ? 'Matrícula' : 'Número de Control' }}
+        </label>
+
+        <input
+            type="text"
+            [(ngModel)]="matricula"
+            [placeholder]="
+                role === 'alumno'
+                ? 'Ingrese su matrícula'
+                : 'Ingrese su número de control'
+            ">
+
+        <label>Contraseña</label>
+
+        <input
+            type="password"
+            [(ngModel)]="password"
+            placeholder="Ingrese su contraseña">
+
+        <button
+            class="login-btn"
+            (click)="login()">
+            Iniciar Sesión
+        </button>
+
+        <p
+            class="help-text"
+            *ngIf="role !== 'bibliotecario'">
+            Si tienes problemas para acceder, consulta con el bibliotecario.
+        </p>
+
+    </div>
+
+</div>

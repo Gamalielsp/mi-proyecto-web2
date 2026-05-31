@@ -1,0 +1,85 @@
+<nav class="mobile-nav">
+
+    <!-- MENÚ ALUMNO / PROFESOR -->
+
+    <ng-container *ngIf="!isLibrarian">
+
+        <a
+            routerLink="/dashboard"
+            routerLinkActive="active">
+            📚
+            <span>Catálogo</span>
+        </a>
+
+        <a
+            routerLink="/my-books"
+            routerLinkActive="active">
+            📖
+            <span>Mis Libros</span>
+        </a>
+
+        <a
+            routerLink="/profile"
+            routerLinkActive="active">
+            👤
+            <span>Mi Perfil</span>
+        </a>
+
+    </ng-container>
+
+    <!-- MENÚ BIBLIOTECARIO -->
+
+    <ng-container *ngIf="isLibrarian">
+
+        <a
+            routerLink="/librarian-dashboard"
+            routerLinkActive="active">
+            🏠
+            <span>Panel</span>
+        </a>
+
+        <a
+            routerLink="/reservations"
+            routerLinkActive="active">
+            🎟️
+            <span>Reservas</span>
+        </a>
+
+        <a
+            routerLink="/inventory"
+            routerLinkActive="active">
+            📦
+            <span>Inventario</span>
+        </a>
+
+        <a
+            routerLink="/alerts"
+            routerLinkActive="active">
+            ⚠️
+            <span>Alertas</span>
+        </a>
+
+        <a
+            routerLink="/returns"
+            routerLinkActive="active">
+            ↩️
+            <span>Devoluciones</span>
+        </a>
+
+        <a
+            routerLink="/waitlists"
+            routerLinkActive="active">
+            📋
+            <span>Espera</span>
+        </a>
+
+    </ng-container>
+
+    <!-- SALIR -->
+
+    <a (click)="logout()">
+        🚪
+        <span>Salir</span>
+    </a>
+
+</nav>

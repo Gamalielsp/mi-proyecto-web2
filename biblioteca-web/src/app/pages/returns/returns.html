@@ -1,0 +1,112 @@
+<div class="container">
+
+    <section class="hero">
+
+        <p class="eyebrow">Bibliotecario</p>
+
+        <h1>Devoluciones Pendientes</h1>
+
+        <p class="subtitle">
+            Valida físicamente los libros entregados por los usuarios antes de cerrar el préstamo.
+        </p>
+
+    </section>
+
+    <div
+        class="empty-state"
+        *ngIf="pendingReturns.length === 0">
+
+        <div>✅</div>
+
+        <h2>No hay devoluciones pendientes</h2>
+
+        <p>
+            Cuando un alumno o profesor solicite una devolución, aparecerá aquí.
+        </p>
+
+    </div>
+
+    <div class="returns-list">
+
+        <div
+            class="return-card"
+            *ngFor="let loan of pendingReturns">
+
+            <div class="card-header">
+
+                <div class="book-icon">
+                    ↩️
+                </div>
+
+                <div>
+                    <span class="status-badge">
+                        Pendiente de recepción
+                    </span>
+
+                    <h3>{{ loan.bookTitle }}</h3>
+
+                    <p>{{ loan.author }}</p>
+                </div>
+
+            </div>
+
+            <div class="details-grid">
+
+                <div class="detail">
+                    <span>Usuario</span>
+                    <strong>{{ loan.studentName }}</strong>
+                </div>
+
+                <div class="detail">
+                    <span>Matrícula / Control</span>
+                    <strong>{{ loan.matricula }}</strong>
+                </div>
+
+                <div class="detail">
+                    <span>Rol</span>
+                    <strong>{{ loan.userRole }}</strong>
+                </div>
+
+                <div class="detail">
+                    <span>Folio préstamo</span>
+                    <strong>{{ loan.folio }}</strong>
+                </div>
+
+                <div class="detail">
+                    <span>Fecha solicitud</span>
+                    <strong>{{ loan.returnRequestDate }}</strong>
+                </div>
+
+                <div
+                    class="detail fine"
+                    *ngIf="loan.fineAmount && loan.fineAmount > 0">
+
+                    <span>Multa pendiente</span>
+                    <strong>${{ loan.fineAmount }}</strong>
+
+                </div>
+
+            </div>
+
+            <div class="notice">
+
+                <strong>Validación requerida:</strong>
+                confirma la recepción sólo cuando el libro haya sido entregado físicamente.
+
+            </div>
+
+            <button
+                class="confirm-btn"
+                (click)="confirmReturn(loan)">
+
+                ✓ Confirmar recepción
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<app-mobile-nav></app-mobile-nav>

@@ -1,0 +1,76 @@
+.app-logo-row {
+  display: none;
+}
+
+.app-corner-logo {
+  width: 54px;
+  height: 54px;
+  border-radius: 17px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
+}
+
+.app-corner-logo img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.logo-dark {
+  display: none;
+}
+
+:host-context(.dark) .logo-light {
+  display: none;
+}
+
+:host-context(.dark) .logo-dark {
+  display: block;
+}
+
+/* ===== ESCRITORIO ===== */
+
+@media (min-width: 1201px) {
+
+  .app-logo-row {
+    display: block;
+
+    position: fixed;
+    top: 20px;
+    left: 20px;
+
+    z-index: 3000;
+  }
+
+}
+
+/* ===== TABLETS Y MÓVILES ===== */
+
+@media (max-width: 1200px) {
+
+  .app-logo-row {
+    display: block;
+
+    max-width: 1100px;
+
+    margin: 12px auto 10px;
+
+    padding: 0 18px;
+  }
+
+  .app-corner-logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 15px;
+  }
+
+  .app-corner-logo img {
+    width: 30px;
+    height: 30px;
+  }
+
+}

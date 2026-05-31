@@ -1,0 +1,133 @@
+.mobile-nav {
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: fit-content;
+  max-width: 94%;
+
+  min-height: 70px;
+
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #e5e7eb;
+  border-radius: 24px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+
+  z-index: 1000;
+
+  box-shadow: 0 14px 38px rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(18px);
+
+  padding: 8px 18px;
+}
+
+:host-context(.dark) .mobile-nav {
+  background: rgba(17, 24, 39, 0.96);
+  border-color: #374151;
+}
+
+.mobile-nav a {
+  width: 76px;
+  min-width: 76px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 4px;
+
+  text-decoration: none;
+  color: #6b7280;
+
+  font-size: 10px;
+  font-weight: 750;
+
+  padding: 8px 6px;
+  border-radius: 15px;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.mobile-nav a span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+:host-context(.dark) .mobile-nav a {
+  color: #9ca3af;
+}
+
+.mobile-nav a.active {
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+:host-context(.dark) .mobile-nav a.active {
+  color: #60a5fa;
+  background: #1e3a8a;
+}
+
+.mobile-nav a:hover {
+  background: rgba(37, 99, 235, 0.1);
+}
+
+/* Tablets */
+@media (max-width: 900px) {
+  .mobile-nav {
+    max-width: 94%;
+    gap: 8px;
+    padding: 8px 14px;
+  }
+
+  .mobile-nav a {
+    width: 70px;
+    min-width: 70px;
+  }
+}
+
+/* Celulares */
+@media (max-width: 600px) {
+  .mobile-nav {
+    width: 94%;
+    max-width: 94%;
+    min-height: 64px;
+
+    justify-content: center;
+    gap: 6px;
+
+    padding: 6px 8px;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .mobile-nav a {
+    width: 62px;
+    min-width: 62px;
+
+    font-size: 9px;
+    padding: 6px 3px;
+  }
+}
+
+/* Celulares muy pequeños */
+@media (max-width: 380px) {
+  .mobile-nav {
+    justify-content: flex-start;
+  }
+
+  .mobile-nav a {
+    width: 64px;
+    min-width: 64px;
+  }
+}

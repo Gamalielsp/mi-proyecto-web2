@@ -1,0 +1,197 @@
+<div class="container">
+
+  <section class="hero">
+
+    <p class="eyebrow">Bibliotecario</p>
+
+    <h1>Centro de Alertas</h1>
+
+    <p class="subtitle">
+      Monitorea préstamos vencidos, multas, devoluciones pendientes, libros agotados y listas de espera.
+    </p>
+
+  </section>
+
+  <section class="summary-grid">
+
+    <div class="summary-card danger">
+      <span>⚠️</span>
+      <h2>{{ overdueLoans.length }}</h2>
+      <p>Préstamos vencidos</p>
+    </div>
+
+    <div class="summary-card money">
+      <span>💰</span>
+      <h2>${{ totalFines }}</h2>
+      <p>Multas acumuladas</p>
+    </div>
+
+    <div class="summary-card blue">
+      <span>↩️</span>
+      <h2>{{ pendingReturns.length }}</h2>
+      <p>Devoluciones pendientes</p>
+    </div>
+
+    <div class="summary-card orange">
+      <span>📚</span>
+      <h2>{{ exhaustedBooks.length }}</h2>
+      <p>Libros agotados</p>
+    </div>
+
+    <div class="summary-card purple">
+      <span>📋</span>
+      <h2>{{ waitlistEntries.length }}</h2>
+      <p>Usuarios en espera</p>
+    </div>
+
+  </section>
+
+  <div
+    class="empty-state"
+    *ngIf="totalAlerts === 0">
+
+    <div>✅</div>
+
+    <h2>No hay alertas activas</h2>
+
+    <p>
+      El sistema no tiene préstamos vencidos, devoluciones pendientes ni listas de espera activas.
+    </p>
+
+  </div>
+
+  <section
+    class="alert-section"
+    *ngIf="overdueLoans.length > 0">
+
+    <h2>⚠️ Préstamos vencidos</h2>
+
+    <div
+      class="alert-card overdue"
+      *ngFor="let loan of overdueLoans">
+
+      <div>
+        <span class="status-badge danger-badge">
+          {{ loan.daysOverdue }} día{{ loan.daysOverdue === 1 ? '' : 's' }} de retraso
+        </span>
+
+        <h3>{{ loan.bookTitle }}</h3>
+
+        <p>
+          {{ loan.studentName }}
+          —
+          {{ loan.matricula }}
+        </p>
+
+        <p>
+          Vencimiento:
+          {{ loan.dueDate }}
+        </p>
+      </div>
+
+      <div class="fine-box">
+        <span>Multa</span>
+        <strong>${{ loan.fineAmount }}</strong>
+      </div>
+
+    </div>
+
+  </section>
+
+  <section
+    class="alert-section"
+    *ngIf="pendingReturns.length > 0">
+
+    <h2>↩️ Devoluciones pendientes</h2>
+
+    <div
+      class="alert-card return"
+      *ngFor="let loan of pendingReturns">
+
+      <div>
+        <span class="status-badge blue-badge">
+          Pendiente de recepción
+        </span>
+
+        <h3>{{ loan.bookTitle }}</h3>
+
+        <p>
+          {{ loan.studentName }}
+          —
+          {{ loan.matricula }}
+        </p>
+
+        <p>
+          Folio préstamo:
+          {{ loan.folio }}
+        </p>
+      </div>
+
+    </div>
+
+  </section>
+
+  <section
+    class="alert-section"
+    *ngIf="exhaustedBooks.length > 0">
+
+    <h2>📚 Libros agotados</h2>
+
+    <div
+      class="alert-card stock"
+      *ngFor="let book of exhaustedBooks">
+
+      <div>
+        <span class="status-badge orange-badge">
+          Sin stock
+        </span>
+
+        <h3>{{ book.title }}</h3>
+
+        <p>
+          {{ book.author }}
+          —
+          {{ book.career }}
+        </p>
+      </div>
+
+    </div>
+
+  </section>
+
+  <section
+    class="alert-section"
+    *ngIf="waitlistEntries.length > 0">
+
+    <h2>📋 Usuarios en lista de espera</h2>
+
+    <div
+      class="alert-card waitlist"
+      *ngFor="let entry of waitlistEntries">
+
+      <div>
+        <span class="status-badge purple-badge">
+          Posición #{{ entry.position }}
+        </span>
+
+        <h3>{{ entry.bookTitle }}</h3>
+
+        <p>
+          {{ entry.studentName }}
+          —
+          {{ entry.matricula }}
+        </p>
+
+        <p>
+          Fecha:
+          {{ entry.requestDate }}
+        </p>
+      </div>
+
+    </div>
+
+  </section>
+
+</div>
+
+<app-mobile-nav></app-mobile-nav>

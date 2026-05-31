@@ -1,0 +1,238 @@
+<div class="container">
+
+    <h1>Mis Libros</h1>
+
+    <!-- SOLICITUDES DE RESERVA -->
+
+    <section>
+
+        <h2>Mis Solicitudes de Reserva</h2>
+
+        <p *ngIf="reservations.length === 0">
+            No tienes solicitudes de reserva registradas.
+        </p>
+
+        <div
+            class="card reservation-card"
+            *ngFor="let reservation of reservations"
+            [class.reservation-pending]="reservation.status === 'pendiente'"
+            [class.reservation-delivered]="reservation.status === 'entregado'"
+            [class.reservation-expired]="reservation.status === 'expirada'"
+            [class.reservation-cancelled]="reservation.status === 'cancelada'">
+
+            <div class="status-row">
+
+                <span
+                    class="reservation-status"
+                    [class.status-pending]="reservation.status === 'pendiente'"
+                    [class.status-delivered]="reservation.status === 'entregado'"
+                    [class.status-expired]="reservation.status === 'expirada'"
+                    [class.status-cancelled]="reservation.status === 'cancelada'">
+
+                    {{ getReservationStatusText(reservation.status) }}
+
+                </span>
+
+            </div>
+
+            <h3>{{ reservation.bookTitle }}</h3>
+
+            <p>{{ reservation.author }}</p>
+
+            <p class="folio">
+                Folio de reserva:
+                {{ reservation.folio }}
+            </p>
+
+            <p>
+                Fecha de solicitud:
+                {{ reservation.requestDate }}
+            </p>
+
+            <p>
+                Hora de solicitud:
+                {{ reservation.requestTime }}
+            </p>
+
+            <p *ngIf="reservation.status === 'pendiente'">
+                Expira:
+                {{ getExpirationTime(reservation) }}
+            </p>
+
+            <div class="reservation-message">
+                {{ getReservationMessage(reservation) }}
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- PRÉSTAMOS ACTIVOS -->
+
+    <section>
+
+        <h2>Préstamos Activos</h2>
+
+        <p *ngIf="loans.length === 0">
+            No tienes préstamos activos.
+        </p>
+
+        <div
+            class="card"
+            *ngFor="let loan of loans"
+            [class.overdue-card]="loan.status === 'vencido'">
+
+            <h3>{{ loan.bookTitle }}</h3>
+
+            <p>{{ loan.author }}</p>
+
+            <p>
+                Vence:
+                {{ loan.dueDate }}
+            </p>
+
+            <p *ngIf="loan.status !== 'vencido'">
+                Días restantes:
+                {{ loan.daysLeft }}
+            </p>
+
+            <div
+                class="overdue-box"
+                *ngIf="loan.status === 'vencido'">
+
+                <p>
+                    ⚠️ Préstamo vencido
+                </p>
+
+                <p>
+                    Días de retraso:
+                    {{ loan.daysOverdue }}
+                </p>
+
+                <p>
+                    Multa:
+                    ${{ loan.fineAmount }}
+                </p>
+
+                <p>
+                    No podrás solicitar nuevos libros hasta resolver este atraso.
+                </p>
+
+            </div>
+
+            <p *ngIf="loan.renewed">
+                ✅ Renovación utilizada
+            </p>
+
+            <p
+                *ngIf="loan.status === 'devolucion_pendiente'"
+                class="pending">
+
+                Pendiente de entrega en biblioteca
+
+            </p>
+
+            <p
+                *ngIf="loan.returnFolio"
+                class="folio">
+
+                Folio de devolución:
+                {{ loan.returnFolio }}
+
+            </p>
+
+            <div
+                class="actions"
+                *ngIf="
+                  loan.status === 'activo' ||
+                  loan.status === 'vencido'
+                ">
+
+                <button
+                    class="renew-btn"
+                    *ngIf="
+                      loan.status === 'activo' &&
+                      !loan.renewed
+                    "
+                    (click)="renewLoan(loan)">
+
+                    ⟳ Renovar (+1 día)
+
+                </button>
+
+                <button
+                    class="return-btn"
+                    (click)="requestReturn(loan)">
+
+                    ✓ Solicitar devolución
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- MIS FOLIOS -->
+
+    <section>
+
+        <h2>Mis Folios</h2>
+
+        <div
+            class="card"
+            *ngFor="let folio of folios">
+
+            <h3>{{ folio.folio }}</h3>
+
+            <p>{{ folio.book }}</p>
+
+            <p>{{ folio.date }}</p>
+
+            <p>{{ folio.status }}</p>
+
+        </div>
+
+    </section>
+
+    <!-- HISTORIAL -->
+
+    <section>
+
+        <h2>Historial</h2>
+
+        <p *ngIf="history.length === 0">
+            Aún no tienes devoluciones registradas.
+        </p>
+
+        <div
+            class="card"
+            *ngFor="let item of history">
+
+            <h3>{{ item.bookTitle }}</h3>
+
+            <p>{{ item.author }}</p>
+
+            <p>
+                Devuelto:
+                {{ item.returnDate }}
+            </p>
+
+            <p *ngIf="item.returnFolio">
+                Folio:
+                {{ item.returnFolio }}
+            </p>
+
+            <p *ngIf="item.fineAmount && item.fineAmount > 0">
+                Multa registrada:
+                ${{ item.fineAmount }}
+            </p>
+
+        </div>
+
+    </section>
+
+</div>
+
+<app-mobile-nav></app-mobile-nav>

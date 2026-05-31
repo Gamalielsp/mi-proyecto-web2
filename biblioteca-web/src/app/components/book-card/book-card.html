@@ -1,0 +1,84 @@
+<div class="card">
+
+    <img
+        [src]="book.cover"
+        [alt]="book.title">
+
+    <div class="content">
+
+        <h3>{{ book.title }}</h3>
+
+        <p>{{ book.author }}</p>
+
+        <span class="career">
+            {{ book.career }}
+        </span>
+
+        <p
+            class="stock"
+            [class.available]="available"
+            [class.unavailable]="!available">
+
+            {{
+                available
+                ? book.stock + ' disponibles'
+                : 'Sin stock'
+            }}
+
+        </p>
+
+        <button
+            *ngIf="available"
+            (click)="reserveBook()">
+
+            Reservar
+
+        </button>
+
+        <button
+            *ngIf="!available"
+            (click)="joinWaitlist()">
+
+            Lista de Espera
+
+        </button>
+
+        <div
+            class="waitlist"
+            *ngIf="waitlistMessage">
+
+            <p>
+                {{ waitlistMessage }}
+            </p>
+
+            <ng-container *ngIf="waitlistEntry">
+
+                <p>
+                    Libro:
+                    <strong>{{ waitlistEntry.bookTitle }}</strong>
+                </p>
+
+                <p>
+                    Lugar asignado:
+                    <strong>#{{ waitlistEntry.position }}</strong>
+                </p>
+
+                <p>
+                    Fecha:
+                    {{ waitlistEntry.requestDate }}
+                </p>
+
+            </ng-container>
+
+            <button
+                (click)="closeWaitlist()">
+
+                Entendido
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>

@@ -1,0 +1,88 @@
+<div class="dashboard">
+
+    <section class="hero">
+
+        <div>
+            <p class="eyebrow">Biblioteca Universitaria</p>
+
+            <h1>Catálogo de Libros</h1>
+
+            <p class="subtitle">
+                Busca, filtra y reserva libros disponibles para préstamo.
+            </p>
+        </div>
+
+    </section>
+
+    <section class="filters">
+
+        <div class="search-box">
+            <span>🔎</span>
+
+            <input
+                type="text"
+                [(ngModel)]="search"
+                placeholder="Buscar por título o autor">
+        </div>
+
+        <div class="select-box">
+            <span>🎓</span>
+
+            <select [(ngModel)]="career">
+
+                <option
+                    *ngFor="let c of careers"
+                    [value]="c">
+
+                    {{ c }}
+
+                </option>
+
+            </select>
+        </div>
+
+    </section>
+
+    <section class="results-info">
+
+        <p>
+            {{ filteredBooks.length }}
+            libro{{ filteredBooks.length === 1 ? '' : 's' }}
+            encontrado{{ filteredBooks.length === 1 ? '' : 's' }}
+        </p>
+
+    </section>
+
+    <div
+        class="empty-state"
+        *ngIf="filteredBooks.length === 0">
+
+        <div>📭</div>
+
+        <h2>No se encontraron libros</h2>
+
+        <p>
+            Intenta cambiar el texto de búsqueda o seleccionar otra carrera.
+        </p>
+
+    </div>
+
+    <div class="books">
+
+        <app-book-card
+            *ngFor="let book of filteredBooks"
+            [book]="book"
+            (reserve)="reserveBook($event)">
+        </app-book-card>
+
+    </div>
+
+</div>
+
+<app-folio-popup
+    [open]="showFolio"
+    [book]="selectedBook"
+    (close)="closeFolio()">
+</app-folio-popup>
+
+<app-mobile-nav></app-mobile-nav>
