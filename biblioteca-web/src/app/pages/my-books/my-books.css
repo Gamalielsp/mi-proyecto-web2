@@ -1,3 +1,117 @@
+.page-header {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  padding: 28px;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+  margin-bottom: 22px;
+}
+
+.eyebrow {
+  color: var(--primary);
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: var(--muted);
+  margin-bottom: 0;
+}
+
+.section-tabs {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+
+  padding: 10px;
+  margin-bottom: 28px;
+
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  scrollbar-width: none;
+}
+
+.section-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.section-tabs button {
+  flex: 0 0 auto;
+
+  min-width: 150px;
+
+  border: none;
+  border-radius: 16px;
+
+  padding: 13px 16px;
+
+  background: transparent;
+  color: var(--muted);
+
+  cursor: pointer;
+  font-weight: 850;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  gap: 8px;
+
+  white-space: nowrap;
+
+  transition: all 0.2s ease;
+}
+
+.section-tabs button span {
+  background: var(--primary-soft);
+  color: var(--primary);
+
+  min-width: 24px;
+  width: 24px;
+  height: 24px;
+
+  border-radius: 999px;
+
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  flex-shrink: 0;
+}
+
+.section-tabs button.active {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.25);
+}
+
+.section-tabs button.active span {
+  background: rgba(255, 255, 255, 0.22);
+  color: white;
+}
+
+.empty-message {
+  color: var(--muted);
+  background: var(--card);
+  border: 1px dashed var(--border);
+  border-radius: 18px;
+  padding: 20px;
+}
+
 .container {
   max-width: 1000px;
   margin: auto;
@@ -218,6 +332,17 @@ h3 {
     font-size: 20px;
   }
 
+  .section-tabs {
+    justify-content: center;
+    padding: 8px;
+  }
+
+  .section-tabs button {
+    min-width: 145px;
+    font-size: 12px;
+    padding: 12px 12px;
+  }
+
   .actions {
     flex-direction: column;
   }
@@ -225,5 +350,16 @@ h3 {
   .renew-btn,
   .return-btn {
     width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .section-tabs {
+    justify-content: flex-start;
+  }
+
+  .section-tabs button {
+    min-width: 170px;
+    font-size: 12px;
   }
 }

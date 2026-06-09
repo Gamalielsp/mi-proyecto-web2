@@ -1,0 +1,207 @@
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px 20px 150px !important;
+}
+
+.hero {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  padding: 28px;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+  margin-bottom: 24px;
+}
+
+.eyebrow {
+  color: var(--primary);
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+h1 {
+  font-size: 40px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -1.3px;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  color: var(--muted);
+  margin-bottom: 0;
+}
+
+.loans-list {
+  display: grid;
+  gap: 16px;
+}
+
+.loan-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 22px;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+}
+
+.loan-card.overdue {
+  border-color: rgba(220, 38, 38, 0.45);
+}
+
+.loan-card.pending-return {
+  border-color: rgba(245, 158, 11, 0.45);
+}
+
+.card-header {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.loan-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+  background: var(--primary-soft);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.status-badge {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.active-badge {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.overdue-badge {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.pending-badge {
+  background: #fffbeb;
+  color: #92400e;
+}
+
+h3 {
+  font-size: 24px;
+  font-weight: 850;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.card-header p {
+  color: var(--muted);
+  margin-bottom: 0;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.detail {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+  min-width: 0;
+}
+
+.detail span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 750;
+  margin-bottom: 5px;
+}
+
+.detail strong {
+  color: var(--text);
+  font-size: 14px;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.fine-detail {
+  border-color: rgba(220, 38, 38, 0.35);
+}
+
+.fine-detail strong {
+  color: #dc2626;
+}
+
+.notice {
+  border-radius: 16px;
+  padding: 14px;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.warning-notice {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.return-notice {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.empty-state {
+  background: var(--card);
+  border: 1px dashed var(--border);
+  border-radius: 24px;
+  padding: 42px 22px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.empty-state div {
+  font-size: 44px;
+  margin-bottom: 12px;
+}
+
+.empty-state h2 {
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+@media (max-width: 720px) {
+  .container {
+    padding: 20px 14px 160px !important;
+  }
+
+  h1 {
+    font-size: 31px;
+  }
+
+  .hero {
+    padding: 22px;
+  }
+
+  .card-header {
+    flex-direction: column;
+  }
+}

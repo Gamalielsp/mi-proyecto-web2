@@ -2,7 +2,6 @@ import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { interval, Subscription } from 'rxjs';
 
-import { FOLIO_HISTORY } from '../../shared/mock-data';
 
 import { Loan } from '../../models/loan.model';
 import { Reservation } from '../../models/reservation.model';
@@ -24,13 +23,19 @@ import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
 })
 export class MyBooks implements OnDestroy {
 
+  activeSection:
+    'reservations' |
+    'loans' |
+    'folios' |
+    'history' = 'reservations';
+
   loans: Loan[] = [];
 
   history: Loan[] = [];
 
   reservations: Reservation[] = [];
 
-  folios = FOLIO_HISTORY;
+  folios: any[] = [];
 
   currentUser = JSON.parse(
     localStorage.getItem('currentUser') || '{}'
@@ -51,6 +56,16 @@ export class MyBooks implements OnDestroy {
 
   ngOnDestroy(): void {
     this.timerSubscription.unsubscribe();
+  }
+
+  changeSection(
+    section:
+      'reservations' |
+      'loans' |
+      'folios' |
+      'history'
+  ): void {
+    this.activeSection = section;
   }
 
   loadData(): void {
@@ -129,4 +144,5 @@ export class MyBooks implements OnDestroy {
       reservation.expiresAt
     ).toLocaleTimeString();
   }
+
 }

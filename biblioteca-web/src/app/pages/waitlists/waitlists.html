@@ -7,7 +7,7 @@
     <h1>Listas de Espera</h1>
 
     <p class="subtitle">
-      Consulta los usuarios que esperan ejemplares de libros actualmente agotados.
+      Consulta los usuarios que esperan ejemplares y el estado de sus solicitudes.
     </p>
 
   </section>
@@ -40,7 +40,7 @@
 
         <div>
           <span class="status-badge">
-            {{ entry.status }}
+            {{ getStatusText(entry.status) }}
           </span>
 
           <h3>{{ entry.bookTitle }}</h3>
@@ -67,13 +67,38 @@
 
         <div class="detail">
           <span>Estado</span>
-          <strong>{{ entry.status }}</strong>
+          <strong>{{ getStatusText(entry.status) }}</strong>
+        </div>
+
+        <div
+          class="detail"
+          *ngIf="entry.status === 'notificado'">
+          <span>Tiempo restante</span>
+          <strong>{{ getMinutesLeft(entry) }} minuto(s)</strong>
         </div>
 
       </div>
 
-      <div class="notice">
+      <div
+        class="notice"
+        *ngIf="entry.status === 'esperando'">
         Este usuario conserva su lugar en la cola hasta que exista disponibilidad del libro.
+      </div>
+
+      <div
+        class="notice"
+        *ngIf="entry.status === 'notificado'">
+        El usuario ya fue notificado. Tiene 60 minutos para confirmar su solicitud de reserva.
+      </div>
+
+      <div
+        class="notice"
+        *ngIf="entry.status === 'reserva_confirmada'">
+        El usuario confirmó la solicitud. Ahora debe aparecer en el panel de Reservas.
+      </div>
+
+      <div class="item-actions">
+
       </div>
 
     </div>

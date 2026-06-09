@@ -40,23 +40,23 @@ export class Profile {
   }
 
   get fullName(): string {
-    return this.user?.name || this.currentUser.name || 'Usuario';
+    return this.currentUser.name || this.user?.name || 'Usuario';
   }
 
   get userRole(): string {
-    return this.user?.role || this.currentUser.role || 'Alumno';
+    return this.currentUser.role || this.user?.role || 'Alumno';
   }
 
   get matricula(): string {
-    return this.user?.matricula || this.currentUser.matricula || 'Sin registro';
+    return this.currentUser.matricula || this.user?.matricula || 'Sin registro';
   }
 
   get career(): string {
-    return this.user?.career || this.currentUser.career || 'Sin carrera';
+    return this.currentUser.career || this.user?.career || 'Sin carrera';
   }
 
   get email(): string {
-    return this.user?.email || this.currentUser.email || 'Sin correo registrado';
+    return this.currentUser.email || this.user?.email || 'Sin correo registrado';
   }
 
   get isStudent(): boolean {

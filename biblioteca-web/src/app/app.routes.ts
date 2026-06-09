@@ -10,6 +10,7 @@ import { Returns } from './pages/returns/returns';
 import { Waitlists } from './pages/waitlists/waitlists';
 import { LibrarianDashboard } from './pages/librarian-dashboard/librarian-dashboard';
 import { Reservations } from './pages/reservations/reservations';
+import { ActiveLoans } from './pages/active-loans/active-loans';
 
 import { authGuard } from './guards/auth-guard';
 import { roleGuard } from './guards/role-guard';
@@ -65,6 +66,15 @@ export const routes: Routes = [
   {
     path: 'reservations',
     component: Reservations,
+    canActivate: [authGuard, roleGuard],
+    data: {
+      roles: ['bibliotecario']
+    }
+  },
+
+  {
+    path: 'active-loans',
+    component: ActiveLoans,
     canActivate: [authGuard, roleGuard],
     data: {
       roles: ['bibliotecario']

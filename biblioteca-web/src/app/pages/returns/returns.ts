@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { Loan } from '../../models/loan.model';
 import { LoanService } from '../../services/loan.service';
 import { BookService } from '../../services/book.service';
+import { WaitlistService } from '../../services/waitlist.service';
 
 import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
 
@@ -23,7 +24,8 @@ export class Returns {
 
   constructor(
     private loanService: LoanService,
-    private bookService: BookService
+    private bookService: BookService,
+    private waitlistService: WaitlistService
   ) {
     this.loadData();
   }
@@ -44,6 +46,10 @@ export class Returns {
 
     this.bookService.increaseStock(
       returnedLoan.bookTitle
+    );
+
+    this.waitlistService.notifyNextUser(
+      returnedLoan.bookId
     );
 
     alert(

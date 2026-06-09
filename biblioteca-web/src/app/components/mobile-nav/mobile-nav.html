@@ -1,6 +1,7 @@
-<nav class="mobile-nav">
-
-    <!-- MENÚ ALUMNO / PROFESOR -->
+<nav
+    #mobileNav
+    class="mobile-nav"
+    [class.many-items]="isLibrarian">
 
     <ng-container *ngIf="!isLibrarian">
 
@@ -22,12 +23,10 @@
             routerLink="/profile"
             routerLinkActive="active">
             👤
-            <span>Mi Perfil</span>
+            <span>Perfil</span>
         </a>
 
     </ng-container>
-
-    <!-- MENÚ BIBLIOTECARIO -->
 
     <ng-container *ngIf="isLibrarian">
 
@@ -43,6 +42,13 @@
             routerLinkActive="active">
             🎟️
             <span>Reservas</span>
+        </a>
+
+        <a
+            routerLink="/active-loans"
+            routerLinkActive="active">
+            📖
+            <span>Préstamos</span>
         </a>
 
         <a
@@ -74,8 +80,6 @@
         </a>
 
     </ng-container>
-
-    <!-- SALIR -->
 
     <a (click)="logout()">
         🚪

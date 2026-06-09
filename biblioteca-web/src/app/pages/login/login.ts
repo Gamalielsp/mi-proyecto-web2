@@ -51,12 +51,18 @@ export class LoginComponent {
   }
 
   login(): void {
-    const user = this.userService.getUserByMatricula(
-      this.matricula.trim()
-    );
+    const identifier = this.matricula.trim();
+    const password = this.password.trim();
+
+    if (!identifier || !password) {
+      alert('Ingresa tu matrícula/correo y contraseña.');
+      return;
+    }
+
+    const user = this.userService.login(identifier, password);
 
     if (!user) {
-      alert('Usuario no encontrado. Verifica tu matrícula o número de control.');
+      alert('Matrícula/correo o contraseña incorrectos.');
       return;
     }
 

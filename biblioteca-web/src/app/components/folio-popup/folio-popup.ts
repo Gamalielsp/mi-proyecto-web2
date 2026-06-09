@@ -3,12 +3,14 @@ import {
   Input,
   Output,
   EventEmitter,
-  OnInit,
-  OnDestroy
+  OnDestroy,
+  OnChanges,
+  SimpleChanges,
+  ChangeDetectorRef,
+  NgZone
 } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
-
 import { Book } from '../../models/book.model';
 
 @Component({
@@ -18,58 +20,75 @@ import { Book } from '../../models/book.model';
   templateUrl: './folio-popup.html',
   styleUrl: './folio-popup.css'
 })
-export class FolioPopupComponent implements OnInit, OnDestroy {
+export class FolioPopupComponent implements OnChanges, OnDestroy {
 
   @Input() open = false;
-
   @Input() book: Book | null = null;
+  @Input() folio = '';
 
-  @Output() close =
-    new EventEmitter<void>();
-
-  folio = 'BIB-284751';
+  @Output() close = new EventEmitter<void>();
 
   seconds = 3600;
+  intervalId: any = null;
 
-  intervalId: any;
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private zone: NgZone
+  ) {}
 
-  ngOnInit() {
-
-    this.intervalId =
-      setInterval(() => {
-
-        if (this.seconds > 0) {
-          this.seconds--;
-        }
-
-      }, 1000);
-
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['open']) {
+      if (this.open) {
+        this.seconds = 3600;
+        this.startTimer();
+      } else {
+        this.stopTimer();
+      }
+    }
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
+    this.stopTimer();
+  }
 
-    clearInterval(this.intervalId);
+  startTimer(): void {
+    this.stopTimer();
 
+    this.zone.runOutsideAngular(() => {
+      this.intervalId = setInterval(() => {
+        this.zone.run(() => {
+          if (this.seconds > 0) {
+            this.seconds--;
+            this.cdr.detectChanges();
+          } else {
+            this.stopTimer();
+          }
+        });
+      }, 1000);
+    });
+  }
+
+  stopTimer(): void {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
   }
 
   get minutes(): number {
-
-    return Math.floor(
-      this.seconds / 60
-    );
-
+    return Math.floor(this.seconds / 60);
   }
 
   get remainingSeconds(): number {
-
     return this.seconds % 60;
-
   }
 
-  closePopup() {
+  get formattedSeconds(): string {
+    return this.remainingSeconds.toString().padStart(2, '0');
+  }
 
+  closePopup(): void {
+    this.stopTimer();
     this.close.emit();
-
   }
-
 }

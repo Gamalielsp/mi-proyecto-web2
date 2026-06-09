@@ -71,6 +71,8 @@ export class ReservationService {
     matricula: string,
     bookId: number
   ): boolean {
+    this.checkExpiredReservations();
+
     return this.reservations.some(
       reservation =>
         reservation.matricula === matricula &&
@@ -87,6 +89,27 @@ export class ReservationService {
     const currentUser = JSON.parse(
       localStorage.getItem('currentUser') || '{}'
     );
+
+    const alreadyReserved =
+      this.hasPendingReservation(
+        currentUser.matricula,
+        bookId
+      );
+
+    if (alreadyReserved) {
+      throw new Error(
+        'Ya tienes una reserva pendiente para este libro.'
+      );
+    }
+
+    const reserved =
+      this.bookService.reserveBook(bookId);
+
+    if (!reserved) {
+      throw new Error(
+        'No hay ejemplares disponibles para reservar.'
+      );
+    }
 
     const now = new Date();
 
@@ -107,9 +130,14 @@ export class ReservationService {
       bookTitle,
       author,
 
-      studentName: currentUser.name,
-      matricula: currentUser.matricula,
-      userRole: currentUser.role,
+      studentName:
+        currentUser.name || 'Usuario sin nombre',
+
+      matricula:
+        currentUser.matricula || 'SIN-MATRICULA',
+
+      userRole:
+        currentUser.role || 'alumno',
 
       requestDate:
         now.toISOString().split('T')[0],
@@ -179,6 +207,7 @@ export class ReservationService {
     }
 
     const now = new Date().getTime();
+
     const expiresAt =
       new Date(reservation.expiresAt).getTime();
 
@@ -221,5 +250,4 @@ export class ReservationService {
       this.saveReservations();
     }
   }
-
 }

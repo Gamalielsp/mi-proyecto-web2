@@ -6,5 +6,11 @@ export interface WaitlistEntry {
   matricula: string;
   requestDate: string;
   position: number;
-  status: 'esperando' | 'notificado' | 'cancelado';
+  status:
+    | 'esperando'
+    | 'notificado'
+    | 'reserva_confirmada'
+    | 'vencido'
+    | 'cancelado';
+  reservedUntil?: number;
 }

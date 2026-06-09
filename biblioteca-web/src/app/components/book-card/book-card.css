@@ -23,9 +23,12 @@ img {
   width: 120px;
   height: 166px;
   object-fit: cover;
+  object-position: center center;
   border-radius: 18px;
   background: #e5e7eb;
   box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+  display: block;
+  overflow: hidden;
 }
 
 .content {
@@ -88,8 +91,18 @@ button:hover {
   filter: brightness(0.93);
 }
 
-button[ng-reflect-ng-if="false"] {
-  display: none;
+.disabled-btn {
+  background: #9ca3af !important;
+  color: white !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+  opacity: 0.85;
+}
+
+.disabled-btn:hover {
+  filter: none !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .waitlist {
@@ -119,6 +132,70 @@ button[ng-reflect-ng-if="false"] {
   box-shadow: 0 10px 24px rgba(245, 158, 11, 0.22);
 }
 
+/* TARJETA DISPONIBLE PARA TI */
+
+.reserved-notice {
+  width: 100%;
+  margin-top: 10px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  background: rgba(239, 246, 255, 0.95);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.08);
+}
+
+.notice-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.reserved-notice h4 {
+  margin: 0 0 4px;
+  color: #2563eb;
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.reserved-notice p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.timer-box {
+  text-align: right;
+  min-width: 92px;
+}
+
+.timer-box span {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 3px;
+}
+
+.timer {
+  display: block;
+  font-size: 26px;
+  font-weight: 950;
+  color: #2563eb;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.confirm-btn {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #16a34a, #22c55e) !important;
+  box-shadow: 0 8px 18px rgba(34, 197, 94, 0.22) !important;
+}
+
+/* RESPONSIVE */
+
 @media (max-width: 640px) {
   .card {
     grid-template-columns: 92px 1fr;
@@ -130,7 +207,11 @@ button[ng-reflect-ng-if="false"] {
   img {
     width: 92px;
     height: 132px;
+    object-fit: cover;
+    object-position: center center;
     border-radius: 14px;
+    display: block;
+    overflow: hidden;
   }
 
   h3 {
@@ -139,5 +220,19 @@ button[ng-reflect-ng-if="false"] {
 
   button {
     width: 100%;
+  }
+
+  .notice-main {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .timer-box {
+    text-align: left;
+    min-width: auto;
+  }
+
+  .timer {
+    font-size: 26px;
   }
 }

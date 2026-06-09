@@ -1,11 +1,8 @@
 .mobile-nav {
   position: fixed;
   bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-
-  width: fit-content;
-  max-width: 94%;
+  left: 12px;
+  right: 12px;
 
   min-height: 70px;
 
@@ -23,7 +20,18 @@
   box-shadow: 0 14px 38px rgba(15, 23, 42, 0.18);
   backdrop-filter: blur(18px);
 
-  padding: 8px 18px;
+  padding: 8px 14px;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  box-sizing: border-box;
+
+  scrollbar-width: none;
+}
+
+.mobile-nav::-webkit-scrollbar {
+  display: none;
 }
 
 :host-context(.dark) .mobile-nav {
@@ -32,6 +40,8 @@
 }
 
 .mobile-nav a {
+  flex: 0 0 auto;
+
   width: 76px;
   min-width: 76px;
 
@@ -53,6 +63,7 @@
 
   cursor: pointer;
   transition: all 0.2s ease;
+
   text-align: center;
 }
 
@@ -77,57 +88,35 @@
   background: #1e3a8a;
 }
 
-.mobile-nav a:hover {
-  background: rgba(37, 99, 235, 0.1);
-}
-
-/* Tablets */
-@media (max-width: 900px) {
+/* TABLET */
+@media (max-width: 1024px) {
   .mobile-nav {
-    max-width: 94%;
+    justify-content: center;
     gap: 8px;
-    padding: 8px 14px;
   }
 
   .mobile-nav a {
-    width: 70px;
-    min-width: 70px;
+    width: 72px;
+    min-width: 72px;
   }
 }
 
-/* Celulares */
+/* CELULAR */
 @media (max-width: 600px) {
   .mobile-nav {
-    width: 94%;
-    max-width: 94%;
     min-height: 64px;
-
-    justify-content: center;
-    gap: 6px;
-
-    padding: 6px 8px;
-
-    overflow-x: auto;
-    overflow-y: hidden;
+    gap: 8px;
+    padding: 6px 10px;
   }
 
-  .mobile-nav a {
-    width: 62px;
-    min-width: 62px;
-
-    font-size: 9px;
-    padding: 6px 3px;
-  }
-}
-
-/* Celulares muy pequeños */
-@media (max-width: 380px) {
-  .mobile-nav {
+  .mobile-nav.many-items {
     justify-content: flex-start;
   }
 
   .mobile-nav a {
-    width: 64px;
-    min-width: 64px;
+    width: 68px;
+    min-width: 68px;
+    font-size: 9px;
+    padding: 6px 3px;
   }
 }

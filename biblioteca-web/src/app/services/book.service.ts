@@ -13,8 +13,9 @@ export class BookService {
       id: 1,
       title: 'Cálculo de una Variable',
       author: 'James Stewart',
-      career: 'Ingeniería',
+      career: 'Ingeniería en Computación',
       stock: 3,
+      libraryStock: 5,
       totalCopies: 5,
       cover: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=200&h=300&fit=crop',
       isbn: '978-607-522-001'
@@ -23,8 +24,9 @@ export class BookService {
       id: 2,
       title: 'Fundamentos de Programación',
       author: 'Luis Joyanes',
-      career: 'Sistemas',
+      career: 'Ingeniería en Computación',
       stock: 0,
+      libraryStock: 2,
       totalCopies: 2,
       cover: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=200&h=300&fit=crop',
       isbn: '978-607-522-002'
@@ -33,8 +35,9 @@ export class BookService {
       id: 3,
       title: 'Química Orgánica',
       author: 'John McMurry',
-      career: 'Química',
+      career: 'Ingeniería Química',
       stock: 5,
+      libraryStock: 7,
       totalCopies: 7,
       cover: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=200&h=300&fit=crop',
       isbn: '978-607-522-003'
@@ -43,8 +46,9 @@ export class BookService {
       id: 4,
       title: 'Resistencia de Materiales',
       author: 'Ferdinand Singer',
-      career: 'Ingeniería',
+      career: 'Ingeniería Industrial',
       stock: 2,
+      libraryStock: 4,
       totalCopies: 4,
       cover: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=200&h=300&fit=crop',
       isbn: '978-607-522-004'
@@ -53,8 +57,9 @@ export class BookService {
       id: 5,
       title: 'Administración Estratégica',
       author: 'Fred R. David',
-      career: 'Administración',
+      career: 'Ingeniería Industrial',
       stock: 1,
+      libraryStock: 3,
       totalCopies: 3,
       cover: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=200&h=300&fit=crop',
       isbn: '978-607-522-005'
@@ -63,8 +68,9 @@ export class BookService {
       id: 6,
       title: 'Ecuaciones Diferenciales',
       author: 'Dennis Zill',
-      career: 'Ingeniería',
+      career: 'Licenciatura en Matemáticas Aplicadas',
       stock: 4,
+      libraryStock: 6,
       totalCopies: 6,
       cover: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=200&h=300&fit=crop',
       isbn: '978-607-522-006'
@@ -73,8 +79,9 @@ export class BookService {
       id: 7,
       title: 'Bases de Datos Relacionales',
       author: 'Abraham Silberschatz',
-      career: 'Sistemas',
+      career: 'Ingeniería en Computación',
       stock: 2,
+      libraryStock: 4,
       totalCopies: 4,
       cover: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=200&h=300&fit=crop',
       isbn: '978-607-522-007'
@@ -83,8 +90,9 @@ export class BookService {
       id: 8,
       title: 'Microeconomía',
       author: 'Michael Parkin',
-      career: 'Administración',
+      career: 'Licenciatura en Matemáticas Aplicadas',
       stock: 0,
+      libraryStock: 2,
       totalCopies: 2,
       cover: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=200&h=300&fit=crop',
       isbn: '978-607-522-008'
@@ -146,6 +154,8 @@ export class BookService {
     }
 
     book.stock = book.stock - 1;
+    book.totalCopies = book.libraryStock || book.totalCopies || book.stock;
+
     this.saveBooks();
 
     return true;
@@ -155,7 +165,13 @@ export class BookService {
     const book = this.books.find(b => b.title === bookTitle);
 
     if (book) {
-      book.stock = book.stock + 1;
+      const maxLibraryStock = book.libraryStock || book.totalCopies || 0;
+
+      if (book.stock < maxLibraryStock) {
+        book.stock = book.stock + 1;
+      }
+
+      book.totalCopies = maxLibraryStock;
       this.saveBooks();
     }
   }

@@ -170,22 +170,80 @@ input:focus {
   box-shadow: 0 12px 28px rgba(37, 99, 235, 0.28);
 }
 
+/* BOTÓN DE TEMA SIN FONDO + ANIMACIÓN ACTUALIZADA */
+
 .theme-btn {
   position: fixed;
   top: 22px;
   right: 22px;
+  width: 48px;
+  height: 48px;
   border: none;
-  background: white;
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
+  background: transparent;
+  box-shadow: none;
   cursor: pointer;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  z-index: 20;
 }
 
-:host-context(.dark) .theme-btn {
-  background: #111827;
-  color: #e5e7eb;
+.theme-btn:hover {
+  transform: none;
+  filter: none;
+  box-shadow: none;
+}
+
+.theme-icon {
+  position: absolute;
+  font-size: 35px;
+  line-height: 1;
+  font-weight: 400;
+  transition:
+    transform 0.45s ease,
+    opacity 0.35s ease;
+}
+
+.sun-icon {
+  color: #111827;
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+.moon-icon {
+  color: #ffffff;
+  opacity: 0;
+  transform: rotate(-180deg) scale(0.4);
+}
+
+.theme-btn.dark-active .sun-icon {
+  opacity: 0;
+  transform: rotate(180deg) scale(0.4);
+}
+
+.theme-btn.dark-active .moon-icon {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+.theme-btn:not(.dark-active):hover .sun-icon {
+  transform: rotate(22deg) scale(1.08);
+}
+
+.theme-btn.dark-active:hover .moon-icon {
+  transform: rotate(22deg) scale(1.08);
+}
+
+.theme-btn:not(.dark-active):hover .moon-icon {
+  transform: rotate(-180deg) scale(0.4);
+  opacity: 0;
+}
+
+.theme-btn.dark-active:hover .sun-icon {
+  transform: rotate(180deg) scale(0.4);
+  opacity: 0;
 }
 
 .help-text {
@@ -208,5 +266,16 @@ input:focus {
 
   .roles {
     flex-direction: column;
+  }
+
+  .theme-btn {
+    top: 16px;
+    right: 16px;
+    width: 42px;
+    height: 42px;
+  }
+
+  .theme-icon {
+    font-size: 31px;
   }
 }

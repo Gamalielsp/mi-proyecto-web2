@@ -1,5 +1,8 @@
 import { Injectable } from '@angular/core';
+
 import { WaitlistEntry } from '../models/waitlist.model';
+import { ReservationService } from './reservation';
+import { LoanService } from './loan.service';
 
 @Injectable({
   providedIn: 'root'
@@ -7,110 +10,170 @@ import { WaitlistEntry } from '../models/waitlist.model';
 export class WaitlistService {
 
   private storageKey = 'waitlist';
-
   private waitlist: WaitlistEntry[] = [];
 
-  constructor() {
-
-    const savedWaitlist = localStorage.getItem(
-      this.storageKey
-    );
+  constructor(
+    private reservationService: ReservationService,
+    private loanService: LoanService
+  ) {
+    const savedWaitlist = localStorage.getItem(this.storageKey);
 
     if (savedWaitlist) {
-
       this.waitlist = JSON.parse(savedWaitlist);
-
     }
 
+    this.cleanInvalidEntries();
   }
 
   private saveWaitlist(): void {
-
     localStorage.setItem(
       this.storageKey,
       JSON.stringify(this.waitlist)
     );
+  }
 
+  private hasBookStock(bookId: number): boolean {
+    const books = JSON.parse(
+      localStorage.getItem('books') || '[]'
+    );
+
+    const book = books.find(
+      (item: any) => item.id === bookId
+    );
+
+    return !!book && Number(book.stock) > 0;
   }
 
   getWaitlist(): WaitlistEntry[] {
-
+    this.cleanInvalidEntries();
     return this.waitlist;
-
   }
 
-  getWaitlistByBook(
+  getUserWaitlistEntry(
+    matricula: string,
     bookId: number
-  ): WaitlistEntry[] {
+  ): WaitlistEntry | null {
+    this.cleanInvalidEntries();
+
+    return this.waitlist.find(entry =>
+      entry.matricula === matricula &&
+      entry.bookId === bookId &&
+      (
+        entry.status === 'esperando' ||
+        (
+          entry.status === 'notificado' &&
+          !!entry.reservedUntil &&
+          Date.now() <= entry.reservedUntil
+        )
+      )
+    ) || null;
+  }
+
+  getUserNotifications(matricula: string): WaitlistEntry[] {
+    this.cleanInvalidEntries();
 
     return this.waitlist.filter(entry =>
-      entry.bookId === bookId
+      entry.matricula === matricula &&
+      entry.status === 'notificado' &&
+      !!entry.reservedUntil &&
+      Date.now() <= entry.reservedUntil
     );
-
   }
 
-  isAlreadyInWaitlist(
+  getActiveNotificationForBook(
+    bookId: number
+  ): WaitlistEntry | null {
+    this.cleanInvalidEntries();
+
+    return this.waitlist.find(entry =>
+      entry.bookId === bookId &&
+      entry.status === 'notificado' &&
+      !!entry.reservedUntil &&
+      Date.now() <= entry.reservedUntil
+    ) || null;
+  }
+
+  isBookLockedByWaitlistForUser(
     bookId: number,
     matricula: string
   ): boolean {
+    const activeNotification =
+      this.getActiveNotificationForBook(bookId);
 
-    return this.waitlist.some(entry =>
-      entry.bookId === bookId &&
-      entry.matricula === matricula &&
-      entry.status === 'esperando'
-    );
+    if (!activeNotification) {
+      return false;
+    }
 
+    return activeNotification.matricula !== matricula;
   }
 
-  getUserPosition(
-    bookId: number,
-    matricula: string
-  ): number | null {
-
-    const entry = this.waitlist.find(item =>
-      item.bookId === bookId &&
-      item.matricula === matricula &&
-      item.status === 'esperando'
-    );
-
-    return entry
-      ? entry.position
-      : null;
-
-  }
-
-  addToWaitlist(
-    bookId: number,
-    bookTitle: string
-  ): {
-    success: boolean;
-    message: string;
-    entry: WaitlistEntry | null;
-  } {
+  addToWaitlist(bookId: number, bookTitle: string) {
+    this.cleanInvalidEntries();
 
     const currentUser = JSON.parse(
       localStorage.getItem('currentUser') || '{}'
     );
 
-    const existingPosition =
-      this.getUserPosition(
-        bookId,
-        currentUser.matricula
+    const hasActiveLoan =
+      this.loanService.hasBookAlready(
+        currentUser.matricula,
+        bookId
       );
 
-    if (existingPosition !== null) {
-
+    if (hasActiveLoan) {
       return {
         success: false,
-        message:
-          `Ya estás en la lista de espera. Tu posición actual es #${existingPosition}.`,
+        message: 'Ya tienes un préstamo activo de este libro. No puedes entrar a la lista de espera del mismo libro.',
         entry: null
       };
-
     }
 
-    const position =
-      this.getWaitlistByBook(bookId).length + 1;
+    const hasPendingReservation =
+      this.reservationService.hasPendingReservation(
+        currentUser.matricula,
+        bookId
+      );
+
+    if (hasPendingReservation) {
+      return {
+        success: false,
+        message: 'Ya tienes una reserva pendiente para este libro. No puedes entrar a la lista de espera del mismo libro.',
+        entry: null
+      };
+    }
+
+    const existingEntry = this.waitlist.find(entry =>
+      entry.bookId === bookId &&
+      entry.matricula === currentUser.matricula &&
+      (
+        entry.status === 'esperando' ||
+        (
+          entry.status === 'notificado' &&
+          !!entry.reservedUntil &&
+          Date.now() <= entry.reservedUntil
+        )
+      )
+    );
+
+    if (existingEntry) {
+      return {
+        success: false,
+        message: `Ya estás en la lista de espera. Tu posición actual es #${existingEntry.position}.`,
+        entry: existingEntry
+      };
+    }
+
+    const position = this.waitlist.filter(entry =>
+      entry.bookId === bookId &&
+      (
+        entry.status === 'esperando' ||
+        (
+          entry.status === 'notificado' &&
+          !!entry.reservedUntil &&
+          Date.now() <= entry.reservedUntil
+        )
+      )
+    ).length + 1;
 
     const entry: WaitlistEntry = {
       id: Date.now(),
@@ -118,87 +181,202 @@ export class WaitlistService {
       bookTitle,
       studentName: currentUser.name,
       matricula: currentUser.matricula,
-      requestDate: new Date()
-        .toISOString()
-        .split('T')[0],
+      requestDate: new Date().toISOString().split('T')[0],
       position,
       status: 'esperando'
     };
 
     this.waitlist.push(entry);
-
     this.saveWaitlist();
 
     return {
       success: true,
-      message:
-        'Te agregaste correctamente a la lista de espera.',
+      message: 'Te agregaste correctamente a la lista de espera.',
       entry
     };
-
   }
 
-  removeEntry(
-    entryId: number
-  ): void {
+  notifyNextUser(bookId: number): void {
+    this.cleanInvalidEntries(false);
 
-    this.waitlist =
-      this.waitlist.filter(entry =>
-        entry.id !== entryId
-      );
+    if (!this.hasBookStock(bookId)) {
+      return;
+    }
 
-    this.recalculatePositions();
+    const alreadyActive = this.waitlist.some(entry =>
+      entry.bookId === bookId &&
+      entry.status === 'notificado' &&
+      !!entry.reservedUntil &&
+      Date.now() <= entry.reservedUntil
+    );
+
+    if (alreadyActive) {
+      return;
+    }
+
+    const nextEntry = this.waitlist
+      .filter(entry =>
+        entry.bookId === bookId &&
+        entry.status === 'esperando'
+      )
+      .sort((a, b) => a.position - b.position)[0];
+
+    if (!nextEntry) {
+      return;
+    }
+
+    nextEntry.status = 'notificado';
+    nextEntry.reservedUntil =
+      Date.now() + (60 * 60 * 1000);
+
     this.saveWaitlist();
-
   }
 
-  markAsNotified(
-    entryId: number
-  ): void {
+  confirmReservation(entryId: number): void {
+    this.cleanInvalidEntries();
 
-    const entry =
-      this.waitlist.find(
-        e => e.id === entryId
-      );
+    const entry = this.waitlist.find(item =>
+      item.id === entryId &&
+      item.status === 'notificado' &&
+      !!item.reservedUntil &&
+      Date.now() <= item.reservedUntil
+    );
 
     if (!entry) {
       return;
     }
 
-    entry.status = 'notificado';
+    this.waitlist = this.waitlist.filter(item =>
+      item.id !== entryId
+    );
 
+    this.recalculatePositions();
+    this.saveWaitlist();
+  }
+
+  completeReservationByBookAndMatricula(
+    bookId: number,
+    matricula: string
+  ): void {
+    this.cleanInvalidEntries();
+
+    this.waitlist = this.waitlist.filter(item =>
+      !(
+        item.bookId === bookId &&
+        item.matricula === matricula
+      )
+    );
+
+    this.recalculatePositions();
+    this.saveWaitlist();
+  }
+
+  removeEntry(entryId: number): void {
+    this.cleanInvalidEntries();
+
+    const entry =
+      this.waitlist.find(item => item.id === entryId);
+
+    const bookId = entry?.bookId;
+
+    this.waitlist = this.waitlist.filter(item =>
+      item.id !== entryId
+    );
+
+    this.recalculatePositions();
     this.saveWaitlist();
 
+    if (bookId) {
+      this.notifyNextUser(bookId);
+    }
+  }
+
+  getMinutesLeft(entry: WaitlistEntry): number {
+    if (!entry.reservedUntil) {
+      return 0;
+    }
+
+    const diff = entry.reservedUntil - Date.now();
+
+    if (diff <= 0) {
+      return 0;
+    }
+
+    return Math.ceil(diff / 60000);
+  }
+
+  cleanExpiredNotifications(): void {
+    this.cleanInvalidEntries();
+  }
+
+  private cleanInvalidEntries(
+    notifyAfterClean: boolean = true
+  ): void {
+    const now = Date.now();
+
+    const expiredBookIds = this.waitlist
+      .filter(entry =>
+        entry.status === 'notificado' &&
+        (
+          !entry.reservedUntil ||
+          now > entry.reservedUntil
+        )
+      )
+      .map(entry => entry.bookId);
+
+    const before = this.waitlist.length;
+
+    this.waitlist = this.waitlist.filter(entry => {
+      if (
+        entry.status === 'notificado' &&
+        (
+          !entry.reservedUntil ||
+          now > entry.reservedUntil
+        )
+      ) {
+        return false;
+      }
+
+      if (
+        entry.status === 'reserva_confirmada' ||
+        entry.status === 'vencido' ||
+        entry.status === 'cancelado'
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+
+    if (this.waitlist.length !== before) {
+      this.recalculatePositions();
+      this.saveWaitlist();
+
+      if (notifyAfterClean) {
+        const uniqueBookIds = [
+          ...new Set(expiredBookIds)
+        ];
+
+        uniqueBookIds.forEach(bookId => {
+          this.notifyNextUser(bookId);
+        });
+      }
+    }
   }
 
   private recalculatePositions(): void {
+    const bookIds = [
+      ...new Set(this.waitlist.map(entry => entry.bookId))
+    ];
 
-    const groupedBooks =
-      [...new Set(
-        this.waitlist.map(
-          item => item.bookId
-        )
-      )];
-
-    groupedBooks.forEach(bookId => {
-
-      const entries =
-        this.waitlist
-          .filter(item =>
-            item.bookId === bookId
-          )
-          .sort((a, b) =>
-            a.position - b.position
-          );
+    bookIds.forEach(bookId => {
+      const entries = this.waitlist
+        .filter(entry => entry.bookId === bookId)
+        .sort((a, b) => a.position - b.position);
 
       entries.forEach((entry, index) => {
-
         entry.position = index + 1;
-
       });
-
     });
-
   }
-
 }

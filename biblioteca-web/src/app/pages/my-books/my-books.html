@@ -1,14 +1,74 @@
 <div class="container">
 
-    <h1>Mis Libros</h1>
+    <header class="page-header">
+
+        <div>
+            <p class="eyebrow">Mi cuenta</p>
+
+            <h1>Mis Libros</h1>
+
+            <p class="subtitle">
+                Consulta tus reservas, préstamos activos, folios e historial.
+            </p>
+        </div>
+
+    </header>
+
+    <!-- MENÚ DE SECCIONES -->
+
+    <nav class="section-tabs">
+
+        <button
+            [class.active]="activeSection === 'reservations'"
+            (click)="changeSection('reservations')">
+
+            Solicitudes de Reserva
+
+            <span>{{ reservations.length }}</span>
+
+        </button>
+
+        <button
+            [class.active]="activeSection === 'loans'"
+            (click)="changeSection('loans')">
+
+            Préstamos Activos
+
+            <span>{{ loans.length }}</span>
+
+        </button>
+
+        <button
+            [class.active]="activeSection === 'folios'"
+            (click)="changeSection('folios')">
+
+            Mis Folios
+
+            <span>{{ folios.length }}</span>
+
+        </button>
+
+        <button
+            [class.active]="activeSection === 'history'"
+            (click)="changeSection('history')">
+
+            Historial
+
+            <span>{{ history.length }}</span>
+
+        </button>
+
+    </nav>
 
     <!-- SOLICITUDES DE RESERVA -->
 
-    <section>
+    <section *ngIf="activeSection === 'reservations'">
 
         <h2>Mis Solicitudes de Reserva</h2>
 
-        <p *ngIf="reservations.length === 0">
+        <p
+            class="empty-message"
+            *ngIf="reservations.length === 0">
             No tienes solicitudes de reserva registradas.
         </p>
 
@@ -69,11 +129,13 @@
 
     <!-- PRÉSTAMOS ACTIVOS -->
 
-    <section>
+    <section *ngIf="activeSection === 'loans'">
 
         <h2>Préstamos Activos</h2>
 
-        <p *ngIf="loans.length === 0">
+        <p
+            class="empty-message"
+            *ngIf="loans.length === 0">
             No tienes préstamos activos.
         </p>
 
@@ -176,9 +238,15 @@
 
     <!-- MIS FOLIOS -->
 
-    <section>
+    <section *ngIf="activeSection === 'folios'">
 
         <h2>Mis Folios</h2>
+
+        <p
+            class="empty-message"
+            *ngIf="folios.length === 0">
+            No tienes folios registrados.
+        </p>
 
         <div
             class="card"
@@ -198,11 +266,13 @@
 
     <!-- HISTORIAL -->
 
-    <section>
+    <section *ngIf="activeSection === 'history'">
 
         <h2>Historial</h2>
 
-        <p *ngIf="history.length === 0">
+        <p
+            class="empty-message"
+            *ngIf="history.length === 0">
             Aún no tienes devoluciones registradas.
         </p>
 

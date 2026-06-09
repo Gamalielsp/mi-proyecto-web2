@@ -78,12 +78,17 @@
             •
             {{ book.career }}
             •
-            {{ book.totalCopies }} copias
+            {{ book.libraryStock || book.totalCopies || 0 }} ejemplares en biblioteca
           </p>
 
           <p>
             ISBN:
             {{ book.isbn }}
+          </p>
+
+          <p>
+            Para préstamo: {{ book.stock }} |
+            En biblioteca: {{ book.libraryStock || book.totalCopies || 0 }}
           </p>
         </div>
 
@@ -94,7 +99,7 @@
         <span
           class="badge available"
           *ngIf="book.stock > 0">
-          {{ book.stock }} disponibles
+          {{ book.stock }} para préstamo
         </span>
 
         <span
@@ -137,7 +142,7 @@
 
       <button
         class="primary-action"
-        (click)="showUserModal = true">
+        (click)="openAddUser()">
         + Dar de Alta
       </button>
     </div>
@@ -166,8 +171,9 @@
           <p>
             {{ user.matricula }}
             •
-            {{ user.career }}
-            •
+            <span *ngIf="user.role !== 'Bibliotecario'">
+              {{ user.career }} •
+            </span>
             {{ user.role }}
           </p>
 
@@ -220,35 +226,87 @@
         Registra un nuevo libro dentro del inventario.
       </p>
 
-      <input
-        type="text"
-        placeholder="Título"
-        [(ngModel)]="newBook.title">
+      <label class="form-field">
+        <span>Título del libro</span>
+        <input
+          type="text"
+          placeholder="Ej. Cálculo de una Variable"
+          [(ngModel)]="newBook.title">
+      </label>
 
-      <input
-        type="text"
-        placeholder="Autor"
-        [(ngModel)]="newBook.author">
+      <label class="form-field">
+        <span>Autor</span>
+        <input
+          type="text"
+          placeholder="Ej. James Stewart"
+          [(ngModel)]="newBook.author">
+      </label>
 
-      <select [(ngModel)]="newBook.career">
-        <option value="">Seleccionar carrera</option>
+      <label class="form-field">
+        <span>Carrera o área</span>
+        <select [(ngModel)]="newBook.career">
+          <option value="">Seleccionar carrera</option>
 
-        <option
-          *ngFor="let c of careers"
-          [value]="c">
-          {{ c }}
-        </option>
-      </select>
+          <option
+            *ngFor="let c of careers"
+            [value]="c">
+            {{ c }}
+          </option>
+        </select>
+      </label>
 
-      <input
-        type="text"
-        placeholder="ISBN"
-        [(ngModel)]="newBook.isbn">
+      <label class="form-field">
+        <span>ISBN</span>
+        <input
+          type="text"
+          placeholder="Ej. 978-607-522-001"
+          [(ngModel)]="newBook.isbn">
+      </label>
 
-      <input
-        type="number"
-        placeholder="Número de copias"
-        [(ngModel)]="newBook.stock">
+      <label class="form-field">
+        <span>URL de portada</span>
+        <input
+          type="text"
+          placeholder="https://ejemplo.com/portada.jpg"
+          [(ngModel)]="newBook.cover">
+      </label>
+
+      <div
+        *ngIf="newBook.cover"
+        style="margin-bottom: 16px;">
+
+        <p style="font-weight: 800; margin-bottom: 8px;">
+          Vista previa:
+        </p>
+
+        <img
+          [src]="newBook.cover"
+          alt="Vista previa de portada"
+          style="
+            width: 120px;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 14px;
+            border: 1px solid #e5e7eb;
+          ">
+      </div>
+
+      <label class="form-field">
+        <span>Ejemplares disponibles en biblioteca</span>
+        <input
+          type="number"
+          min="0"
+          [(ngModel)]="newBook.libraryStock">
+      </label>
+
+      <label class="form-field">
+        <span>Ejemplares disponibles para préstamo</span>
+        <input
+          type="number"
+          min="0"
+          [max]="newBook.libraryStock"
+          [(ngModel)]="newBook.stock">
+      </label>
 
       <div class="modal-buttons">
         <button
@@ -282,40 +340,84 @@
         Modifica la información del libro seleccionado.
       </p>
 
-      <input
-        type="text"
-        placeholder="Título"
-        [(ngModel)]="editBook.title">
+      <label class="form-field">
+        <span>Título del libro</span>
+        <input
+          type="text"
+          [(ngModel)]="editBook.title">
+      </label>
 
-      <input
-        type="text"
-        placeholder="Autor"
-        [(ngModel)]="editBook.author">
+      <label class="form-field">
+        <span>Autor</span>
+        <input
+          type="text"
+          [(ngModel)]="editBook.author">
+      </label>
 
-      <select [(ngModel)]="editBook.career">
-        <option value="">Seleccionar carrera</option>
+      <label class="form-field">
+        <span>Carrera o área</span>
+        <select [(ngModel)]="editBook.career">
+          <option value="">Seleccionar carrera</option>
 
-        <option
-          *ngFor="let c of careers"
-          [value]="c">
-          {{ c }}
-        </option>
-      </select>
+          <option
+            *ngFor="let c of careers"
+            [value]="c">
+            {{ c }}
+          </option>
+        </select>
+      </label>
 
-      <input
-        type="text"
-        placeholder="ISBN"
-        [(ngModel)]="editBook.isbn">
+      <label class="form-field">
+        <span>ISBN</span>
+        <input
+          type="text"
+          [(ngModel)]="editBook.isbn">
+      </label>
 
-      <input
-        type="number"
-        placeholder="Stock disponible"
-        [(ngModel)]="editBook.stock">
+      <label class="form-field">
+        <span>URL de portada</span>
+        <input
+          type="text"
+          placeholder="https://ejemplo.com/portada.jpg"
+          [(ngModel)]="editBook.cover">
+      </label>
 
-      <input
-        type="number"
-        placeholder="Copias totales"
-        [(ngModel)]="editBook.totalCopies">
+      <div
+        *ngIf="editBook.cover"
+        style="margin-bottom: 16px;">
+
+        <p style="font-weight: 800; margin-bottom: 8px;">
+          Vista previa:
+        </p>
+
+        <img
+          [src]="editBook.cover"
+          alt="Vista previa de portada"
+          style="
+            width: 120px;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 14px;
+            border: 1px solid #e5e7eb;
+          ">
+      </div>
+
+      <label class="form-field">
+        <span>Ejemplares disponibles en biblioteca</span>
+        <input
+          type="number"
+          min="0"
+          [(ngModel)]="editBook.libraryStock">
+      </label>
+
+      <label class="form-field">
+        <span>Ejemplares disponibles para préstamo</span>
+        <input
+          type="number"
+          min="0"
+          [max]="editBook.libraryStock"
+          [(ngModel)]="editBook.stock">
+      </label>
 
       <div class="modal-buttons">
         <button
@@ -346,39 +448,78 @@
       <h2>Dar de Alta Usuario</h2>
 
       <p class="modal-subtitle">
-        Registra un usuario dentro del sistema bibliotecario.
+        Selecciona el tipo de usuario y registra sus datos.
       </p>
 
-      <input
-        type="text"
-        placeholder="Nombre completo"
-        [(ngModel)]="newUser.name">
+      <div class="role-tabs">
+        <button
+          type="button"
+          [class.active]="newUser.role === 'Alumno'"
+          (click)="setNewUserRole('Alumno')">
+          Alumno
+        </button>
 
-      <input
-        type="text"
-        placeholder="Matrícula / Número de control"
-        [(ngModel)]="newUser.matricula">
+        <button
+          type="button"
+          [class.active]="newUser.role === 'Profesor'"
+          (click)="setNewUserRole('Profesor')">
+          Profesor
+        </button>
 
-      <select [(ngModel)]="newUser.role">
-        <option value="Alumno">Alumno</option>
-        <option value="Profesor">Profesor</option>
-        <option value="Bibliotecario">Bibliotecario</option>
-      </select>
+        <button
+          type="button"
+          [class.active]="newUser.role === 'Bibliotecario'"
+          (click)="setNewUserRole('Bibliotecario')">
+          Bibliotecario
+        </button>
+      </div>
 
-      <select [(ngModel)]="newUser.career">
-        <option value="">Carrera</option>
+      <label class="form-field">
+        <span>Nombre completo</span>
+        <input
+          type="text"
+          placeholder="Nombre completo"
+          [(ngModel)]="newUser.name">
+      </label>
 
-        <option
-          *ngFor="let c of careers"
-          [value]="c">
-          {{ c }}
-        </option>
-      </select>
+      <label class="form-field">
+        <span>{{ newUserControlLabel }}</span>
+        <input
+          type="text"
+          placeholder="Matrícula o número de control"
+          [(ngModel)]="newUser.matricula">
+      </label>
 
-      <input
-        type="email"
-        placeholder="correo@universidad.edu.mx"
-        [(ngModel)]="newUser.email">
+      <label
+        class="form-field"
+        *ngIf="showNewUserCareer">
+        <span>{{ newUserCareerLabel }}</span>
+        <select [(ngModel)]="newUser.career">
+          <option value="">Seleccionar carrera</option>
+
+          <option
+            *ngFor="let c of careers"
+            [value]="c">
+            {{ c }}
+          </option>
+        </select>
+      </label>
+
+      <label class="form-field">
+        <span>Correo institucional</span>
+        <input
+          type="email"
+          placeholder="correo@universidad.edu.mx"
+          [(ngModel)]="newUser.email">
+      </label>
+
+      <label class="form-field">
+        <span>Contraseña inicial</span>
+        <input
+          type="password"
+          placeholder="Contraseña inicial"
+          [(ngModel)]="newUser.password">
+      </label>
 
       <div class="modal-buttons">
         <button
@@ -410,43 +551,59 @@
 
       <p class="modal-subtitle">
         Modifica la información del usuario seleccionado.
+        El rol no puede cambiarse después del alta.
       </p>
 
-      <input
-        type="text"
-        placeholder="Nombre completo"
-        [(ngModel)]="editUser.name">
+      <label class="form-field">
+        <span>Nombre completo</span>
+        <input
+          type="text"
+          [(ngModel)]="editUser.name">
+      </label>
 
-      <input
-        type="text"
-        placeholder="Matrícula / Número de control"
-        [(ngModel)]="editUser.matricula">
+      <label class="form-field">
+        <span>{{ editUserControlLabel }}</span>
+        <input
+          type="text"
+          [(ngModel)]="editUser.matricula">
+      </label>
 
-      <select [(ngModel)]="editUser.role">
-        <option value="Alumno">Alumno</option>
-        <option value="Profesor">Profesor</option>
-        <option value="Bibliotecario">Bibliotecario</option>
-      </select>
+      <label class="form-field">
+        <span>Rol del usuario</span>
+        <input
+          type="text"
+          [value]="editUser.role"
+          disabled>
+      </label>
 
-      <select [(ngModel)]="editUser.career">
-        <option value="">Carrera</option>
+      <label
+        class="form-field"
+        *ngIf="showEditUserCareer">
+        <span>{{ editUserCareerLabel }}</span>
+        <select [(ngModel)]="editUser.career">
+          <option value="">Seleccionar carrera</option>
 
-        <option
-          *ngFor="let c of careers"
-          [value]="c">
-          {{ c }}
-        </option>
-      </select>
+          <option
+            *ngFor="let c of careers"
+            [value]="c">
+            {{ c }}
+          </option>
+        </select>
+      </label>
 
-      <input
-        type="number"
-        placeholder="Préstamos activos"
-        [(ngModel)]="editUser.activeLoans">
+      <label class="form-field">
+        <span>Correo institucional</span>
+        <input
+          type="email"
+          [(ngModel)]="editUser.email">
+      </label>
 
-      <input
-        type="email"
-        placeholder="correo@universidad.edu.mx"
-        [(ngModel)]="editUser.email">
+      <button
+        type="button"
+        class="reset-password-btn"
+        (click)="resetUserPassword()">
+        🔐 Restablecer contraseña
+      </button>
 
       <div class="modal-buttons">
         <button

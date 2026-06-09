@@ -425,3 +425,77 @@ h1 {
   }
 
 }
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.form-field span {
+  font-size: 13px;
+  font-weight: 850;
+  color: var(--muted);
+}
+
+.form-field input,
+.form-field select {
+  width: 100%;
+}
+
+.modal {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.role-tabs {
+  display: flex;
+  gap: 8px;
+  background: var(--border);
+  padding: 6px;
+  border-radius: 16px;
+  margin-bottom: 8px;
+}
+
+.role-tabs button {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 850;
+  padding: 11px 8px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.role-tabs button.active {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.24);
+}
+
+.reset-password-btn {
+  width: 100%;
+  border: none;
+  border-radius: 13px;
+  padding: 13px;
+  cursor: pointer;
+  font-weight: 850;
+  color: white;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  margin-bottom: 6px;
+}
+
+@media (max-width: 720px) {
+  .role-tabs {
+    flex-direction: column;
+  }
+}
+
+.modal input:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+  background: var(--border) !important;
+  color: var(--muted) !important;
+}

@@ -1,84 +1,183 @@
 <div class="card">
 
-    <img
-        [src]="book.cover"
-        [alt]="book.title">
+  <img
+    [src]="book.cover"
+    [alt]="book.title">
 
-    <div class="content">
+  <div class="content">
 
-        <h3>{{ book.title }}</h3>
+    <h3>{{ book.title }}</h3>
 
-        <p>{{ book.author }}</p>
+    <p>{{ book.author }}</p>
 
-        <span class="career">
-            {{ book.career }}
-        </span>
+    <span class="career">
+      {{ book.career }}
+    </span>
 
-        <p
-            class="stock"
-            [class.available]="available"
-            [class.unavailable]="!available">
+    <!-- NOTIFICACIÓN DE DISPONIBILIDAD -->
 
-            {{
-                available
-                ? book.stock + ' disponibles'
-                : 'Sin stock'
-            }}
+    <div
+      class="reserved-notice"
+      *ngIf="notifiedEntry">
 
-        </p>
+      <div class="notice-main">
 
-        <button
-            *ngIf="available"
-            (click)="reserveBook()">
+        <div>
 
-            Reservar
+          <h4>
+            📚 Libro disponible para ti
+          </h4>
 
-        </button>
-
-        <button
-            *ngIf="!available"
-            (click)="joinWaitlist()">
-
-            Lista de Espera
-
-        </button>
-
-        <div
-            class="waitlist"
-            *ngIf="waitlistMessage">
-
-            <p>
-                {{ waitlistMessage }}
-            </p>
-
-            <ng-container *ngIf="waitlistEntry">
-
-                <p>
-                    Libro:
-                    <strong>{{ waitlistEntry.bookTitle }}</strong>
-                </p>
-
-                <p>
-                    Lugar asignado:
-                    <strong>#{{ waitlistEntry.position }}</strong>
-                </p>
-
-                <p>
-                    Fecha:
-                    {{ waitlistEntry.requestDate }}
-                </p>
-
-            </ng-container>
-
-            <button
-                (click)="closeWaitlist()">
-
-                Entendido
-
-            </button>
+          <p>
+            Confirma tu solicitud antes de que expire el tiempo.
+          </p>
 
         </div>
 
+        <div class="timer-box">
+
+          <span>Tiempo restante</span>
+
+          <strong class="timer">
+            {{ formattedTime }}
+          </strong>
+
+        </div>
+
+      </div>
+
+      <button
+        class="confirm-btn"
+        (click)="confirmWaitlistReservation()">
+
+        Confirmar reserva
+
+      </button>
+
     </div>
+
+    <!-- RESTO DEL CONTENIDO -->
+
+    <ng-container *ngIf="!notifiedEntry">
+
+      <p
+        class="stock"
+        [class.available]="available"
+        [class.unavailable]="!available">
+
+        {{
+          visibleStock > 0
+          ? visibleStock + ' disponibles'
+          : 'Sin stock'
+        }}
+
+      </p>
+
+      <div
+        class="waitlist"
+        *ngIf="userWaitlistEntry">
+
+        <p *ngIf="userWaitlistEntry.position === 1">
+          Eres el siguiente usuario en recibir este libro cuando haya disponibilidad.
+        </p>
+
+        <p *ngIf="userWaitlistEntry.position > 1">
+          Tu lugar actual en la lista de espera es
+          <strong>#{{ userWaitlistEntry.position }}</strong>.
+        </p>
+
+        <p>
+          Fecha:
+          {{ userWaitlistEntry.requestDate }}
+        </p>
+
+        <button
+          class="disabled-btn"
+          disabled>
+
+          Esperando disponibilidad
+
+        </button>
+
+      </div>
+
+      <ng-container *ngIf="!userWaitlistEntry">
+
+        <button
+          *ngIf="reserved"
+          class="disabled-btn"
+          disabled>
+
+          No disponible para ti
+
+        </button>
+
+        <button
+          *ngIf="!reserved && waitlistLocked"
+          (click)="joinWaitlist()">
+
+          Lista de Espera
+
+        </button>
+
+        <button
+          *ngIf="!reserved && !waitlistLocked && available"
+          (click)="reserveBook()">
+
+          Reservar
+
+        </button>
+
+        <button
+          *ngIf="!reserved && !waitlistLocked && !available"
+          (click)="joinWaitlist()">
+
+          Lista de Espera
+
+        </button>
+
+      </ng-container>
+
+    </ng-container>
+
+    <!-- MENSAJE DE LISTA DE ESPERA -->
+
+    <div
+      class="waitlist"
+      *ngIf="!userWaitlistEntry && (waitlistEntry || waitlistMessage)">
+
+      <p>
+        {{ waitlistMessage }}
+      </p>
+
+      <ng-container *ngIf="waitlistEntry">
+
+        <p>
+          Libro:
+          <strong>{{ waitlistEntry.bookTitle }}</strong>
+        </p>
+
+        <p>
+          Lugar asignado:
+          <strong>#{{ waitlistEntry.position }}</strong>
+        </p>
+
+        <p>
+          Fecha:
+          {{ waitlistEntry.requestDate }}
+        </p>
+
+      </ng-container>
+
+      <button
+        (click)="closeWaitlist()">
+
+        Entendido
+
+      </button>
+
+    </div>
+
+  </div>
 
 </div>

@@ -140,3 +140,18 @@ select {
     grid-template-columns: 1fr;
   }
 }
+
+.reset-btn {
+  margin-top: 14px;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 14px;
+  background: #dc2626;
+  color: white;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.reset-btn:hover {
+  filter: brightness(0.92);
+}

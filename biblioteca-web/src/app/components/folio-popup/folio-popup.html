@@ -1,48 +1,34 @@
 <div
-    class="overlay"
-    *ngIf="open">
+  class="popup-backdrop"
+  *ngIf="open">
 
-    <div class="popup">
+  <div class="popup-card">
 
-        <h2>
-            Reserva Confirmada
-        </h2>
+    <h2>Reserva Confirmada</h2>
 
-        <h3>
-            {{ folio }}
-        </h3>
+    <h3>{{ folio }}</h3>
 
-        <div *ngIf="book">
+    <div *ngIf="book">
 
-            <strong>
-                {{ book.title }}
-            </strong>
+      <h4>{{ book.title }}</h4>
 
-            <p>
-                {{ book.author }}
-            </p>
-
-        </div>
-
-        <p>
-
-            Tiempo restante:
-
-            {{ minutes.toString().padStart(2,'0') }}
-
-            :
-
-            {{ remainingSeconds.toString().padStart(2,'0') }}
-
-        </p>
-
-        <button
-            (click)="closePopup()">
-
-            Entendido
-
-        </button>
+      <p>{{ book.author }}</p>
 
     </div>
+
+    <p>
+    Tiempo restante:
+    {{ minutes }}:{{ formattedSeconds }}
+    </p>
+
+    <button
+      type="button"
+      (click)="closePopup()">
+
+      Entendido
+
+    </button>
+
+  </div>
 
 </div>

@@ -6,4 +6,5 @@ export interface User {
   role: 'Alumno' | 'Profesor' | 'Bibliotecario';
   activeLoans: number;
   email?: string;
+  password: string;
 }

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs';
@@ -13,7 +13,7 @@ import { filter } from 'rxjs';
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
 
   isLoginPage = false;
 
@@ -23,5 +23,15 @@ export class AppComponent {
       .subscribe((event: any) => {
         this.isLoginPage = event.urlAfterRedirects === '/login';
       });
+  }
+
+  ngOnInit(): void {
+    const theme = localStorage.getItem('theme');
+
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }
 }

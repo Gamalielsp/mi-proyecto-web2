@@ -6,6 +6,7 @@ import { Book } from '../../models/book.model';
 import { BookService } from '../../services/book.service';
 import { LoanService } from '../../services/loan.service';
 import { ReservationService } from '../../services/reservation';
+import { WaitlistService } from '../../services/waitlist.service';
 
 import { BookCardComponent } from '../../components/book-card/book-card';
 import { FolioPopupComponent } from '../../components/folio-popup/folio-popup';
@@ -31,27 +32,26 @@ export class Dashboard {
 
   careers: string[] = [
     'Todas',
-    'Ingenierías',
-    'Computación',
-    'Petróleos',
-    'Industrial',
-    'Matematicas Aplicadas',
-    'Quimica',
-    'Diseño',
-    'Ingeniería',
-    'Sistemas',
-    'Química',
-    'Administración'
+    'Ingeniería en Computación',
+    'Ingeniería Química',
+    'Ingeniería Industrial',
+    'Ingeniería de Petróleos',
+    'Ingeniería en Diseño',
+    'Ingeniería en Energías Renovables',
+    'Licenciatura en Matemáticas Aplicadas'
   ];
 
   books: Book[] = [];
+
   selectedBook: Book | null = null;
+  selectedFolio = '';
   showFolio = false;
 
   constructor(
     private bookService: BookService,
     private loanService: LoanService,
-    private reservationService: ReservationService
+    private reservationService: ReservationService,
+    private waitlistService: WaitlistService
   ) {
     this.books = this.bookService.getBooks();
   }
@@ -70,10 +70,54 @@ export class Dashboard {
     });
   }
 
+  isBookBlocked(book: Book): boolean {
+    const currentUser = JSON.parse(
+      localStorage.getItem('currentUser') || '{}'
+    );
+
+    const hasPendingReservation =
+      this.reservationService.hasPendingReservation(
+        currentUser.matricula,
+        book.id
+      );
+
+    const hasActiveLoan =
+      this.loanService.hasBookAlready(
+        currentUser.matricula,
+        book.id
+      );
+
+    return hasPendingReservation || hasActiveLoan;
+  }
+
+  isBookLockedByWaitlist(book: Book): boolean {
+    const currentUser = JSON.parse(
+      localStorage.getItem('currentUser') || '{}'
+    );
+
+    return this.waitlistService.isBookLockedByWaitlistForUser(
+      book.id,
+      currentUser.matricula
+    );
+  }
+
   reserveBook(book: Book): void {
     const currentUser = JSON.parse(
       localStorage.getItem('currentUser') || '{}'
     );
+
+    const lockedByWaitlist =
+      this.waitlistService.isBookLockedByWaitlistForUser(
+        book.id,
+        currentUser.matricula
+      );
+
+    if (lockedByWaitlist) {
+      alert(
+        'Este ejemplar está apartado temporalmente para el primer usuario de la lista de espera.'
+      );
+      return;
+    }
 
     const validation = this.loanService.canBorrow(
       currentUser.matricula,
@@ -96,32 +140,49 @@ export class Dashboard {
       return;
     }
 
-    const success = this.bookService.reserveBook(book.id);
+    try {
+      const reservation =
+        this.reservationService.createReservation(
+          book.id,
+          book.title,
+          book.author
+        );
 
-    if (!success) {
-      alert('No hay ejemplares disponibles para reservar.');
-      return;
+      this.selectedBook = book;
+      this.selectedFolio = reservation.folio;
+      this.books = this.bookService.getBooks();
+      this.showFolio = true;
+
+    } catch (error) {
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert('Ocurrió un error al generar la reserva.');
+      }
     }
-
-    const reservation =
-      this.reservationService.createReservation(
-        book.id,
-        book.title,
-        book.author
-      );
-
-    this.selectedBook = book;
-    this.books = this.bookService.getBooks();
-    this.showFolio = true;
-
-    alert(
-      `Reserva generada correctamente.\n\n` +
-      `Folio: ${reservation.folio}\n` +
-      `Tienes máximo 1 hora para recoger el libro en biblioteca.`
-    );
   }
 
   closeFolio(): void {
     this.showFolio = false;
+    this.selectedBook = null;
+    this.selectedFolio = '';
   }
+
+  resetDataOnly(): void {
+    const currentUser =
+      localStorage.getItem('currentUser');
+
+    localStorage.removeItem('reservations');
+    localStorage.removeItem('waitlist');
+    localStorage.removeItem('loans');
+    localStorage.removeItem('loanHistory');
+    localStorage.removeItem('books');
+
+    if (currentUser) {
+      localStorage.setItem('currentUser', currentUser);
+    }
+
+    location.reload();
+  }
+
 }

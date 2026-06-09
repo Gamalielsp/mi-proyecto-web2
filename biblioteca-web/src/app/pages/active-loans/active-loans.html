@@ -1,0 +1,144 @@
+<div class="container">
+
+  <section class="hero">
+
+    <p class="eyebrow">Bibliotecario</p>
+
+    <h1>Préstamos Activos</h1>
+
+    <p class="subtitle">
+      Consulta los préstamos vigentes, vencidos y pendientes de devolución.
+    </p>
+
+  </section>
+
+  <div
+    class="empty-state"
+    *ngIf="loans.length === 0">
+
+    <div>📖</div>
+
+    <h2>No hay préstamos activos</h2>
+
+    <p>
+      Cuando el bibliotecario entregue un libro reservado, el préstamo aparecerá aquí.
+    </p>
+
+  </div>
+
+  <div class="loans-list">
+
+    <div
+      class="loan-card"
+      *ngFor="let loan of loans"
+      [class.overdue]="loan.status === 'vencido'"
+      [class.pending-return]="loan.status === 'devolucion_pendiente'">
+
+      <div class="card-header">
+
+        <div class="loan-icon">
+          📖
+        </div>
+
+        <div>
+          <span
+            class="status-badge"
+            [class.active-badge]="loan.status === 'activo'"
+            [class.overdue-badge]="loan.status === 'vencido'"
+            [class.pending-badge]="loan.status === 'devolucion_pendiente'">
+
+            {{ getStatusText(loan.status) }}
+
+          </span>
+
+          <h3>{{ loan.bookTitle }}</h3>
+
+          <p>{{ loan.author }}</p>
+        </div>
+
+      </div>
+
+      <div class="details-grid">
+
+        <div class="detail">
+          <span>Folio préstamo</span>
+          <strong>{{ loan.folio }}</strong>
+        </div>
+
+        <div class="detail">
+          <span>Usuario</span>
+          <strong>{{ loan.studentName }}</strong>
+        </div>
+
+        <div class="detail">
+          <span>Matrícula / Control</span>
+          <strong>{{ loan.matricula }}</strong>
+        </div>
+
+        <div class="detail">
+          <span>Rol</span>
+          <strong>{{ loan.userRole }}</strong>
+        </div>
+
+        <div class="detail">
+          <span>Fecha de préstamo</span>
+          <strong>{{ loan.borrowDate }}</strong>
+        </div>
+
+        <div class="detail">
+          <span>Fecha límite</span>
+          <strong>{{ loan.dueDate }}</strong>
+        </div>
+
+        <div
+          class="detail"
+          *ngIf="loan.status !== 'vencido'">
+
+          <span>Días restantes</span>
+          <strong>{{ loan.daysLeft }}</strong>
+
+        </div>
+
+        <div
+          class="detail fine-detail"
+          *ngIf="loan.status === 'vencido'">
+
+          <span>Días de retraso</span>
+          <strong>{{ loan.daysOverdue }}</strong>
+
+        </div>
+
+        <div
+          class="detail fine-detail"
+          *ngIf="loan.fineAmount && loan.fineAmount > 0">
+
+          <span>Multa acumulada</span>
+          <strong>${{ loan.fineAmount }}</strong>
+
+        </div>
+
+      </div>
+
+      <div
+        class="notice warning-notice"
+        *ngIf="loan.status === 'vencido'">
+
+        ⚠️ Este préstamo está vencido. El usuario no podrá solicitar nuevos libros hasta resolverlo.
+
+      </div>
+
+      <div
+        class="notice return-notice"
+        *ngIf="loan.status === 'devolucion_pendiente'">
+
+        ↩️ El usuario solicitó devolución. Debe entregar físicamente el libro en biblioteca.
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<app-mobile-nav></app-mobile-nav>

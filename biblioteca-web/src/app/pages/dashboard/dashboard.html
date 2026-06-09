@@ -7,6 +7,12 @@
 
             <h1>Catálogo de Libros</h1>
 
+            <button
+                class="reset-btn"
+                (click)="resetDataOnly()">
+                Reiniciar datos de prueba
+            </button>
+
             <p class="subtitle">
                 Busca, filtra y reserva libros disponibles para préstamo.
             </p>
@@ -72,6 +78,8 @@
         <app-book-card
             *ngFor="let book of filteredBooks"
             [book]="book"
+            [reserved]="isBookBlocked(book)"
+            [waitlistLocked]="isBookLockedByWaitlist(book)"
             (reserve)="reserveBook($event)">
         </app-book-card>
 
@@ -82,6 +90,7 @@
 <app-folio-popup
     [open]="showFolio"
     [book]="selectedBook"
+    [folio]="selectedFolio"
     (close)="closeFolio()">
 </app-folio-popup>
 

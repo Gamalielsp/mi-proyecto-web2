@@ -1,11 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { BookService } from '../../services/book.service';
-import { LoanService } from '../../services/loan.service';
+import { WaitlistEntry } from '../../models/waitlist.model';
 import { WaitlistService } from '../../services/waitlist.service';
-
-import { Loan } from '../../models/loan.model';
 
 import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
 
@@ -21,41 +18,29 @@ import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
 })
 export class Alerts {
 
+  currentUser = JSON.parse(
+    localStorage.getItem('currentUser') || '{}'
+  );
+
   constructor(
-    private bookService: BookService,
-    private loanService: LoanService,
     private waitlistService: WaitlistService
   ) {}
 
-  get overdueLoans(): Loan[] {
-    return this.loanService.getOverdueLoans();
-  }
-
-  get pendingReturns(): Loan[] {
-    return this.loanService.getPendingReturns();
-  }
-
-  get exhaustedBooks() {
-    return this.bookService.getBooks().filter(book => book.stock === 0);
-  }
-
-  get waitlistEntries() {
-    return this.waitlistService.getWaitlist();
-  }
-
-  get totalFines(): number {
-    return this.overdueLoans.reduce(
-      (total, loan) => total + (loan.fineAmount || 0),
-      0
+  get alerts(): WaitlistEntry[] {
+    return this.waitlistService.getUserNotifications(
+      this.currentUser.matricula
     );
   }
 
-  get totalAlerts(): number {
-    return (
-      this.overdueLoans.length +
-      this.pendingReturns.length +
-      this.exhaustedBooks.length +
-      this.waitlistEntries.length
+  getMinutesLeft(entry: WaitlistEntry): number {
+    return this.waitlistService.getMinutesLeft(entry);
+  }
+
+  confirmReservation(entry: WaitlistEntry): void {
+    this.waitlistService.confirmReservation(entry.id);
+
+    alert(
+      'Solicitud de reserva confirmada. Acude a biblioteca para que el bibliotecario entregue el libro.'
     );
   }
 }
