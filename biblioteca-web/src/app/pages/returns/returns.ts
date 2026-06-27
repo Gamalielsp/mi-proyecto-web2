@@ -1,5 +1,11 @@
-import { Component } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ChangeDetectorRef
+} from '@angular/core';
+
 import { CommonModule } from '@angular/common';
+import { catchError, finalize, of } from 'rxjs';
 
 import { Loan } from '../../models/loan.model';
 import { LoanService } from '../../services/loan.service';
@@ -18,28 +24,43 @@ import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
   templateUrl: './returns.html',
   styleUrl: './returns.css'
 })
-export class Returns {
+export class Returns implements OnInit {
 
   pendingReturns: Loan[] = [];
   loading = false;
+  loadError = false;
 
   constructor(
     private loanService: LoanService,
     private bookService: BookService,
-    private waitlistService: WaitlistService
-  ) {
+    private waitlistService: WaitlistService,
+    private changeDetectorRef: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
     this.loadData();
   }
 
   loadData(): void {
-    this.loanService.loadLoans().subscribe({
+    this.loadError = false;
+
+    this.loanService.loadLoans().pipe(
+      catchError(error => {
+        console.error('Error al cargar devoluciones pendientes:', error);
+        this.loadError = true;
+        return of([]);
+      }),
+      finalize(() => {
+        this.changeDetectorRef.detectChanges();
+      })
+    ).subscribe({
       next: () => {
-        this.pendingReturns =
-          this.loanService.getPendingReturns();
+        this.pendingReturns = this.loanService.getPendingReturns();
       },
-      error: () => {
-        this.pendingReturns =
-          this.loanService.getPendingReturns();
+      error: error => {
+        console.error('Error general al cargar devoluciones:', error);
+        this.pendingReturns = this.loanService.getPendingReturns();
+        this.loadError = true;
       }
     });
   }
@@ -59,7 +80,11 @@ export class Returns {
 
     this.loading = true;
 
-    this.loanService.confirmReturn(loan.id).subscribe({
+    this.loanService.confirmReturn(loan.id).pipe(
+      finalize(() => {
+        this.changeDetectorRef.detectChanges();
+      })
+    ).subscribe({
       next: returnedLoan => {
         this.bookService.loadBooks().subscribe({
           next: () => {

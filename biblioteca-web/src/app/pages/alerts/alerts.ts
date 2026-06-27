@@ -1,5 +1,11 @@
-import { Component } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ChangeDetectorRef
+} from '@angular/core';
+
 import { CommonModule } from '@angular/common';
+import { catchError, finalize, forkJoin, of } from 'rxjs';
 
 import { WaitlistEntry } from '../../models/waitlist.model';
 import { WaitlistService } from '../../services/waitlist.service';
@@ -18,20 +24,29 @@ import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
   templateUrl: './alerts.html',
   styleUrl: './alerts.css'
 })
-export class Alerts {
+export class Alerts implements OnInit {
 
-  currentUser = JSON.parse(
-    localStorage.getItem('currentUser') || '{}'
-  );
+  currentUser: any = {};
 
   alerts: WaitlistEntry[] = [];
+
   confirmingEntryId: number | null = null;
+
+  isLoading = false;
+  loadError = false;
 
   constructor(
     private waitlistService: WaitlistService,
     private reservationService: ReservationService,
-    private bookService: BookService
-  ) {
+    private bookService: BookService,
+    private changeDetectorRef: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
+    this.currentUser = JSON.parse(
+      localStorage.getItem('currentUser') || '{}'
+    );
+
     this.loadData();
   }
 
@@ -44,23 +59,50 @@ export class Alerts {
   }
 
   loadData(): void {
-    this.bookService.loadBooks().subscribe({
-      next: () => {
-        this.waitlistService.loadWaitlist().subscribe({
-          next: () => this.refreshAlerts(),
-          error: () => this.refreshAlerts()
-        });
-      },
-      error: () => {
-        this.waitlistService.loadWaitlist().subscribe({
-          next: () => this.refreshAlerts(),
-          error: () => this.refreshAlerts()
-        });
-      }
-    });
+    this.isLoading = true;
+    this.loadError = false;
+
+    forkJoin({
+      books: this.bookService.loadBooks().pipe(
+        catchError(error => {
+          console.error('Error al cargar libros:', error);
+          this.loadError = true;
+          return of([]);
+        })
+      ),
+
+      waitlist: this.waitlistService.loadWaitlist().pipe(
+        catchError(error => {
+          console.error('Error al cargar lista de espera:', error);
+          this.loadError = true;
+          return of([]);
+        })
+      )
+    })
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+          this.changeDetectorRef.detectChanges();
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.refreshAlerts();
+        },
+        error: error => {
+          console.error('Error general al cargar alertas:', error);
+          this.loadError = true;
+          this.refreshAlerts();
+        }
+      });
   }
 
   private refreshAlerts(): void {
+    if (!this.currentUser?.matricula) {
+      this.alerts = [];
+      return;
+    }
+
     this.alerts = this.waitlistService.getUserNotifications(
       this.currentUser.matricula
     );
@@ -112,11 +154,8 @@ export class Alerts {
           );
 
           alert(
-            `Solicitud de reserva confirmada.
-
-` +
-            `Folio: ${reservation.folio}
-` +
+            `Solicitud de reserva confirmada.\n\n` +
+            `Folio: ${reservation.folio}\n` +
             `Ahora aparecerá en Mis Libros / Reservas.`
           );
 
@@ -125,7 +164,11 @@ export class Alerts {
         },
         error: error => {
           this.confirmingEntryId = null;
-          alert(error?.error?.detail || 'Ocurrió un error al confirmar la solicitud de reserva.');
+
+          alert(
+            error?.error?.detail ||
+            'Ocurrió un error al confirmar la solicitud de reserva.'
+          );
         }
       });
     } catch (error) {

@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { catchError, finalize, forkJoin, of } from 'rxjs';
 
 import { Book } from '../../models/book.model';
 import { BookService } from '../../services/book.service';
@@ -25,7 +26,7 @@ import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
-export class Dashboard {
+export class Dashboard implements OnInit {
 
   search = '';
   career = 'Todas';
@@ -48,34 +49,86 @@ export class Dashboard {
   showFolio = false;
   reservingBookId: number | null = null;
 
+  isLoading = false;
+  loadError = false;
+
   constructor(
     private bookService: BookService,
     private loanService: LoanService,
     private reservationService: ReservationService,
-    private waitlistService: WaitlistService
-  ) {
-    this.loadBooks();
+    private waitlistService: WaitlistService,
+    private changeDetectorRef: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
+    this.loadInitialData();
   }
 
-  private loadBooks(): void {
-    this.bookService.loadBooks().subscribe({
-      next: books => {
-        this.books = books.filter(book =>
-          book.isActive !== false
-        );
-      },
-      error: () => {
-        this.books = this.bookService.getActiveBooks();
-        alert('No se pudieron cargar los libros desde el servidor.');
-      }
-    });
+  loadInitialData(): void {
+    this.isLoading = true;
+    this.loadError = false;
+
+    forkJoin({
+      books: this.bookService.loadBooks().pipe(
+        catchError(error => {
+          console.error('Error al cargar libros:', error);
+          this.loadError = true;
+          return of(this.bookService.getActiveBooks());
+        })
+      ),
+
+      loans: this.loanService.loadLoans().pipe(
+        catchError(error => {
+          console.error('Error al cargar préstamos:', error);
+          this.loadError = true;
+          return of([]);
+        })
+      ),
+
+      reservations: this.reservationService.loadReservations().pipe(
+        catchError(error => {
+          console.error('Error al cargar reservas:', error);
+          this.loadError = true;
+          return of([]);
+        })
+      ),
+
+      waitlist: this.waitlistService.loadWaitlist().pipe(
+        catchError(error => {
+          console.error('Error al cargar lista de espera:', error);
+          this.loadError = true;
+          return of([]);
+        })
+      )
+    })
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+          this.changeDetectorRef.detectChanges();
+        })
+      )
+      .subscribe({
+        next: response => {
+          this.books = response.books.filter(book =>
+            book.isActive !== false
+          );
+        },
+        error: error => {
+          console.error('Error general al cargar catálogo:', error);
+          this.books = this.bookService.getActiveBooks();
+          this.loadError = true;
+        }
+      });
   }
 
   get filteredBooks(): Book[] {
     return this.books.filter(book => {
+      const title = book.title || '';
+      const author = book.author || '';
+
       const searchMatch =
-        book.title.toLowerCase().includes(this.search.toLowerCase()) ||
-        book.author.toLowerCase().includes(this.search.toLowerCase());
+        title.toLowerCase().includes(this.search.toLowerCase()) ||
+        author.toLowerCase().includes(this.search.toLowerCase());
 
       const careerMatch =
         this.career === 'Todas' ||
@@ -89,6 +142,10 @@ export class Dashboard {
     const currentUser = JSON.parse(
       localStorage.getItem('currentUser') || '{}'
     );
+
+    if (!currentUser?.matricula) {
+      return false;
+    }
 
     const hasPendingReservation =
       this.reservationService.hasPendingReservation(
@@ -110,6 +167,10 @@ export class Dashboard {
       localStorage.getItem('currentUser') || '{}'
     );
 
+    if (!currentUser?.matricula) {
+      return false;
+    }
+
     return this.waitlistService.isBookLockedByWaitlistForUser(
       book.id,
       currentUser.matricula
@@ -124,6 +185,11 @@ export class Dashboard {
     const currentUser = JSON.parse(
       localStorage.getItem('currentUser') || '{}'
     );
+
+    if (!currentUser?.matricula) {
+      alert('No se encontró la sesión del usuario.');
+      return;
+    }
 
     const lockedByWaitlist =
       this.waitlistService.isBookLockedByWaitlistForUser(
@@ -170,24 +236,18 @@ export class Dashboard {
         next: reservation => {
           this.selectedBook = book;
           this.selectedFolio = reservation.folio;
-
-          this.bookService.loadBooks().subscribe({
-            next: books => {
-              this.books = books.filter(item =>
-                item.isActive !== false
-              );
-            },
-            error: () => {
-              this.books = this.bookService.getActiveBooks();
-            }
-          });
-
           this.showFolio = true;
           this.reservingBookId = null;
+
+          this.loadInitialData();
         },
         error: error => {
           this.reservingBookId = null;
-          alert(error?.error?.detail || 'Ocurrió un error al generar la reserva.');
+
+          alert(
+            error?.error?.detail ||
+            'Ocurrió un error al generar la reserva.'
+          );
         }
       });
     } catch (error) {
@@ -206,5 +266,4 @@ export class Dashboard {
     this.selectedBook = null;
     this.selectedFolio = '';
   }
-
 }

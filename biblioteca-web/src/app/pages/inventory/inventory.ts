@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { catchError, finalize, forkJoin, of } from 'rxjs';
 
 import { Book } from '../../models/book.model';
 import { User } from '../../models/user.model';
@@ -26,7 +27,7 @@ type CreatableUserRole = 'Alumno' | 'Profesor';
   templateUrl: './inventory.html',
   styleUrl: './inventory.css'
 })
-export class InventoryComponent {
+export class InventoryComponent implements OnInit {
 
   search = '';
   activeTab = 'books';
@@ -92,36 +93,102 @@ export class InventoryComponent {
     email: ''
   };
 
+  isLoading = false;
+  loadError = false;
+
   constructor(
     private bookService: BookService,
     private userService: UserService,
     private waitlistService: WaitlistService,
-    private loanService: LoanService
-  ) {
-    this.loadBooks();
-    this.loadUsers();
+    private loanService: LoanService,
+    private changeDetectorRef: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
+    this.loadInitialData();
+  }
+
+  loadInitialData(): void {
+    this.isLoading = true;
+    this.loadError = false;
+
+    forkJoin({
+      books: this.bookService.loadBooks().pipe(
+        catchError(error => {
+          console.error('Error al cargar libros del inventario:', error);
+          this.loadError = true;
+          return of(this.bookService.getBooks());
+        })
+      ),
+
+      users: this.userService.loadUsers().pipe(
+        catchError(error => {
+          console.error('Error al cargar usuarios del inventario:', error);
+          this.loadError = true;
+          return of(this.userService.getUsers());
+        })
+      )
+    })
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+          this.changeDetectorRef.detectChanges();
+        })
+      )
+      .subscribe({
+        next: response => {
+          this.books = response.books;
+          this.users = response.users;
+        },
+        error: error => {
+          console.error('Error general al cargar inventario:', error);
+          this.books = this.bookService.getBooks();
+          this.users = this.userService.getUsers();
+          this.loadError = true;
+        }
+      });
   }
 
   private loadBooks(): void {
-    this.bookService.loadBooks().subscribe({
+    this.bookService.loadBooks().pipe(
+      catchError(error => {
+        console.error('Error al recargar libros:', error);
+        this.loadError = true;
+        return of(this.bookService.getBooks());
+      }),
+      finalize(() => {
+        this.changeDetectorRef.detectChanges();
+      })
+    ).subscribe({
       next: books => {
         this.books = books;
       },
-      error: () => {
+      error: error => {
+        console.error('Error general al recargar libros:', error);
         this.books = this.bookService.getBooks();
-        alert('No se pudieron cargar los libros desde el servidor.');
+        this.loadError = true;
       }
     });
   }
 
   private loadUsers(): void {
-    this.userService.loadUsers().subscribe({
+    this.userService.loadUsers().pipe(
+      catchError(error => {
+        console.error('Error al recargar usuarios:', error);
+        this.loadError = true;
+        return of(this.userService.getUsers());
+      }),
+      finalize(() => {
+        this.changeDetectorRef.detectChanges();
+      })
+    ).subscribe({
       next: users => {
         this.users = users;
       },
-      error: () => {
+      error: error => {
+        console.error('Error general al recargar usuarios:', error);
         this.users = this.userService.getUsers();
-        alert('No se pudieron cargar los usuarios desde el servidor.');
+        this.loadError = true;
       }
     });
   }

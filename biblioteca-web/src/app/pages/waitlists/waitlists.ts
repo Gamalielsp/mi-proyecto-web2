@@ -1,5 +1,11 @@
-import { Component } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ChangeDetectorRef
+} from '@angular/core';
+
 import { CommonModule } from '@angular/common';
+import { catchError, finalize, of } from 'rxjs';
 
 import { WaitlistEntry } from '../../models/waitlist.model';
 import { WaitlistService } from '../../services/waitlist.service';
@@ -16,29 +22,43 @@ import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
   templateUrl: './waitlists.html',
   styleUrl: './waitlists.css'
 })
-export class Waitlists {
+export class Waitlists implements OnInit {
 
   entries: WaitlistEntry[] = [];
   loading = false;
+  loadError = false;
 
   constructor(
-    private waitlistService: WaitlistService
-  ) {
+    private waitlistService: WaitlistService,
+    private changeDetectorRef: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
     this.loadEntries();
   }
 
   loadEntries(): void {
     this.loading = true;
+    this.loadError = false;
 
-    this.waitlistService.loadWaitlist().subscribe({
+    this.waitlistService.loadWaitlist().pipe(
+      catchError(error => {
+        console.error('Error al cargar listas de espera:', error);
+        this.loadError = true;
+        return of(this.waitlistService.getWaitlist());
+      }),
+      finalize(() => {
+        this.loading = false;
+        this.changeDetectorRef.detectChanges();
+      })
+    ).subscribe({
       next: entries => {
         this.entries = entries;
-        this.loading = false;
       },
-      error: () => {
+      error: error => {
+        console.error('Error general al cargar listas de espera:', error);
         this.entries = this.waitlistService.getWaitlist();
-        this.loading = false;
-        alert('No se pudieron cargar las listas de espera desde el servidor.');
+        this.loadError = true;
       }
     });
   }
@@ -70,5 +90,4 @@ export class Waitlists {
   getMinutesLeft(entry: WaitlistEntry): number {
     return this.waitlistService.getMinutesLeft(entry);
   }
-
 }

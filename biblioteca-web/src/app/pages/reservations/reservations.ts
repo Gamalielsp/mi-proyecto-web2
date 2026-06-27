@@ -1,6 +1,18 @@
-import { Component, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ChangeDetectorRef
+} from '@angular/core';
+
 import { CommonModule } from '@angular/common';
-import { interval, Subscription } from 'rxjs';
+import {
+  catchError,
+  finalize,
+  interval,
+  of,
+  Subscription
+} from 'rxjs';
 
 import { Reservation } from '../../models/reservation.model';
 
@@ -21,42 +33,57 @@ import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
   templateUrl: './reservations.html',
   styleUrl: './reservations.css'
 })
-export class Reservations implements OnDestroy {
+export class Reservations implements OnInit, OnDestroy {
 
   reservations: Reservation[] = [];
   history: Reservation[] = [];
   loading = false;
+  loadError = false;
   processingReservationId: number | null = null;
 
-  private timerSubscription: Subscription;
+  private timerSubscription?: Subscription;
 
   constructor(
     private reservationService: ReservationService,
     private loanService: LoanService,
     private waitlistService: WaitlistService,
     private bookService: BookService,
-    private cdr: ChangeDetectorRef
-  ) {
+    private changeDetectorRef: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
     this.loadReservationsFromApi();
 
     this.timerSubscription = interval(1000).subscribe(() => {
       this.loadReservations();
-      this.cdr.detectChanges();
+      this.changeDetectorRef.detectChanges();
     });
   }
 
   ngOnDestroy(): void {
-    this.timerSubscription.unsubscribe();
+    this.timerSubscription?.unsubscribe();
   }
 
   loadReservationsFromApi(): void {
-    this.reservationService.loadReservations().subscribe({
+    this.loadError = false;
+
+    this.reservationService.loadReservations().pipe(
+      catchError(error => {
+        console.error('Error al cargar reservas:', error);
+        this.loadError = true;
+        return of([]);
+      }),
+      finalize(() => {
+        this.changeDetectorRef.detectChanges();
+      })
+    ).subscribe({
       next: () => {
         this.loadReservations();
       },
-      error: () => {
+      error: error => {
+        console.error('Error general al cargar reservas:', error);
+        this.loadError = true;
         this.loadReservations();
-        alert('No se pudieron cargar las reservas desde MongoDB.');
       }
     });
   }
@@ -77,7 +104,11 @@ export class Reservations implements OnDestroy {
     this.processingReservationId = reservation.id;
     this.loading = true;
 
-    this.reservationService.markAsDelivered(reservation.id).subscribe({
+    this.reservationService.markAsDelivered(reservation.id).pipe(
+      finalize(() => {
+        this.changeDetectorRef.detectChanges();
+      })
+    ).subscribe({
       next: deliveredReservation => {
         const today = new Date();
         const dueDate = new Date();
@@ -150,7 +181,11 @@ export class Reservations implements OnDestroy {
     this.processingReservationId = reservation.id;
     this.loading = true;
 
-    this.reservationService.cancelReservation(reservation.id).subscribe({
+    this.reservationService.cancelReservation(reservation.id).pipe(
+      finalize(() => {
+        this.changeDetectorRef.detectChanges();
+      })
+    ).subscribe({
       next: cancelledReservation => {
         this.bookService.loadBooks().subscribe({
           next: () => {},
@@ -181,6 +216,7 @@ export class Reservations implements OnDestroy {
   private finishProcessing(): void {
     this.loading = false;
     this.processingReservationId = null;
+    this.changeDetectorRef.detectChanges();
   }
 
   getExpirationTime(reservation: Reservation): string {
