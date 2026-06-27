@@ -110,12 +110,14 @@
 
             <button
               class="deliver-btn"
+              [disabled]="processingReservationId === reservation.id"
               (click)="confirmDelivery(reservation)">
-              ✓ Libro entregado
+              {{ processingReservationId === reservation.id ? 'Procesando...' : 'Libro entregado' }}
             </button>
 
             <button
               class="cancel-btn"
+              [disabled]="processingReservationId === reservation.id"
               (click)="cancelReservation(reservation)">
               Rechazar / cancelar
             </button>

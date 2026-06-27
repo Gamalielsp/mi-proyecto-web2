@@ -7,6 +7,7 @@ import { Reservation } from '../../models/reservation.model';
 import { ReservationService } from '../../services/reservation';
 import { LoanService } from '../../services/loan.service';
 import { WaitlistService } from '../../services/waitlist.service';
+import { BookService } from '../../services/book.service';
 
 import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
 
@@ -24,6 +25,8 @@ export class Reservations implements OnDestroy {
 
   reservations: Reservation[] = [];
   history: Reservation[] = [];
+  loading = false;
+  processingReservationId: number | null = null;
 
   private timerSubscription: Subscription;
 
@@ -31,9 +34,10 @@ export class Reservations implements OnDestroy {
     private reservationService: ReservationService,
     private loanService: LoanService,
     private waitlistService: WaitlistService,
+    private bookService: BookService,
     private cdr: ChangeDetectorRef
   ) {
-    this.loadReservations();
+    this.loadReservationsFromApi();
 
     this.timerSubscription = interval(1000).subscribe(() => {
       this.loadReservations();
@@ -45,6 +49,18 @@ export class Reservations implements OnDestroy {
     this.timerSubscription.unsubscribe();
   }
 
+  loadReservationsFromApi(): void {
+    this.reservationService.loadReservations().subscribe({
+      next: () => {
+        this.loadReservations();
+      },
+      error: () => {
+        this.loadReservations();
+        alert('No se pudieron cargar las reservas desde MongoDB.');
+      }
+    });
+  }
+
   loadReservations(): void {
     this.reservations =
       this.reservationService.getPendingReservations();
@@ -54,60 +70,75 @@ export class Reservations implements OnDestroy {
   }
 
   confirmDelivery(reservation: Reservation): void {
-    const delivered =
-      this.reservationService.markAsDelivered(reservation.id);
-
-    if (!delivered) {
-      alert('No se pudo confirmar la entrega.');
+    if (this.processingReservationId !== null) {
       return;
     }
 
-    const today = new Date();
-    const dueDate = new Date();
+    this.processingReservationId = reservation.id;
+    this.loading = true;
 
-    dueDate.setDate(today.getDate() + 2);
+    this.reservationService.markAsDelivered(reservation.id).subscribe({
+      next: deliveredReservation => {
+        const today = new Date();
+        const dueDate = new Date();
 
-    this.loanService.addLoan({
-      id: Date.now(),
-      folio:
-        'PRE-' +
-        Math.floor(100000 + Math.random() * 900000),
+        dueDate.setDate(today.getDate() + 7);
 
-      studentName: reservation.studentName,
-      matricula: reservation.matricula,
-      userRole: reservation.userRole,
+        this.loanService.addLoan({
+          id: Date.now(),
+          folio: 'PRE-' + Math.floor(100000 + Math.random() * 900000),
 
-      bookId: reservation.bookId,
-      bookTitle: reservation.bookTitle,
-      author: reservation.author,
+          studentName: deliveredReservation.studentName,
+          matricula: deliveredReservation.matricula,
+          userRole: deliveredReservation.userRole,
 
-      borrowDate:
-        today.toISOString().split('T')[0],
+          bookId: deliveredReservation.bookId,
+          bookTitle: deliveredReservation.bookTitle,
+          author: deliveredReservation.author,
 
-      dueDate:
-        dueDate.toISOString().split('T')[0],
+          borrowDate: today.toISOString().split('T')[0],
+          dueDate: dueDate.toISOString().split('T')[0],
+          daysLeft: 7,
 
-      daysLeft: 2,
+          renewed: false,
+          status: 'activo'
+        }).subscribe({
+          next: () => {
+            this.waitlistService.completeReservationByBookAndMatricula(
+              deliveredReservation.bookId,
+              deliveredReservation.matricula
+            );
 
-      renewed: false,
-      status: 'activo'
+            this.waitlistService.notifyNextUser(deliveredReservation.bookId);
+
+            alert(
+              'Libro entregado correctamente. El préstamo ha iniciado.'
+            );
+
+            this.finishProcessing();
+            this.loadReservationsFromApi();
+          },
+          error: error => {
+            this.finishProcessing();
+            alert(
+              error?.error?.detail ||
+              'La reserva se marcó como entregada, pero no se pudo crear el préstamo.'
+            );
+          }
+        });
+      },
+      error: error => {
+        this.finishProcessing();
+        alert(error?.error?.detail || 'No se pudo confirmar la entrega.');
+      }
     });
-
-    this.waitlistService.completeReservationByBookAndMatricula(
-      reservation.bookId,
-      reservation.matricula
-    );
-
-    this.waitlistService.notifyNextUser(reservation.bookId);
-
-    alert(
-      'Libro entregado correctamente. El préstamo ha iniciado.'
-    );
-
-    this.loadReservations();
   }
 
   cancelReservation(reservation: Reservation): void {
+    if (this.processingReservationId !== null) {
+      return;
+    }
+
     const confirmCancel = confirm(
       `¿Seguro que deseas rechazar o cancelar la reserva ${reservation.folio}?`
     );
@@ -116,20 +147,40 @@ export class Reservations implements OnDestroy {
       return;
     }
 
-    this.reservationService.cancelReservation(reservation.id);
+    this.processingReservationId = reservation.id;
+    this.loading = true;
 
-    this.waitlistService.completeReservationByBookAndMatricula(
-      reservation.bookId,
-      reservation.matricula
-    );
+    this.reservationService.cancelReservation(reservation.id).subscribe({
+      next: cancelledReservation => {
+        this.bookService.loadBooks().subscribe({
+          next: () => {},
+          error: () => {}
+        });
 
-    this.waitlistService.notifyNextUser(reservation.bookId);
+        this.waitlistService.completeReservationByBookAndMatricula(
+          cancelledReservation.bookId,
+          cancelledReservation.matricula
+        );
 
-    alert(
-      'Reserva cancelada. El libro volvió al inventario y se notificó al siguiente usuario en lista de espera.'
-    );
+        this.waitlistService.notifyNextUser(cancelledReservation.bookId);
 
-    this.loadReservations();
+        alert(
+          'Reserva cancelada. El libro volvió al inventario y se notificó al siguiente usuario en lista de espera.'
+        );
+
+        this.finishProcessing();
+        this.loadReservationsFromApi();
+      },
+      error: error => {
+        this.finishProcessing();
+        alert(error?.error?.detail || 'No se pudo cancelar la reserva.');
+      }
+    });
+  }
+
+  private finishProcessing(): void {
+    this.loading = false;
+    this.processingReservationId = null;
   }
 
   getExpirationTime(reservation: Reservation): string {
@@ -143,7 +194,6 @@ export class Reservations implements OnDestroy {
 
     const now = Date.now();
     const expiresAt = new Date(reservation.expiresAt).getTime();
-
     const diff = expiresAt - now;
 
     if (diff <= 0) {

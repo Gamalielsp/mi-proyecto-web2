@@ -1,4 +1,7 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map, tap } from 'rxjs';
+
 import { Loan } from '../models/loan.model';
 
 @Injectable({
@@ -6,46 +9,53 @@ import { Loan } from '../models/loan.model';
 })
 export class LoanService {
 
-  private loansStorageKey = 'loans';
-  private historyStorageKey = 'loanHistory';
+  private apiUrl = 'http://127.0.0.1:8000/loans';
 
   private loans: Loan[] = [];
   private history: Loan[] = [];
 
   private finePerDay = 20;
 
-  constructor() {
-    const savedLoans = localStorage.getItem(this.loansStorageKey);
-    const savedHistory = localStorage.getItem(this.historyStorageKey);
-
-    this.loans = savedLoans ? JSON.parse(savedLoans) : [];
-    this.history = savedHistory ? JSON.parse(savedHistory) : [];
-
-    this.updateOverdueLoans();
+  constructor(
+    private http: HttpClient
+  ) {
+    this.loadLoans().subscribe({
+      next: () => {},
+      error: () => {}
+    });
   }
 
-  private saveLoans(): void {
-    localStorage.setItem(
-      this.loansStorageKey,
-      JSON.stringify(this.loans)
+  loadLoans(): Observable<Loan[]> {
+    return this.http.get<Loan[]>(`${this.apiUrl}/`).pipe(
+      map(loans => loans.map(loan => this.normalizeLoan(loan))),
+      tap(loans => {
+        this.loans = loans.filter(loan =>
+          loan.status !== 'devuelto'
+        );
+
+        this.history = loans.filter(loan =>
+          loan.status === 'devuelto'
+        );
+
+        this.updateOverdueLoans();
+      })
     );
   }
 
-  private saveHistory(): void {
-    localStorage.setItem(
-      this.historyStorageKey,
-      JSON.stringify(this.history)
-    );
-  }
-
-  private saveAll(): void {
-    this.saveLoans();
-    this.saveHistory();
+  private normalizeLoan(loan: Loan): Loan {
+    return {
+      ...loan,
+      id: Number(loan.id),
+      bookId: Number(loan.bookId),
+      daysLeft: Number(loan.daysLeft ?? 0),
+      renewed: loan.renewed === true,
+      status: loan.status || 'activo'
+    };
   }
 
   getLoans(): Loan[] {
     this.updateOverdueLoans();
-    return this.loans;
+    return [...this.loans];
   }
 
   getActiveLoans(): Loan[] {
@@ -71,14 +81,39 @@ export class LoanService {
     );
   }
 
+  getActiveLoansByBook(bookId: number): Loan[] {
+    this.updateOverdueLoans();
+
+    return this.loans.filter(loan =>
+      Number(loan.bookId) === Number(bookId) &&
+      (
+        loan.status === 'activo' ||
+        loan.status === 'devolucion_pendiente' ||
+        loan.status === 'vencido'
+      )
+    );
+  }
+
   countActiveLoans(matricula: string): number {
     return this.getActiveLoansByUser(matricula).length;
+  }
+
+  countActiveLoansByBook(bookId: number): number {
+    return this.getActiveLoansByBook(bookId).length;
+  }
+
+  hasActiveLoansByUser(matricula: string): boolean {
+    return this.getActiveLoansByUser(matricula).length > 0;
+  }
+
+  hasActiveLoansByBook(bookId: number): boolean {
+    return this.getActiveLoansByBook(bookId).length > 0;
   }
 
   hasBookAlready(matricula: string, bookId: number): boolean {
     return this.loans.some(loan =>
       loan.matricula === matricula &&
-      loan.bookId === bookId &&
+      Number(loan.bookId) === Number(bookId) &&
       (
         loan.status === 'activo' ||
         loan.status === 'devolucion_pendiente' ||
@@ -144,130 +179,183 @@ export class LoanService {
   }
 
   getHistory(): Loan[] {
-    return this.history;
+    return [...this.history];
   }
 
-  addLoan(loan: Loan): void {
-    this.loans.push(loan);
+  addLoan(loan: Loan): Observable<Loan> {
+    const normalizedLoan = this.normalizeLoan(loan);
+
+    return this.http.post<{
+      message: string;
+      loan: Loan;
+    }>(
+      `${this.apiUrl}/`,
+      normalizedLoan
+    ).pipe(
+      map(response => this.normalizeLoan(response.loan)),
+      tap(createdLoan => {
+        this.loans = [
+          ...this.loans.filter(item =>
+            item.id !== createdLoan.id
+          ),
+          createdLoan
+        ];
+      })
+    );
+  }
+
+  requestReturn(loanId: number): Observable<Loan> {
+    const returnRequestDate =
+      new Date().toISOString().split('T')[0];
+
+    return this.http.patch<{
+      message: string;
+      loan: Loan;
+    }>(
+      `${this.apiUrl}/${loanId}/request-return`,
+      {
+        returnRequestDate
+      }
+    ).pipe(
+      map(response => this.normalizeLoan(response.loan)),
+      tap(updatedLoan => {
+        this.loans = this.loans.map(loan =>
+          loan.id === updatedLoan.id
+            ? updatedLoan
+            : loan
+        );
+      })
+    );
+  }
+
+  renewLoan(loanId: number): Observable<Loan> {
     this.updateOverdueLoans();
-    this.saveLoans();
-  }
 
-  requestReturn(loanId: number): void {
-    const loan = this.loans.find(l => l.id === loanId);
-
-    if (!loan || (loan.status !== 'activo' && loan.status !== 'vencido')) {
-      return;
-    }
-
-    loan.status = 'devolucion_pendiente';
-    loan.returnRequestDate = new Date().toISOString().split('T')[0];
-
-    this.saveLoans();
-  }
-
-  renewLoan(loanId: number): {
-    success: boolean;
-    message: string;
-  } {
-    this.updateOverdueLoans();
-
-    const loan = this.loans.find(l => l.id === loanId);
+    const loan = this.loans.find(item =>
+      item.id === loanId
+    );
 
     if (!loan) {
-      return {
-        success: false,
-        message: 'Préstamo no encontrado.'
-      };
+      throw new Error('Préstamo no encontrado.');
     }
 
     if (loan.status !== 'activo') {
-      return {
-        success: false,
-        message: 'Sólo se pueden renovar préstamos activos no vencidos.'
-      };
+      throw new Error('Sólo se pueden renovar préstamos activos no vencidos.');
     }
 
     if (loan.renewed) {
-      return {
-        success: false,
-        message: 'Este préstamo ya fue renovado una vez.'
-      };
+      throw new Error('Este préstamo ya fue renovado una vez.');
     }
 
     const dueDate = new Date(loan.dueDate);
     dueDate.setDate(dueDate.getDate() + 1);
 
-    loan.dueDate = dueDate.toISOString().split('T')[0];
-    loan.daysLeft = loan.daysLeft + 1;
-    loan.renewed = true;
+    const newDueDate = dueDate.toISOString().split('T')[0];
+    const newDaysLeft = loan.daysLeft + 1;
 
-    this.saveLoans();
-
-    return {
-      success: true,
-      message: 'Préstamo renovado por 1 día adicional.'
-    };
+    return this.http.patch<{
+      message: string;
+      loan: Loan;
+    }>(
+      `${this.apiUrl}/${loanId}/renew`,
+      {
+        dueDate: newDueDate,
+        daysLeft: newDaysLeft
+      }
+    ).pipe(
+      map(response => this.normalizeLoan(response.loan)),
+      tap(updatedLoan => {
+        this.loans = this.loans.map(item =>
+          item.id === updatedLoan.id
+            ? updatedLoan
+            : item
+        );
+      })
+    );
   }
 
-  confirmReturn(loanId: number): Loan | null {
-    this.updateOverdueLoans();
+  confirmReturn(loanId: number): Observable<Loan> {
+    const returnFolio =
+      'DEV-' + Math.floor(100000 + Math.random() * 900000);
 
-    const loan = this.loans.find(l => l.id === loanId);
+    const returnDate =
+      new Date().toISOString().split('T')[0];
 
-    if (!loan || loan.status !== 'devolucion_pendiente') {
-      return null;
-    }
+    return this.http.patch<{
+      message: string;
+      loan: Loan;
+    }>(
+      `${this.apiUrl}/${loanId}/confirm-return`,
+      {
+        returnFolio,
+        returnDate
+      }
+    ).pipe(
+      map(response => this.normalizeLoan(response.loan)),
+      tap(returnedLoan => {
+        this.loans = this.loans.filter(loan =>
+          loan.id !== returnedLoan.id
+        );
 
-    loan.status = 'devuelto';
-    loan.returnFolio = 'DEV-' + Math.floor(100000 + Math.random() * 900000);
-    loan.returnDate = new Date().toISOString().split('T')[0];
-
-    this.loans = this.loans.filter(l => l.id !== loanId);
-    this.history.push(loan);
-
-    this.saveAll();
-
-    return loan;
+        this.history = [
+          ...this.history.filter(loan =>
+            loan.id !== returnedLoan.id
+          ),
+          returnedLoan
+        ];
+      })
+    );
   }
 
   private updateOverdueLoans(): void {
     const today = new Date();
-    let changed = false;
 
     this.loans.forEach(loan => {
-      if (
-        loan.status === 'activo' ||
-        loan.status === 'vencido'
-      ) {
-        const dueDate = new Date(loan.dueDate);
-        const diffTime = today.getTime() - dueDate.getTime();
-        const daysOverdue = Math.floor(
-          diffTime / (1000 * 60 * 60 * 24)
-        );
-
-        if (daysOverdue > 0) {
-          const newFine = daysOverdue * this.finePerDay;
-
-          if (
-            loan.status !== 'vencido' ||
-            loan.daysOverdue !== daysOverdue ||
-            loan.fineAmount !== newFine ||
-            loan.daysLeft !== 0
-          ) {
-            loan.status = 'vencido';
-            loan.daysOverdue = daysOverdue;
-            loan.fineAmount = newFine;
-            loan.daysLeft = 0;
-            changed = true;
-          }
-        }
+      if (loan.status !== 'activo') {
+        return;
       }
+
+      const dueDate = new Date(loan.dueDate);
+
+      const diffTime =
+        today.getTime() - dueDate.getTime();
+
+      const daysOverdue = Math.floor(
+        diffTime / (1000 * 60 * 60 * 24)
+      );
+
+      if (daysOverdue <= 0) {
+        return;
+      }
+
+      const newFine = daysOverdue * this.finePerDay;
+
+      loan.status = 'vencido';
+      loan.daysOverdue = daysOverdue;
+      loan.fineAmount = newFine;
+      loan.daysLeft = 0;
+
+      this.http.patch<{
+        message: string;
+        loan: Loan;
+      }>(
+        `${this.apiUrl}/${loan.id}/overdue`,
+        {
+          daysOverdue,
+          fineAmount: newFine
+        }
+      ).pipe(
+        map(response => this.normalizeLoan(response.loan))
+      ).subscribe({
+        next: updatedLoan => {
+          this.loans = this.loans.map(item =>
+            item.id === updatedLoan.id
+              ? updatedLoan
+              : item
+          );
+        },
+        error: () => {}
+      });
     });
-
-    if (changed) {
-      this.saveLoans();
-    }
   }
-
 }

@@ -7,4 +7,5 @@ export interface User {
   activeLoans: number;
   email?: string;
   password: string;
+  isActive?: boolean;
 }

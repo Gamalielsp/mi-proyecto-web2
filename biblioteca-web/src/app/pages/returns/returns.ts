@@ -21,6 +21,7 @@ import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
 export class Returns {
 
   pendingReturns: Loan[] = [];
+  loading = false;
 
   constructor(
     private loanService: LoanService,
@@ -31,32 +32,59 @@ export class Returns {
   }
 
   loadData(): void {
-    this.pendingReturns =
-      this.loanService.getPendingReturns();
+    this.loanService.loadLoans().subscribe({
+      next: () => {
+        this.pendingReturns =
+          this.loanService.getPendingReturns();
+      },
+      error: () => {
+        this.pendingReturns =
+          this.loanService.getPendingReturns();
+      }
+    });
   }
 
   confirmReturn(loan: Loan): void {
-
-    const returnedLoan =
-      this.loanService.confirmReturn(loan.id);
-
-    if (!returnedLoan) {
+    if (this.loading) {
       return;
     }
 
-    this.bookService.increaseStock(
-      returnedLoan.bookTitle
+    const confirmReception = confirm(
+      `¿Confirmas la recepción física del libro "${loan.bookTitle}"?`
     );
 
-    this.waitlistService.notifyNextUser(
-      returnedLoan.bookId
-    );
+    if (!confirmReception) {
+      return;
+    }
 
-    alert(
-      `Libro recibido correctamente.\n\nFolio: ${returnedLoan.returnFolio}`
-    );
+    this.loading = true;
 
-    this.loadData();
+    this.loanService.confirmReturn(loan.id).subscribe({
+      next: returnedLoan => {
+        this.bookService.loadBooks().subscribe({
+          next: () => {
+            this.waitlistService.notifyNextUser(
+              returnedLoan.bookId
+            );
+          },
+          error: () => {}
+        });
+
+        alert(
+          `Libro recibido correctamente.\n\nFolio: ${returnedLoan.returnFolio}`
+        );
+
+        this.loading = false;
+        this.loadData();
+      },
+      error: error => {
+        this.loading = false;
+
+        alert(
+          error?.error?.detail ||
+          'No se pudo confirmar la devolución.'
+        );
+      }
+    });
   }
-
 }

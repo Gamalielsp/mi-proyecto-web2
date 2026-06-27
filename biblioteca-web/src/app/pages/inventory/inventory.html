@@ -16,7 +16,7 @@
 
       <input
         type="text"
-        placeholder="Buscar por título, autor o usuario..."
+        placeholder="Buscar por título, autor, ISBN o usuario..."
         [(ngModel)]="search">
     </div>
   </section>
@@ -34,8 +34,6 @@
       👥 Usuarios
     </button>
   </section>
-
-  <!-- LIBROS -->
 
   <section *ngIf="activeTab === 'books'">
 
@@ -90,6 +88,13 @@
             Para préstamo: {{ book.stock }} |
             En biblioteca: {{ book.libraryStock || book.totalCopies || 0 }}
           </p>
+
+          <p>
+            Estado:
+            <strong>
+              {{ book.isActive === false ? 'Inactivo' : 'Activo' }}
+            </strong>
+          </p>
         </div>
 
       </div>
@@ -98,14 +103,20 @@
 
         <span
           class="badge available"
-          *ngIf="book.stock > 0">
+          *ngIf="book.stock > 0 && book.isActive !== false">
           {{ book.stock }} para préstamo
         </span>
 
         <span
           class="badge unavailable"
-          *ngIf="book.stock === 0">
+          *ngIf="book.stock === 0 && book.isActive !== false">
           Agotado
+        </span>
+
+        <span
+          class="badge unavailable"
+          *ngIf="book.isActive === false">
+          Inactivo
         </span>
 
         <div class="item-actions">
@@ -119,7 +130,7 @@
           <button
             class="delete-btn"
             (click)="deleteBook(book)">
-            🗑️ Eliminar
+            {{ book.isActive === false ? '✅ Reactivar' : '🚫 Desactivar' }}
           </button>
 
         </div>
@@ -129,8 +140,6 @@
     </div>
 
   </section>
-
-  <!-- USUARIOS -->
 
   <section *ngIf="activeTab === 'users'">
 
@@ -180,6 +189,13 @@
           <p *ngIf="user.email">
             {{ user.email }}
           </p>
+
+          <p>
+            Estado:
+            <strong>
+              {{ user.isActive === false ? 'Inactivo' : 'Activo' }}
+            </strong>
+          </p>
         </div>
 
       </div>
@@ -201,7 +217,7 @@
           <button
             class="delete-btn"
             (click)="deleteUser(user)">
-            🗑️ Eliminar
+            {{ user.isActive === false ? '✅ Reactivar' : '🚫 Desactivar' }}
           </button>
 
         </div>
@@ -211,8 +227,6 @@
     </div>
 
   </section>
-
-  <!-- MODAL AGREGAR LIBRO -->
 
   <div
     class="modal-backdrop"
@@ -326,8 +340,6 @@
 
   </div>
 
-  <!-- MODAL EDITAR LIBRO -->
-
   <div
     class="modal-backdrop"
     *ngIf="showEditBookModal">
@@ -437,8 +449,6 @@
 
   </div>
 
-  <!-- MODAL AGREGAR USUARIO -->
-
   <div
     class="modal-backdrop"
     *ngIf="showUserModal">
@@ -465,13 +475,6 @@
           (click)="setNewUserRole('Profesor')">
           Profesor
         </button>
-
-        <button
-          type="button"
-          [class.active]="newUser.role === 'Bibliotecario'"
-          (click)="setNewUserRole('Bibliotecario')">
-          Bibliotecario
-        </button>
       </div>
 
       <label class="form-field">
@@ -490,9 +493,7 @@
           [(ngModel)]="newUser.matricula">
       </label>
 
-      <label
-        class="form-field"
-        *ngIf="showNewUserCareer">
+      <label class="form-field">
         <span>{{ newUserCareerLabel }}</span>
         <select [(ngModel)]="newUser.career">
           <option value="">Seleccionar carrera</option>
@@ -538,8 +539,6 @@
     </div>
 
   </div>
-
-  <!-- MODAL EDITAR USUARIO -->
 
   <div
     class="modal-backdrop"

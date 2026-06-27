@@ -2,7 +2,6 @@ import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { interval, Subscription } from 'rxjs';
 
-
 import { Loan } from '../../models/loan.model';
 import { Reservation } from '../../models/reservation.model';
 
@@ -30,12 +29,10 @@ export class MyBooks implements OnDestroy {
     'history' = 'reservations';
 
   loans: Loan[] = [];
-
   history: Loan[] = [];
-
   reservations: Reservation[] = [];
-
   folios: any[] = [];
+  processingLoanId: number | null = null;
 
   currentUser = JSON.parse(
     localStorage.getItem('currentUser') || '{}'
@@ -47,10 +44,10 @@ export class MyBooks implements OnDestroy {
     private loanService: LoanService,
     private reservationService: ReservationService
   ) {
-    this.loadData();
+    this.loadDataFromApi();
 
     this.timerSubscription = interval(60000).subscribe(() => {
-      this.loadData();
+      this.loadDataFromApi(false);
     });
   }
 
@@ -66,6 +63,30 @@ export class MyBooks implements OnDestroy {
       'history'
   ): void {
     this.activeSection = section;
+  }
+
+  loadDataFromApi(showError: boolean = false): void {
+    this.loanService.loadLoans().subscribe({
+      next: () => {
+        this.loadData();
+      },
+      error: () => {
+        this.loadData();
+
+        if (showError) {
+          alert('No se pudieron cargar los préstamos desde MongoDB.');
+        }
+      }
+    });
+
+    this.reservationService.loadReservations().subscribe({
+      next: () => {
+        this.loadData();
+      },
+      error: () => {
+        this.loadData();
+      }
+    });
   }
 
   loadData(): void {
@@ -88,17 +109,67 @@ export class MyBooks implements OnDestroy {
   }
 
   requestReturn(loan: Loan): void {
-    this.loanService.requestReturn(loan.id);
-    this.loadData();
+    if (this.processingLoanId !== null) {
+      return;
+    }
+
+    const confirmRequest = confirm(
+      `¿Deseas solicitar la devolución del libro "${loan.bookTitle}"?`
+    );
+
+    if (!confirmRequest) {
+      return;
+    }
+
+    this.processingLoanId = loan.id;
+
+    this.loanService.requestReturn(loan.id).subscribe({
+      next: () => {
+        this.processingLoanId = null;
+        alert('Solicitud de devolución enviada correctamente.');
+        this.loadDataFromApi();
+      },
+      error: error => {
+        this.processingLoanId = null;
+        alert(
+          error?.error?.detail ||
+          'No se pudo solicitar la devolución.'
+        );
+      }
+    });
   }
 
   renewLoan(loan: Loan): void {
-    const result =
-      this.loanService.renewLoan(loan.id);
+    if (this.processingLoanId !== null) {
+      return;
+    }
 
-    alert(result.message);
+    this.processingLoanId = loan.id;
 
-    this.loadData();
+    try {
+      this.loanService.renewLoan(loan.id).subscribe({
+        next: () => {
+          this.processingLoanId = null;
+          alert('Préstamo renovado por 1 día adicional.');
+          this.loadDataFromApi();
+        },
+        error: error => {
+          this.processingLoanId = null;
+          alert(
+            error?.error?.detail ||
+            'No se pudo renovar el préstamo.'
+          );
+        }
+      });
+    } catch (error) {
+      this.processingLoanId = null;
+
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert('No se pudo renovar el préstamo.');
+      }
+    }
   }
 
   getReservationStatusText(
@@ -144,5 +215,4 @@ export class MyBooks implements OnDestroy {
       reservation.expiresAt
     ).toLocaleTimeString();
   }
-
 }

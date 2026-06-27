@@ -8,10 +8,12 @@ import { User } from '../../models/user.model';
 import { BookService } from '../../services/book.service';
 import { UserService } from '../../services/user.service';
 import { WaitlistService } from '../../services/waitlist.service';
+import { LoanService } from '../../services/loan.service';
 
 import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
 
 type UserRole = 'Alumno' | 'Profesor' | 'Bibliotecario';
+type CreatableUserRole = 'Alumno' | 'Profesor';
 
 @Component({
   selector: 'app-inventory',
@@ -76,7 +78,7 @@ export class InventoryComponent {
     name: '',
     matricula: '',
     career: '',
-    role: 'Alumno' as UserRole,
+    role: 'Alumno' as CreatableUserRole,
     email: '',
     password: ''
   };
@@ -93,27 +95,67 @@ export class InventoryComponent {
   constructor(
     private bookService: BookService,
     private userService: UserService,
-    private waitlistService: WaitlistService
+    private waitlistService: WaitlistService,
+    private loanService: LoanService
   ) {
-    this.books = this.bookService.getBooks();
-    this.users = this.userService.getUsers();
+    this.loadBooks();
+    this.loadUsers();
+  }
+
+  private loadBooks(): void {
+    this.bookService.loadBooks().subscribe({
+      next: books => {
+        this.books = books;
+      },
+      error: () => {
+        this.books = this.bookService.getBooks();
+        alert('No se pudieron cargar los libros desde el servidor.');
+      }
+    });
+  }
+
+  private loadUsers(): void {
+    this.userService.loadUsers().subscribe({
+      next: users => {
+        this.users = users;
+      },
+      error: () => {
+        this.users = this.userService.getUsers();
+        alert('No se pudieron cargar los usuarios desde el servidor.');
+      }
+    });
+  }
+
+  private isEmpty(value: any): boolean {
+    return value === null ||
+      value === undefined ||
+      String(value).trim() === '';
+  }
+
+  private isValidEmail(email: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   }
 
   get filteredBooks(): Book[] {
+    const term = this.search.toLowerCase();
+
     return this.books.filter(book =>
-      book.title.toLowerCase().includes(this.search.toLowerCase()) ||
-      book.author.toLowerCase().includes(this.search.toLowerCase()) ||
-      book.career.toLowerCase().includes(this.search.toLowerCase())
+      book.title.toLowerCase().includes(term) ||
+      book.author.toLowerCase().includes(term) ||
+      book.career.toLowerCase().includes(term) ||
+      book.isbn.toLowerCase().includes(term)
     );
   }
 
   get filteredUsers(): User[] {
+    const term = this.search.toLowerCase();
+
     return this.users.filter(user =>
-      user.name.toLowerCase().includes(this.search.toLowerCase()) ||
-      user.matricula.toLowerCase().includes(this.search.toLowerCase()) ||
-      user.career.toLowerCase().includes(this.search.toLowerCase()) ||
-      user.role.toLowerCase().includes(this.search.toLowerCase()) ||
-      (user.email || '').toLowerCase().includes(this.search.toLowerCase())
+      user.name.toLowerCase().includes(term) ||
+      user.matricula.toLowerCase().includes(term) ||
+      user.career.toLowerCase().includes(term) ||
+      user.role.toLowerCase().includes(term) ||
+      (user.email || '').toLowerCase().includes(term)
     );
   }
 
@@ -141,10 +183,6 @@ export class InventoryComponent {
       : 'Carrera';
   }
 
-  get showNewUserCareer(): boolean {
-    return this.newUser.role !== 'Bibliotecario';
-  }
-
   get showEditUserCareer(): boolean {
     return this.editUser.role !== 'Bibliotecario';
   }
@@ -162,22 +200,51 @@ export class InventoryComponent {
     this.showUserModal = true;
   }
 
-  setNewUserRole(role: UserRole): void {
+  setNewUserRole(role: CreatableUserRole): void {
     this.newUser.role = role;
-
-    if (role === 'Bibliotecario') {
-      this.newUser.career = 'Biblioteca';
-    } else {
-      this.newUser.career = '';
-    }
+    this.newUser.career = '';
   }
 
   addBook(): void {
+    const title = this.newBook.title.trim();
+    const author = this.newBook.author.trim();
+    const career = this.newBook.career.trim();
+    const isbn = this.newBook.isbn.trim();
+    const cover = this.newBook.cover.trim();
+
     const loanCopies = Number(this.newBook.stock);
     const libraryCopies = Number(this.newBook.libraryStock);
 
+    if (
+      this.isEmpty(title) ||
+      this.isEmpty(author) ||
+      this.isEmpty(career) ||
+      this.isEmpty(isbn) ||
+      this.isEmpty(cover) ||
+      this.isEmpty(this.newBook.stock) ||
+      this.isEmpty(this.newBook.libraryStock)
+    ) {
+      alert('Todos los campos del libro son obligatorios.');
+      return;
+    }
+
+    if (this.bookService.hasIsbnRegistered(isbn)) {
+      alert('Ya existe un libro registrado con ese ISBN.');
+      return;
+    }
+
+    if (isNaN(loanCopies) || isNaN(libraryCopies)) {
+      alert('Los ejemplares deben ser números válidos.');
+      return;
+    }
+
     if (loanCopies < 0 || libraryCopies < 0) {
       alert('Los ejemplares no pueden ser negativos.');
+      return;
+    }
+
+    if (libraryCopies <= 0) {
+      alert('Los ejemplares disponibles en biblioteca deben ser mayores a 0.');
       return;
     }
 
@@ -188,36 +255,43 @@ export class InventoryComponent {
 
     const book: Book = {
       id: Date.now(),
-      title: this.newBook.title,
-      author: this.newBook.author,
-      career: this.newBook.career,
+      title,
+      author,
+      career,
       stock: loanCopies,
       libraryStock: libraryCopies,
       totalCopies: libraryCopies,
-      isbn: this.newBook.isbn,
-      cover:
-        this.newBook.cover.trim() ||
-        'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=200&h=300&fit=crop'
+      availableCopies: loanCopies,
+      isbn,
+      cover,
+      isActive: true
     };
 
-    this.bookService.addBook(book);
-    this.books = this.bookService.getBooks();
+    this.bookService.addBook(book).subscribe({
+      next: createdBook => {
+        this.books = this.bookService.getBooks();
 
-    if (book.stock > 0) {
-      this.waitlistService.notifyNextUser(book.id);
-    }
+        if (createdBook.stock > 0) {
+          this.waitlistService.notifyNextUser(createdBook.id);
+        }
 
-    this.newBook = {
-      title: '',
-      author: '',
-      career: '',
-      isbn: '',
-      stock: 1,
-      libraryStock: 1,
-      cover: ''
-    };
+        this.newBook = {
+          title: '',
+          author: '',
+          career: '',
+          isbn: '',
+          stock: 1,
+          libraryStock: 1,
+          cover: ''
+        };
 
-    this.showBookModal = false;
+        this.showBookModal = false;
+        alert('Libro agregado correctamente.');
+      },
+      error: error => {
+        alert(error?.error?.detail || 'No se pudo agregar el libro.');
+      }
+    });
   }
 
   openEditBook(book: Book): void {
@@ -241,11 +315,53 @@ export class InventoryComponent {
   }
 
   updateBook(): void {
+    const currentBook = this.books.find(book =>
+      book.id === this.editBook.id
+    );
+
+    if (!currentBook) {
+      return;
+    }
+
+    const title = this.editBook.title.trim();
+    const author = this.editBook.author.trim();
+    const career = this.editBook.career.trim();
+    const isbn = this.editBook.isbn.trim();
+    const cover = this.editBook.cover.trim();
+
     const loanCopies = Number(this.editBook.stock);
     const libraryCopies = Number(this.editBook.libraryStock);
 
+    if (
+      this.isEmpty(title) ||
+      this.isEmpty(author) ||
+      this.isEmpty(career) ||
+      this.isEmpty(isbn) ||
+      this.isEmpty(cover) ||
+      this.isEmpty(this.editBook.stock) ||
+      this.isEmpty(this.editBook.libraryStock)
+    ) {
+      alert('Todos los campos del libro son obligatorios.');
+      return;
+    }
+
+    if (this.bookService.hasIsbnRegistered(isbn, this.editBook.id)) {
+      alert('Ya existe otro libro registrado con ese ISBN.');
+      return;
+    }
+
+    if (isNaN(loanCopies) || isNaN(libraryCopies)) {
+      alert('Los ejemplares deben ser números válidos.');
+      return;
+    }
+
     if (loanCopies < 0 || libraryCopies < 0) {
       alert('Los ejemplares no pueden ser negativos.');
+      return;
+    }
+
+    if (libraryCopies <= 0) {
+      alert('Los ejemplares disponibles en biblioteca deben ser mayores a 0.');
       return;
     }
 
@@ -255,104 +371,168 @@ export class InventoryComponent {
     }
 
     const updatedBook: Book = {
+      ...currentBook,
       id: this.editBook.id,
-      title: this.editBook.title,
-      author: this.editBook.author,
-      career: this.editBook.career,
-      isbn: this.editBook.isbn,
+      title,
+      author,
+      career,
+      isbn,
       stock: loanCopies,
       libraryStock: libraryCopies,
       totalCopies: libraryCopies,
-      cover:
-        this.editBook.cover.trim() ||
-        'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=200&h=300&fit=crop'
+      availableCopies: loanCopies,
+      cover,
+      isActive: currentBook.isActive !== false
     };
 
-    this.bookService.updateBook(updatedBook);
-    this.books = this.bookService.getBooks();
+    this.bookService.updateBook(updatedBook).subscribe({
+      next: bookFromApi => {
+        this.books = this.bookService.getBooks();
 
-    if (updatedBook.stock > 0) {
-      this.waitlistService.notifyNextUser(updatedBook.id);
-    }
+        if (bookFromApi.stock > 0) {
+          this.waitlistService.notifyNextUser(bookFromApi.id);
+        }
 
-    this.showEditBookModal = false;
-    this.selectedBook = null;
+        this.showEditBookModal = false;
+        this.selectedBook = null;
+        alert('Libro actualizado correctamente.');
+      },
+      error: error => {
+        alert(error?.error?.detail || 'No se pudo actualizar el libro.');
+      }
+    });
   }
 
   deleteBook(book: Book): void {
-    const confirmDelete = confirm(
-      `¿Seguro que deseas eliminar el libro "${book.title}"?`
-    );
+    if (book.isActive === false) {
+      const confirmActivate = confirm(
+        `¿Deseas reactivar el libro "${book.title}"?`
+      );
 
-    if (!confirmDelete) {
+      if (!confirmActivate) {
+        return;
+      }
+
+      this.bookService.activateBook(book.id).subscribe({
+        next: () => {
+          this.books = this.bookService.getBooks();
+          alert('Libro reactivado correctamente.');
+        },
+        error: () => {
+          alert('No se pudo reactivar el libro.');
+        }
+      });
+
       return;
     }
 
-    this.bookService.deleteBook(book.id);
-    this.books = this.bookService.getBooks();
+    if (this.loanService.hasActiveLoansByBook(book.id)) {
+      alert(
+        'Este libro tiene préstamos activos.\n\n' +
+        'No puede ser desactivado hasta que todos los préstamos sean devueltos.'
+      );
+      return;
+    }
+
+    const confirmDeactivate = confirm(
+      `¿Seguro que deseas desactivar el libro "${book.title}"?\n\n` +
+      'El libro conservará su historial, pero ya no estará disponible para nuevas reservas.'
+    );
+
+    if (!confirmDeactivate) {
+      return;
+    }
+
+    this.bookService.deactivateBook(book.id).subscribe({
+      next: () => {
+        this.books = this.bookService.getBooks();
+        alert('Libro desactivado correctamente.');
+      },
+      error: () => {
+        alert('No se pudo desactivar el libro.');
+      }
+    });
   }
 
   addUser(): void {
-    if (!this.newUser.name.trim()) {
-      alert('Ingresa el nombre completo.');
+    const name = this.newUser.name.trim();
+    const matricula = this.newUser.matricula.trim();
+    const email = this.newUser.email.trim();
+    const password = this.newUser.password.trim();
+    const career = this.newUser.career.trim();
+
+    if (
+      this.isEmpty(name) ||
+      this.isEmpty(matricula) ||
+      this.isEmpty(this.newUser.role) ||
+      this.isEmpty(email) ||
+      this.isEmpty(password) ||
+      this.isEmpty(career)
+    ) {
+      alert('Todos los campos del usuario son obligatorios.');
       return;
     }
 
-    if (!this.newUser.matricula.trim()) {
-      alert('Ingresa la matrícula o número de control.');
+    if (!this.isValidEmail(email)) {
+      alert('Ingresa un correo electrónico válido.');
       return;
     }
 
-    if (this.newUser.role !== 'Bibliotecario' && !this.newUser.career) {
-      alert('Selecciona la carrera.');
-      return;
-    }
-
-    if (!this.newUser.email.trim()) {
-      alert('Ingresa el correo institucional.');
-      return;
-    }
-
-    if (!this.newUser.password || this.newUser.password.trim().length < 4) {
+    if (password.length < 4) {
       alert('La contraseña inicial debe tener al menos 4 caracteres.');
       return;
     }
 
-    const exists = this.users.some(user =>
-      user.matricula.toLowerCase() === this.newUser.matricula.trim().toLowerCase()
+    const duplicatedMatricula = this.users.some(user =>
+      user.matricula.toLowerCase() === matricula.toLowerCase()
     );
 
-    if (exists) {
+    if (duplicatedMatricula) {
       alert('Ya existe un usuario con esa matrícula o número de control.');
+      return;
+    }
+
+    const duplicatedEmail = this.users.some(user =>
+      (user.email || '').toLowerCase() === email.toLowerCase()
+    );
+
+    if (duplicatedEmail) {
+      alert('Ya existe un usuario con ese correo electrónico.');
       return;
     }
 
     const user: User = {
       id: Date.now(),
-      name: this.newUser.name.trim(),
-      matricula: this.newUser.matricula.trim(),
-      career: this.newUser.role === 'Bibliotecario'
-        ? 'Biblioteca'
-        : this.newUser.career,
+      name,
+      matricula,
+      career,
       role: this.newUser.role,
       activeLoans: 0,
-      email: this.newUser.email.trim(),
-      password: this.newUser.password.trim()
+      email,
+      password,
+      isActive: true
     };
 
-    this.userService.addUser(user);
-    this.users = this.userService.getUsers();
+    this.userService.addUser(user).subscribe({
+      next: () => {
+        this.users = this.userService.getUsers();
 
-    this.newUser = {
-      name: '',
-      matricula: '',
-      career: '',
-      role: 'Alumno',
-      email: '',
-      password: ''
-    };
+        this.newUser = {
+          name: '',
+          matricula: '',
+          career: '',
+          role: 'Alumno',
+          email: '',
+          password: ''
+        };
 
-    this.showUserModal = false;
+        this.showUserModal = false;
+        alert('Usuario agregado correctamente.');
+      },
+      error: error => {
+        alert(error?.error?.detail || 'No se pudo agregar el usuario.');
+      }
+    });
   }
 
   openEditUser(user: User): void {
@@ -379,52 +559,70 @@ export class InventoryComponent {
       return;
     }
 
-    if (!this.editUser.name.trim()) {
-      alert('Ingresa el nombre completo.');
+    const name = this.editUser.name.trim();
+    const matricula = this.editUser.matricula.trim();
+    const email = this.editUser.email.trim();
+    const career = currentUser.role === 'Bibliotecario'
+      ? 'Biblioteca'
+      : this.editUser.career.trim();
+
+    if (
+      this.isEmpty(name) ||
+      this.isEmpty(matricula) ||
+      this.isEmpty(email) ||
+      this.isEmpty(career)
+    ) {
+      alert('Todos los campos del usuario son obligatorios.');
       return;
     }
 
-    if (!this.editUser.matricula.trim()) {
-      alert('Ingresa la matrícula o número de control.');
+    if (!this.isValidEmail(email)) {
+      alert('Ingresa un correo electrónico válido.');
       return;
     }
 
-    if (currentUser.role !== 'Bibliotecario' && !this.editUser.career) {
-      alert('Selecciona la carrera.');
-      return;
-    }
-
-    if (!this.editUser.email.trim()) {
-      alert('Ingresa el correo institucional.');
-      return;
-    }
-
-    const duplicated = this.users.some(user =>
+    const duplicatedMatricula = this.users.some(user =>
       user.id !== this.editUser.id &&
-      user.matricula.toLowerCase() === this.editUser.matricula.trim().toLowerCase()
+      user.matricula.toLowerCase() === matricula.toLowerCase()
     );
 
-    if (duplicated) {
+    if (duplicatedMatricula) {
       alert('Ya existe otro usuario con esa matrícula o número de control.');
+      return;
+    }
+
+    const duplicatedEmail = this.users.some(user =>
+      user.id !== this.editUser.id &&
+      (user.email || '').toLowerCase() === email.toLowerCase()
+    );
+
+    if (duplicatedEmail) {
+      alert('Ya existe otro usuario con ese correo electrónico.');
       return;
     }
 
     const updatedUser: User = {
       ...currentUser,
-      name: this.editUser.name.trim(),
-      matricula: this.editUser.matricula.trim(),
-      career: currentUser.role === 'Bibliotecario'
-        ? 'Biblioteca'
-        : this.editUser.career,
+      name,
+      matricula,
+      career,
       role: currentUser.role,
-      email: this.editUser.email.trim()
+      email,
+      isActive: currentUser.isActive !== false
     };
 
-    this.userService.updateUser(updatedUser);
-    this.users = this.userService.getUsers();
+    this.userService.updateUser(updatedUser).subscribe({
+      next: () => {
+        this.users = this.userService.getUsers();
 
-    this.showEditUserModal = false;
-    this.selectedUser = null;
+        this.showEditUserModal = false;
+        this.selectedUser = null;
+        alert('Usuario actualizado correctamente.');
+      },
+      error: error => {
+        alert(error?.error?.detail || 'No se pudo actualizar el usuario.');
+      }
+    });
   }
 
   resetUserPassword(): void {
@@ -444,23 +642,64 @@ export class InventoryComponent {
     this.userService.resetPassword(
       this.selectedUser.id,
       newPassword.trim()
-    );
-
-    this.users = this.userService.getUsers();
-
-    alert('Contraseña restablecida correctamente.');
+    ).subscribe({
+      next: () => {
+        alert('Contraseña restablecida correctamente.');
+      },
+      error: error => {
+        alert(error?.error?.detail || 'No se pudo restablecer la contraseña.');
+      }
+    });
   }
 
   deleteUser(user: User): void {
-    const confirmDelete = confirm(
-      `¿Seguro que deseas eliminar al usuario "${user.name}"?`
-    );
+    if (user.isActive === false) {
+      const confirmActivate = confirm(
+        `¿Deseas reactivar al usuario "${user.name}"?`
+      );
 
-    if (!confirmDelete) {
+      if (!confirmActivate) {
+        return;
+      }
+
+      this.userService.activateUser(user.id).subscribe({
+        next: () => {
+          this.users = this.userService.getUsers();
+          alert('Usuario reactivado correctamente.');
+        },
+        error: error => {
+          alert(error?.error?.detail || 'No se pudo reactivar el usuario.');
+        }
+      });
+
       return;
     }
 
-    this.userService.deleteUser(user.id);
-    this.users = this.userService.getUsers();
+    if (this.loanService.hasActiveLoansByUser(user.matricula)) {
+      alert(
+        'Este usuario tiene préstamos activos.\n\n' +
+        'Debe devolver todos sus libros antes de ser desactivado.'
+      );
+      return;
+    }
+
+    const confirmDeactivate = confirm(
+      `¿Seguro que deseas desactivar al usuario "${user.name}"?\n\n` +
+      'El usuario conservará su historial, pero ya no podrá iniciar sesión.'
+    );
+
+    if (!confirmDeactivate) {
+      return;
+    }
+
+    this.userService.deactivateUser(user.id).subscribe({
+      next: () => {
+        this.users = this.userService.getUsers();
+        alert('Usuario desactivado correctamente.');
+      },
+      error: error => {
+        alert(error?.error?.detail || 'No se pudo desactivar el usuario.');
+      }
+    });
   }
 }

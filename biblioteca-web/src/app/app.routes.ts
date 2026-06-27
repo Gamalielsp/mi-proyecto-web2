@@ -46,6 +46,15 @@ export const routes: Routes = [
   },
 
   {
+    path: 'alerts',
+    component: Alerts,
+    canActivate: [authGuard, roleGuard],
+    data: {
+      roles: ['alumno', 'profesor']
+    }
+  },
+
+  {
     path: 'profile',
     component: Profile,
     canActivate: [authGuard, roleGuard],
@@ -91,15 +100,6 @@ export const routes: Routes = [
   },
 
   {
-    path: 'alerts',
-    component: Alerts,
-    canActivate: [authGuard, roleGuard],
-    data: {
-      roles: ['bibliotecario']
-    }
-  },
-
-  {
     path: 'returns',
     component: Returns,
     canActivate: [authGuard, roleGuard],
@@ -115,5 +115,10 @@ export const routes: Routes = [
     data: {
       roles: ['bibliotecario']
     }
+  },
+
+  {
+    path: '**',
+    redirectTo: 'login'
   }
 ];

@@ -4,13 +4,13 @@ export interface Book {
   author: string;
   career: string;
 
-  stock: number; // Ejemplares disponibles para préstamo
-  libraryStock?: number; // Ejemplares disponibles en biblioteca
-  totalCopies?: number;
+  stock: number;
+  libraryStock: number;
+  totalCopies: number;
+  availableCopies?: number;
 
-  isbn?: string;
-  cover?: string;
+  isbn: string;
+  cover: string;
 
-  reservedFor?: string;
-  reservedUntil?: number;
+  isActive?: boolean;
 }

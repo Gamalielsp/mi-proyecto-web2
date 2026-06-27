@@ -19,6 +19,7 @@ import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
 export class Waitlists {
 
   entries: WaitlistEntry[] = [];
+  loading = false;
 
   constructor(
     private waitlistService: WaitlistService
@@ -27,7 +28,19 @@ export class Waitlists {
   }
 
   loadEntries(): void {
-    this.entries = this.waitlistService.getWaitlist();
+    this.loading = true;
+
+    this.waitlistService.loadWaitlist().subscribe({
+      next: entries => {
+        this.entries = entries;
+        this.loading = false;
+      },
+      error: () => {
+        this.entries = this.waitlistService.getWaitlist();
+        this.loading = false;
+        alert('No se pudieron cargar las listas de espera desde el servidor.');
+      }
+    });
   }
 
   getStatusText(status: WaitlistEntry['status']): string {

@@ -35,7 +35,7 @@ export class Dashboard {
     'Ingeniería en Computación',
     'Ingeniería Química',
     'Ingeniería Industrial',
-    'Ingeniería de Petróleos',
+    'Ingeniería en Petróleos',
     'Ingeniería en Diseño',
     'Ingeniería en Energías Renovables',
     'Licenciatura en Matemáticas Aplicadas'
@@ -46,6 +46,7 @@ export class Dashboard {
   selectedBook: Book | null = null;
   selectedFolio = '';
   showFolio = false;
+  reservingBookId: number | null = null;
 
   constructor(
     private bookService: BookService,
@@ -53,7 +54,21 @@ export class Dashboard {
     private reservationService: ReservationService,
     private waitlistService: WaitlistService
   ) {
-    this.books = this.bookService.getBooks();
+    this.loadBooks();
+  }
+
+  private loadBooks(): void {
+    this.bookService.loadBooks().subscribe({
+      next: books => {
+        this.books = books.filter(book =>
+          book.isActive !== false
+        );
+      },
+      error: () => {
+        this.books = this.bookService.getActiveBooks();
+        alert('No se pudieron cargar los libros desde el servidor.');
+      }
+    });
   }
 
   get filteredBooks(): Book[] {
@@ -102,6 +117,10 @@ export class Dashboard {
   }
 
   reserveBook(book: Book): void {
+    if (this.reservingBookId !== null) {
+      return;
+    }
+
     const currentUser = JSON.parse(
       localStorage.getItem('currentUser') || '{}'
     );
@@ -140,20 +159,40 @@ export class Dashboard {
       return;
     }
 
+    this.reservingBookId = book.id;
+
     try {
-      const reservation =
-        this.reservationService.createReservation(
-          book.id,
-          book.title,
-          book.author
-        );
+      this.reservationService.createReservation(
+        book.id,
+        book.title,
+        book.author
+      ).subscribe({
+        next: reservation => {
+          this.selectedBook = book;
+          this.selectedFolio = reservation.folio;
 
-      this.selectedBook = book;
-      this.selectedFolio = reservation.folio;
-      this.books = this.bookService.getBooks();
-      this.showFolio = true;
+          this.bookService.loadBooks().subscribe({
+            next: books => {
+              this.books = books.filter(item =>
+                item.isActive !== false
+              );
+            },
+            error: () => {
+              this.books = this.bookService.getActiveBooks();
+            }
+          });
 
+          this.showFolio = true;
+          this.reservingBookId = null;
+        },
+        error: error => {
+          this.reservingBookId = null;
+          alert(error?.error?.detail || 'Ocurrió un error al generar la reserva.');
+        }
+      });
     } catch (error) {
+      this.reservingBookId = null;
+
       if (error instanceof Error) {
         alert(error.message);
       } else {
@@ -166,23 +205,6 @@ export class Dashboard {
     this.showFolio = false;
     this.selectedBook = null;
     this.selectedFolio = '';
-  }
-
-  resetDataOnly(): void {
-    const currentUser =
-      localStorage.getItem('currentUser');
-
-    localStorage.removeItem('reservations');
-    localStorage.removeItem('waitlist');
-    localStorage.removeItem('loans');
-    localStorage.removeItem('loanHistory');
-    localStorage.removeItem('books');
-
-    if (currentUser) {
-      localStorage.setItem('currentUser', currentUser);
-    }
-
-    location.reload();
   }
 
 }

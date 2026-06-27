@@ -42,6 +42,10 @@ export class MobileNavComponent implements AfterViewInit {
     return this.currentUser?.role === 'bibliotecario';
   }
 
+  get hasManyItems(): boolean {
+    return true;
+  }
+
   ngAfterViewInit(): void {
     setTimeout(() => this.centerActiveLink(), 100);
   }
@@ -72,6 +76,7 @@ export class MobileNavComponent implements AfterViewInit {
   }
 
   logout(): void {
+    localStorage.removeItem('accessToken');
     localStorage.removeItem('currentUser');
     localStorage.removeItem('userRole');
 

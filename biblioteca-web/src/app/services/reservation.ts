@@ -1,69 +1,70 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map, tap } from 'rxjs';
 
 import { Reservation } from '../models/reservation.model';
-import { BookService } from './book.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ReservationService {
 
-  private storageKey = 'reservations';
-
+  private apiUrl = 'http://127.0.0.1:8000/reservations';
   private reservations: Reservation[] = [];
 
   constructor(
-    private bookService: BookService
-  ) {
-    const savedReservations =
-      localStorage.getItem(this.storageKey);
+    private http: HttpClient
+  ) {}
 
-    if (savedReservations) {
-      this.reservations =
-        JSON.parse(savedReservations);
-    }
-
-    this.checkExpiredReservations();
+  private normalizeReservation(reservation: Reservation): Reservation {
+    return {
+      ...reservation,
+      id: Number(reservation.id),
+      bookId: Number(reservation.bookId),
+      status: reservation.status || 'pendiente'
+    };
   }
 
-  private saveReservations(): void {
-    localStorage.setItem(
-      this.storageKey,
-      JSON.stringify(this.reservations)
+  loadReservations(): Observable<Reservation[]> {
+    return this.http.get<Reservation[]>(`${this.apiUrl}/`).pipe(
+      map(reservations =>
+        reservations.map(reservation =>
+          this.normalizeReservation(reservation)
+        )
+      ),
+      tap(reservations => {
+        this.reservations = reservations;
+        this.checkExpiredReservations();
+      })
     );
   }
 
   getReservations(): Reservation[] {
     this.checkExpiredReservations();
-    return this.reservations;
+    return [...this.reservations];
   }
 
   getPendingReservations(): Reservation[] {
     this.checkExpiredReservations();
 
-    return this.reservations.filter(
-      reservation =>
-        reservation.status === 'pendiente'
+    return this.reservations.filter(reservation =>
+      reservation.status === 'pendiente'
     );
   }
 
   getReservationHistory(): Reservation[] {
     this.checkExpiredReservations();
 
-    return this.reservations.filter(
-      reservation =>
-        reservation.status !== 'pendiente'
+    return this.reservations.filter(reservation =>
+      reservation.status !== 'pendiente'
     );
   }
 
-  getUserReservations(
-    matricula: string
-  ): Reservation[] {
+  getUserReservations(matricula: string): Reservation[] {
     this.checkExpiredReservations();
 
-    return this.reservations.filter(
-      reservation =>
-        reservation.matricula === matricula
+    return this.reservations.filter(reservation =>
+      reservation.matricula === matricula
     );
   }
 
@@ -73,11 +74,10 @@ export class ReservationService {
   ): boolean {
     this.checkExpiredReservations();
 
-    return this.reservations.some(
-      reservation =>
-        reservation.matricula === matricula &&
-        reservation.bookId === bookId &&
-        reservation.status === 'pendiente'
+    return this.reservations.some(reservation =>
+      reservation.matricula === matricula &&
+      Number(reservation.bookId) === Number(bookId) &&
+      reservation.status === 'pendiente'
     );
   }
 
@@ -85,132 +85,127 @@ export class ReservationService {
     bookId: number,
     bookTitle: string,
     author: string
-  ): Reservation {
+  ): Observable<Reservation> {
     const currentUser = JSON.parse(
       localStorage.getItem('currentUser') || '{}'
     );
 
-    const alreadyReserved =
-      this.hasPendingReservation(
-        currentUser.matricula,
-        bookId
-      );
-
-    if (alreadyReserved) {
-      throw new Error(
-        'Ya tienes una reserva pendiente para este libro.'
-      );
+    if (!currentUser?.matricula) {
+      throw new Error('No se encontró la sesión del usuario.');
     }
 
-    const reserved =
-      this.bookService.reserveBook(bookId);
+    const alreadyReserved = this.hasPendingReservation(
+      currentUser.matricula,
+      bookId
+    );
 
-    if (!reserved) {
-      throw new Error(
-        'No hay ejemplares disponibles para reservar.'
-      );
+    if (alreadyReserved) {
+      throw new Error('Ya tienes una reserva pendiente para este libro.');
     }
 
     const now = new Date();
-
     const expiresAt = new Date(
       now.getTime() + (60 * 60 * 1000)
     );
 
     const reservation: Reservation = {
       id: Date.now(),
-
-      folio:
-        'RES-' +
-        Math.floor(
-          100000 + Math.random() * 900000
-        ),
-
+      folio: 'RES-' + Math.floor(100000 + Math.random() * 900000),
       bookId,
       bookTitle,
       author,
-
-      studentName:
-        currentUser.name || 'Usuario sin nombre',
-
-      matricula:
-        currentUser.matricula || 'SIN-MATRICULA',
-
-      userRole:
-        currentUser.role || 'alumno',
-
-      requestDate:
-        now.toISOString().split('T')[0],
-
-      requestTime:
-        now.toLocaleTimeString(),
-
-      expiresAt:
-        expiresAt.toISOString(),
-
+      studentName: currentUser.name || 'Usuario sin nombre',
+      matricula: currentUser.matricula,
+      userRole: currentUser.role || 'alumno',
+      requestDate: now.toISOString().split('T')[0],
+      requestTime: now.toLocaleTimeString(),
+      expiresAt: expiresAt.toISOString(),
       status: 'pendiente'
     };
 
-    this.reservations.push(reservation);
-    this.saveReservations();
-
-    return reservation;
-  }
-
-  markAsDelivered(
-    reservationId: number
-  ): Reservation | null {
-    const reservation =
-      this.reservations.find(
-        item =>
-          item.id === reservationId
-      );
-
-    if (!reservation || reservation.status !== 'pendiente') {
-      return null;
-    }
-
-    reservation.status = 'entregado';
-
-    this.saveReservations();
-
-    return reservation;
-  }
-
-  cancelReservation(
-    reservationId: number
-  ): void {
-    const reservation =
-      this.reservations.find(
-        item =>
-          item.id === reservationId
-      );
-
-    if (!reservation || reservation.status !== 'pendiente') {
-      return;
-    }
-
-    reservation.status = 'cancelada';
-
-    this.bookService.increaseStock(
-      reservation.bookTitle
+    return this.http.post<{
+      message: string;
+      reservation: Reservation;
+    }>(
+      `${this.apiUrl}/`,
+      reservation
+    ).pipe(
+      map(response => this.normalizeReservation(response.reservation)),
+      tap(createdReservation => {
+        this.reservations = [
+          ...this.reservations.filter(item =>
+            item.id !== createdReservation.id
+          ),
+          createdReservation
+        ];
+      })
     );
-
-    this.saveReservations();
   }
 
-  getRemainingMinutes(
-    reservation: Reservation
-  ): number {
+  markAsDelivered(reservationId: number): Observable<Reservation> {
+    return this.http.patch<{
+      message: string;
+      reservation: Reservation;
+    }>(
+      `${this.apiUrl}/${reservationId}/delivered`,
+      {}
+    ).pipe(
+      map(response => this.normalizeReservation(response.reservation)),
+      tap(updatedReservation => {
+        this.reservations = this.reservations.map(reservation =>
+          reservation.id === updatedReservation.id
+            ? updatedReservation
+            : reservation
+        );
+      })
+    );
+  }
+
+  cancelReservation(reservationId: number): Observable<Reservation> {
+    return this.http.patch<{
+      message: string;
+      reservation: Reservation;
+    }>(
+      `${this.apiUrl}/${reservationId}/cancel`,
+      {}
+    ).pipe(
+      map(response => this.normalizeReservation(response.reservation)),
+      tap(updatedReservation => {
+        this.reservations = this.reservations.map(reservation =>
+          reservation.id === updatedReservation.id
+            ? updatedReservation
+            : reservation
+        );
+      })
+    );
+  }
+
+  expireReservation(reservationId: number): Observable<Reservation> {
+    return this.http.patch<{
+      message: string;
+      reservation: Reservation;
+    }>(
+      `${this.apiUrl}/${reservationId}/expire`,
+      {}
+    ).pipe(
+      map(response => this.normalizeReservation(response.reservation)),
+      tap(updatedReservation => {
+        this.reservations = this.reservations.map(reservation =>
+          reservation.id === updatedReservation.id
+            ? updatedReservation
+            : reservation
+        );
+      })
+    );
+  }
+
+  getRemainingMinutes(reservation: Reservation): number {
     if (reservation.status !== 'pendiente') {
       return 0;
     }
 
     const now = new Date().getTime();
-
-    const expiresAt =
-      new Date(reservation.expiresAt).getTime();
-
+    const expiresAt = new Date(reservation.expiresAt).getTime();
     const diff = expiresAt - now;
 
     if (diff <= 0) {
@@ -221,33 +216,25 @@ export class ReservationService {
   }
 
   private checkExpiredReservations(): void {
-    let changed = false;
-
     const now = new Date();
 
-    this.reservations.forEach(
-      reservation => {
-        if (reservation.status !== 'pendiente') {
-          return;
-        }
-
-        const expiresAt =
-          new Date(reservation.expiresAt);
-
-        if (now > expiresAt) {
-          reservation.status = 'expirada';
-
-          this.bookService.increaseStock(
-            reservation.bookTitle
-          );
-
-          changed = true;
-        }
+    this.reservations.forEach(reservation => {
+      if (reservation.status !== 'pendiente') {
+        return;
       }
-    );
 
-    if (changed) {
-      this.saveReservations();
-    }
+      const expiresAt = new Date(reservation.expiresAt);
+
+      if (now <= expiresAt) {
+        return;
+      }
+
+      reservation.status = 'expirada';
+
+      this.expireReservation(reservation.id).subscribe({
+        next: () => {},
+        error: () => {}
+      });
+    });
   }
 }

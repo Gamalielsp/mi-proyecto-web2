@@ -25,7 +25,14 @@ export class ActiveLoans {
   }
 
   loadLoans(): void {
-    this.loans = this.loanService.getActiveLoans();
+    this.loanService.loadLoans().subscribe({
+      next: () => {
+        this.loans = this.loanService.getActiveLoans();
+      },
+      error: () => {
+        this.loans = this.loanService.getActiveLoans();
+      }
+    });
   }
 
   getStatusText(status: Loan['status']): string {
@@ -43,5 +50,4 @@ export class ActiveLoans {
 
     return 'Devuelto';
   }
-
 }

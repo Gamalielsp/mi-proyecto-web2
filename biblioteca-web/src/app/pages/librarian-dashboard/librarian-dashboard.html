@@ -10,7 +10,46 @@
       <p class="subtitle">
         Resumen general de préstamos, inventario, reservas, devoluciones y multas.
       </p>
+
+      <p
+        class="subtitle"
+        *ngIf="isUpdating">
+
+        Sincronizando datos del backend...
+
+      </p>
+
+      <p
+        class="subtitle"
+        *ngIf="!isUpdating && lastUpdated">
+
+        Última actualización: {{ lastUpdated }}
+
+      </p>
     </div>
+
+    <button
+      type="button"
+      class="refresh-button"
+      [disabled]="isUpdating"
+      (click)="loadDashboardData()">
+
+      {{ isUpdating ? 'Actualizando...' : 'Actualizar' }}
+
+    </button>
+
+  </section>
+
+  <section
+    class="empty-state"
+    *ngIf="loadError">
+
+    <h2>Algunos datos no se pudieron actualizar</h2>
+
+    <p>
+      Verifica que el backend esté encendido y revisa la consola del navegador.
+      El panel mostrará los datos que sí se hayan podido cargar correctamente.
+    </p>
 
   </section>
 
@@ -77,14 +116,14 @@
         <span>Reservas pendientes</span>
       </a>
 
+      <a routerLink="/active-loans">
+        📖
+        <span>Préstamos activos</span>
+      </a>
+
       <a routerLink="/inventory">
         📦
         <span>Inventario</span>
-      </a>
-
-      <a routerLink="/alerts">
-        ⚠️
-        <span>Alertas</span>
       </a>
 
       <a routerLink="/returns">

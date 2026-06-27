@@ -39,6 +39,9 @@ export class BookCardComponent implements OnInit, OnDestroy {
   minutesLeft = 0;
   secondsLeft = 0;
 
+  joiningWaitlist = false;
+  confirmingWaitlist = false;
+
   private timer: any;
 
   constructor(
@@ -48,7 +51,16 @@ export class BookCardComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.refreshWaitlistState();
+    this.waitlistService.loadWaitlist().subscribe({
+      next: () => {
+        this.refreshWaitlistState();
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.refreshWaitlistState();
+        this.cdr.detectChanges();
+      }
+    });
 
     this.timer = setInterval(() => {
       this.refreshWaitlistState();
@@ -98,12 +110,16 @@ export class BookCardComponent implements OnInit, OnDestroy {
         this.book.id
       );
 
+    const stock = Number(
+      this.book.availableCopies ?? this.book.stock ?? 0
+    );
+
     if (
       this.userWaitlistEntry &&
       this.userWaitlistEntry.status === 'notificado' &&
       this.userWaitlistEntry.reservedUntil &&
       Date.now() < this.userWaitlistEntry.reservedUntil &&
-      this.book.stock > 0
+      stock > 0
     ) {
       this.notifiedEntry = this.userWaitlistEntry;
       return;
@@ -120,10 +136,13 @@ export class BookCardComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const diff =
-      this.notifiedEntry.reservedUntil - Date.now();
+    const diff = this.notifiedEntry.reservedUntil - Date.now();
 
-    if (diff <= 0 || this.book.stock <= 0) {
+    const stock = Number(
+      this.book.availableCopies ?? this.book.stock ?? 0
+    );
+
+    if (diff <= 0 || stock <= 0) {
       this.minutesLeft = 0;
       this.secondsLeft = 0;
       this.notifiedEntry = null;
@@ -146,33 +165,45 @@ export class BookCardComponent implements OnInit, OnDestroy {
   }
 
   confirmWaitlistReservation(): void {
-    if (!this.notifiedEntry) {
+    if (!this.notifiedEntry || this.confirmingWaitlist) {
       return;
     }
 
+    this.confirmingWaitlist = true;
+    const entryId = this.notifiedEntry.id;
+
     try {
-      const reservation = this.reservationService.createReservation(
+      this.reservationService.createReservation(
         this.book.id,
         this.book.title,
         this.book.author
-      );
+      ).subscribe({
+        next: reservation => {
+          this.waitlistService.confirmReservation(entryId);
 
-      this.waitlistService.confirmReservation(
-        this.notifiedEntry.id
-      );
+          alert(
+            `Solicitud de reserva confirmada.
 
-      alert(
-        `Solicitud de reserva confirmada.\n\n` +
-        `Folio: ${reservation.folio}\n` +
-        `Ahora aparecerá en Mis Solicitudes de Reserva.`
-      );
+` +
+            `Folio: ${reservation.folio}
+` +
+            `Ahora aparecerá en Mis Solicitudes de Reserva.`
+          );
 
-      this.notifiedEntry = null;
-      this.userWaitlistEntry = null;
-      this.waitlistEntry = null;
-      this.waitlistMessage = '';
-
+          this.notifiedEntry = null;
+          this.userWaitlistEntry = null;
+          this.waitlistEntry = null;
+          this.waitlistMessage = '';
+          this.confirmingWaitlist = false;
+        },
+        error: error => {
+          this.confirmingWaitlist = false;
+          alert(error?.error?.detail || 'Ocurrió un error al confirmar la reserva.');
+        }
+      });
     } catch (error) {
+      this.confirmingWaitlist = false;
+
       if (error instanceof Error) {
         alert(error.message);
       } else {
@@ -182,6 +213,12 @@ export class BookCardComponent implements OnInit, OnDestroy {
   }
 
   joinWaitlist(): void {
+    if (this.joiningWaitlist) {
+      return;
+    }
+
+    this.joiningWaitlist = true;
+
     const result = this.waitlistService.addToWaitlist(
       this.book.id,
       this.book.title
@@ -190,6 +227,10 @@ export class BookCardComponent implements OnInit, OnDestroy {
     this.waitlistMessage = result.message;
     this.waitlistEntry = result.entry;
     this.refreshWaitlistState();
+
+    setTimeout(() => {
+      this.joiningWaitlist = false;
+    }, 500);
   }
 
   closeWaitlist(): void {

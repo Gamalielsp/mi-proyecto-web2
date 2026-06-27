@@ -1,7 +1,7 @@
 <nav
     #mobileNav
     class="mobile-nav"
-    [class.many-items]="isLibrarian">
+    [class.many-items]="hasManyItems">
 
     <ng-container *ngIf="!isLibrarian">
 
@@ -17,6 +17,13 @@
             routerLinkActive="active">
             📖
             <span>Mis Libros</span>
+        </a>
+
+        <a
+            routerLink="/alerts"
+            routerLinkActive="active">
+            🔔
+            <span>Alertas</span>
         </a>
 
         <a
@@ -56,13 +63,6 @@
             routerLinkActive="active">
             📦
             <span>Inventario</span>
-        </a>
-
-        <a
-            routerLink="/alerts"
-            routerLinkActive="active">
-            ⚠️
-            <span>Alertas</span>
         </a>
 
         <a

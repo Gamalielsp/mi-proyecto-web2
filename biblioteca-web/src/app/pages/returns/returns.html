@@ -97,9 +97,10 @@
 
             <button
                 class="confirm-btn"
+                [disabled]="loading"
                 (click)="confirmReturn(loan)">
 
-                ✓ Confirmar recepción
+                {{ loading ? 'Procesando...' : 'Confirmar recepción' }}
 
             </button>
 

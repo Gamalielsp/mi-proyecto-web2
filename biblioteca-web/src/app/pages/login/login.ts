@@ -3,8 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { UserService } from '../../services/user.service';
-import { User } from '../../models/user.model';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -28,7 +27,7 @@ export class LoginComponent {
 
   constructor(
     private router: Router,
-    private userService: UserService
+    private authService: AuthService
   ) {
     const theme = localStorage.getItem('theme');
 
@@ -59,59 +58,32 @@ export class LoginComponent {
       return;
     }
 
-    const user = this.userService.login(identifier, password);
+    this.authService.login({
+      identifier,
+      password
+    }).subscribe({
+      next: response => {
+        this.authService.saveSession(response);
 
-    if (!user) {
-      alert('Matrícula/correo o contraseña incorrectos.');
-      return;
-    }
+        const currentUser = JSON.parse(
+          localStorage.getItem('currentUser') || '{}'
+        );
 
-    if (!this.roleMatches(user)) {
-      alert('El usuario no corresponde al tipo de acceso seleccionado.');
-      return;
-    }
+        if (currentUser.role !== this.role) {
+          this.authService.logout();
+          alert('El usuario no corresponde al tipo de acceso seleccionado.');
+          return;
+        }
 
-    const currentUser = {
-      id: user.id,
-      name: user.name,
-      matricula: user.matricula,
-      role: this.normalizeRole(user.role),
-      career: user.career,
-      email: user.email || ''
-    };
-
-    localStorage.setItem(
-      'currentUser',
-      JSON.stringify(currentUser)
-    );
-
-    localStorage.setItem(
-      'userRole',
-      currentUser.role
-    );
-
-    if (currentUser.role === 'bibliotecario') {
-      this.router.navigate(['/librarian-dashboard']);
-    } else {
-      this.router.navigate(['/dashboard']);
-    }
-  }
-
-  private roleMatches(user: User): boolean {
-    return this.normalizeRole(user.role) === this.role;
-  }
-
-  private normalizeRole(
-    role: 'Alumno' | 'Profesor' | 'Bibliotecario'
-  ): string {
-    if (role === 'Alumno') {
-      return 'alumno';
-    }
-
-    if (role === 'Profesor') {
-      return 'profesor';
-    }
-
-    return 'bibliotecario';
+        if (currentUser.role === 'bibliotecario') {
+          this.router.navigate(['/librarian-dashboard']);
+        } else {
+          this.router.navigate(['/dashboard']);
+        }
+      },
+      error: () => {
+        alert('Matrícula/correo o contraseña incorrectos.');
+      }
+    });
   }
 }

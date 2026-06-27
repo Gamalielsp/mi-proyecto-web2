@@ -1,29 +1,32 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
 
-export const roleGuard: CanActivateFn = (route, state) => {
+export const roleGuard: CanActivateFn = (route) => {
 
   const router = inject(Router);
 
+  const token = localStorage.getItem('accessToken');
+  const currentUser = localStorage.getItem('currentUser');
   const userRole = localStorage.getItem('userRole');
 
-  const allowedRoles = route.data?.['roles'] as string[];
+  if (!token || !currentUser || !userRole) {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('userRole');
 
-  if (!userRole) {
     router.navigate(['/login']);
+
     return false;
   }
 
-  if (!allowedRoles) {
-    return true;
-  }
+  const allowedRoles = route.data?.['roles'] as string[] | undefined;
 
-  if (allowedRoles.includes(userRole)) {
+  if (!allowedRoles || allowedRoles.includes(userRole)) {
     return true;
   }
 
   if (userRole === 'bibliotecario') {
-    router.navigate(['/inventory']);
+    router.navigate(['/librarian-dashboard']);
   } else {
     router.navigate(['/dashboard']);
   }

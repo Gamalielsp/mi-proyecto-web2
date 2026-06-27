@@ -216,17 +216,19 @@
                       loan.status === 'activo' &&
                       !loan.renewed
                     "
+                    [disabled]="processingLoanId === loan.id"
                     (click)="renewLoan(loan)">
 
-                    ⟳ Renovar (+1 día)
+                    {{ processingLoanId === loan.id ? 'Procesando...' : 'Renovar (+1 día)' }}
 
                 </button>
 
                 <button
                     class="return-btn"
+                    [disabled]="processingLoanId === loan.id"
                     (click)="requestReturn(loan)">
 
-                    ✓ Solicitar devolución
+                    {{ processingLoanId === loan.id ? 'Procesando...' : 'Solicitar devolución' }}
 
                 </button>
 

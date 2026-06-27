@@ -1,13 +1,17 @@
 <div class="container">
 
   <section class="hero">
-    <p class="eyebrow">Alumno</p>
+
+    <p class="eyebrow">
+      {{ roleLabel }}
+    </p>
 
     <h1>Alertas</h1>
 
     <p class="subtitle">
       Aquí aparecerán los libros disponibles para ti desde la lista de espera.
     </p>
+
   </section>
 
   <div
@@ -19,12 +23,14 @@
     <h2>No tienes alertas pendientes</h2>
 
     <p>
-      Cuando un libro de tu lista de espera esté disponible, aparecerá aquí.
+      Cuando un libro de tu lista de espera esté disponible, aparecerá aquí para que confirmes tu solicitud de reserva.
     </p>
 
   </div>
 
-  <div class="alerts-grid">
+  <div
+    class="alerts-grid"
+    *ngIf="alerts.length > 0">
 
     <div
       class="alert-card"
@@ -47,13 +53,14 @@
         <p>
           Tienes aproximadamente
           <strong>{{ getMinutesLeft(alert) }} minuto(s)</strong>
-          para confirmar tu préstamo.
+          para confirmar la reserva.
         </p>
 
         <button
-          class="btn primary"
+          class="confirm-btn"
+          [disabled]="confirmingEntryId === alert.id"
           (click)="confirmReservation(alert)">
-          Confirmar solicitud de reserva
+          {{ confirmingEntryId === alert.id ? 'Confirmando...' : 'Confirmar reserva' }}
         </button>
 
       </div>

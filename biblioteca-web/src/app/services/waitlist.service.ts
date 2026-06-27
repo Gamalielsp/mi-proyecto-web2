@@ -1,52 +1,57 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map, tap } from 'rxjs';
 
 import { WaitlistEntry } from '../models/waitlist.model';
 import { ReservationService } from './reservation';
 import { LoanService } from './loan.service';
+import { BookService } from './book.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WaitlistService {
 
-  private storageKey = 'waitlist';
+  private apiUrl = 'http://127.0.0.1:8000/waitlist';
   private waitlist: WaitlistEntry[] = [];
 
   constructor(
     private reservationService: ReservationService,
-    private loanService: LoanService
+    private loanService: LoanService,
+    private bookService: BookService,
+    private http: HttpClient
   ) {
-    const savedWaitlist = localStorage.getItem(this.storageKey);
-
-    if (savedWaitlist) {
-      this.waitlist = JSON.parse(savedWaitlist);
-    }
-
-    this.cleanInvalidEntries();
+    this.loadWaitlist().subscribe({
+      next: () => {},
+      error: () => {}
+    });
   }
 
-  private saveWaitlist(): void {
-    localStorage.setItem(
-      this.storageKey,
-      JSON.stringify(this.waitlist)
-    );
+  private normalizeEntry(entry: WaitlistEntry): WaitlistEntry {
+    return {
+      ...entry,
+      id: Number(entry.id),
+      bookId: Number(entry.bookId),
+      position: Number(entry.position),
+      reservedUntil: entry.reservedUntil
+        ? Number(entry.reservedUntil)
+        : undefined
+    };
   }
 
-  private hasBookStock(bookId: number): boolean {
-    const books = JSON.parse(
-      localStorage.getItem('books') || '[]'
+  loadWaitlist(): Observable<WaitlistEntry[]> {
+    return this.http.get<WaitlistEntry[]>(`${this.apiUrl}/`).pipe(
+      map(entries => entries.map(entry => this.normalizeEntry(entry))),
+      tap(entries => {
+        this.waitlist = entries;
+        this.cleanInvalidEntries(false);
+      })
     );
-
-    const book = books.find(
-      (item: any) => item.id === bookId
-    );
-
-    return !!book && Number(book.stock) > 0;
   }
 
   getWaitlist(): WaitlistEntry[] {
     this.cleanInvalidEntries();
-    return this.waitlist;
+    return [...this.waitlist];
   }
 
   getUserWaitlistEntry(
@@ -80,9 +85,17 @@ export class WaitlistService {
     );
   }
 
-  getActiveNotificationForBook(
-    bookId: number
-  ): WaitlistEntry | null {
+  getActiveNotifications(): WaitlistEntry[] {
+    this.cleanInvalidEntries();
+
+    return this.waitlist.filter(entry =>
+      entry.status === 'notificado' &&
+      !!entry.reservedUntil &&
+      Date.now() <= entry.reservedUntil
+    );
+  }
+
+  getActiveNotificationForBook(bookId: number): WaitlistEntry | null {
     this.cleanInvalidEntries();
 
     return this.waitlist.find(entry =>
@@ -114,11 +127,18 @@ export class WaitlistService {
       localStorage.getItem('currentUser') || '{}'
     );
 
-    const hasActiveLoan =
-      this.loanService.hasBookAlready(
-        currentUser.matricula,
-        bookId
-      );
+    if (!currentUser?.matricula) {
+      return {
+        success: false,
+        message: 'No se encontró la sesión del usuario.',
+        entry: null
+      };
+    }
+
+    const hasActiveLoan = this.loanService.hasBookAlready(
+      currentUser.matricula,
+      bookId
+    );
 
     if (hasActiveLoan) {
       return {
@@ -179,15 +199,44 @@ export class WaitlistService {
       id: Date.now(),
       bookId,
       bookTitle,
-      studentName: currentUser.name,
+      studentName: currentUser.name || 'Usuario sin nombre',
       matricula: currentUser.matricula,
       requestDate: new Date().toISOString().split('T')[0],
       position,
       status: 'esperando'
     };
 
-    this.waitlist.push(entry);
-    this.saveWaitlist();
+    this.waitlist = [
+      ...this.waitlist,
+      entry
+    ];
+
+    this.http.post<{
+      message: string;
+      entry: WaitlistEntry;
+    }>(
+      `${this.apiUrl}/`,
+      entry
+    ).subscribe({
+      next: response => {
+        const savedEntry = this.normalizeEntry(response.entry);
+
+        this.waitlist = this.waitlist.map(item =>
+          item.id === entry.id
+            ? savedEntry
+            : item
+        );
+
+        this.recalculatePositions();
+      },
+      error: error => {
+        this.waitlist = this.waitlist.filter(item =>
+          item.id !== entry.id
+        );
+
+        alert(error?.error?.detail || 'No se pudo guardar la lista de espera en MongoDB.');
+      }
+    });
 
     return {
       success: true,
@@ -197,9 +246,31 @@ export class WaitlistService {
   }
 
   notifyNextUser(bookId: number): void {
+    this.loadWaitlist().subscribe({
+      next: () => {
+        this.bookService.loadBooks().subscribe({
+          next: () => this.notifyNextUserWithCurrentData(bookId),
+          error: () => this.notifyNextUserWithCurrentData(bookId)
+        });
+      },
+      error: () => {
+        this.bookService.loadBooks().subscribe({
+          next: () => this.notifyNextUserWithCurrentData(bookId),
+          error: () => this.notifyNextUserWithCurrentData(bookId)
+        });
+      }
+    });
+  }
+
+  private notifyNextUserWithCurrentData(bookId: number): void {
     this.cleanInvalidEntries(false);
 
-    if (!this.hasBookStock(bookId)) {
+    const book = this.bookService.getBookById(bookId);
+    const availableStock = Number(
+      book?.availableCopies ?? book?.stock ?? 0
+    );
+
+    if (!book || book.isActive === false || availableStock <= 0) {
       return;
     }
 
@@ -225,11 +296,48 @@ export class WaitlistService {
       return;
     }
 
-    nextEntry.status = 'notificado';
-    nextEntry.reservedUntil =
-      Date.now() + (60 * 60 * 1000);
+    const reservedUntil = Date.now() + (60 * 60 * 1000);
 
-    this.saveWaitlist();
+    this.waitlist = this.waitlist.map(entry =>
+      entry.id === nextEntry.id
+        ? {
+            ...entry,
+            status: 'notificado',
+            reservedUntil
+          }
+        : entry
+    );
+
+    this.http.patch<{
+      message: string;
+      entry: WaitlistEntry;
+    }>(
+      `${this.apiUrl}/${nextEntry.id}/notify`,
+      {
+        reservedUntil
+      }
+    ).subscribe({
+      next: response => {
+        const updatedEntry = this.normalizeEntry(response.entry);
+
+        this.waitlist = this.waitlist.map(item =>
+          item.id === updatedEntry.id
+            ? updatedEntry
+            : item
+        );
+      },
+      error: () => {
+        this.waitlist = this.waitlist.map(entry =>
+          entry.id === nextEntry.id
+            ? {
+                ...entry,
+                status: 'esperando',
+                reservedUntil: undefined
+              }
+            : entry
+        );
+      }
+    });
   }
 
   confirmReservation(entryId: number): void {
@@ -251,7 +359,13 @@ export class WaitlistService {
     );
 
     this.recalculatePositions();
-    this.saveWaitlist();
+
+    this.http.delete(
+      `${this.apiUrl}/${entryId}`
+    ).subscribe({
+      next: () => {},
+      error: () => {}
+    });
   }
 
   completeReservationByBookAndMatricula(
@@ -268,14 +382,21 @@ export class WaitlistService {
     );
 
     this.recalculatePositions();
-    this.saveWaitlist();
+
+    this.http.delete(
+      `${this.apiUrl}/book/${bookId}/user/${matricula}`
+    ).subscribe({
+      next: () => {},
+      error: () => {}
+    });
   }
 
   removeEntry(entryId: number): void {
     this.cleanInvalidEntries();
 
-    const entry =
-      this.waitlist.find(item => item.id === entryId);
+    const entry = this.waitlist.find(item =>
+      item.id === entryId
+    );
 
     const bookId = entry?.bookId;
 
@@ -284,7 +405,13 @@ export class WaitlistService {
     );
 
     this.recalculatePositions();
-    this.saveWaitlist();
+
+    this.http.delete(
+      `${this.apiUrl}/${entryId}`
+    ).subscribe({
+      next: () => {},
+      error: () => {}
+    });
 
     if (bookId) {
       this.notifyNextUser(bookId);
@@ -309,20 +436,20 @@ export class WaitlistService {
     this.cleanInvalidEntries();
   }
 
-  private cleanInvalidEntries(
-    notifyAfterClean: boolean = true
-  ): void {
+  private cleanInvalidEntries(notifyAfterClean: boolean = true): void {
     const now = Date.now();
 
-    const expiredBookIds = this.waitlist
-      .filter(entry =>
-        entry.status === 'notificado' &&
-        (
-          !entry.reservedUntil ||
-          now > entry.reservedUntil
-        )
+    const expiredEntries = this.waitlist.filter(entry =>
+      entry.status === 'notificado' &&
+      (
+        !entry.reservedUntil ||
+        now > entry.reservedUntil
       )
-      .map(entry => entry.bookId);
+    );
+
+    const expiredBookIds = expiredEntries.map(entry =>
+      entry.bookId
+    );
 
     const before = this.waitlist.length;
 
@@ -349,8 +476,16 @@ export class WaitlistService {
     });
 
     if (this.waitlist.length !== before) {
+      expiredEntries.forEach(entry => {
+        this.http.delete(
+          `${this.apiUrl}/${entry.id}`
+        ).subscribe({
+          next: () => {},
+          error: () => {}
+        });
+      });
+
       this.recalculatePositions();
-      this.saveWaitlist();
 
       if (notifyAfterClean) {
         const uniqueBookIds = [

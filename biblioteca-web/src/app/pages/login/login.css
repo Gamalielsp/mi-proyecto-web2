@@ -17,7 +17,6 @@
 
 :host-context(.dark) .container {
   background:
-    radial-gradient(circle at top left, #1e3a8a, transparent 35%),
     linear-gradient(135deg, #020617, #0f172a);
 }
 
@@ -43,11 +42,9 @@
   height: 82px;
   margin: 0 auto 20px;
   border-radius: 24px;
-  background: linear-gradient(135deg, #2563eb, #3b82f6);
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 14px 34px rgba(37, 99, 235, 0.36);
 }
 
 .login-logo img {
@@ -123,7 +120,6 @@ h1 {
 .roles button.active {
   background: linear-gradient(135deg, #2563eb, #3b82f6);
   color: white;
-  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.28);
 }
 
 label {
