@@ -19,7 +19,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:4200",
-        "http://127.0.0.1:4200"
+        "http://127.0.0.1:4200",
+        "https://mi-proyecto-web2-lime.vercel.app",
+        "https://mi-proyecto-web2-j77671yle-biblioteca-unistk.vercel.app"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -32,6 +34,7 @@ app.include_router(book_router)
 app.include_router(reservation_router)
 app.include_router(loan_router)
 app.include_router(waitlist_router)
+
 
 @app.get("/")
 def root():
