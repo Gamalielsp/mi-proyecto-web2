@@ -1,85 +1,111 @@
 import {
+  AfterViewInit,
   Component,
   ElementRef,
-  AfterViewInit,
-  ViewChild
+  OnDestroy
 } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule, NavigationEnd } from '@angular/router';
-import { filter } from 'rxjs';
+
+import {
+  NavigationEnd,
+  Router,
+  RouterLink,
+  RouterLinkActive
+} from '@angular/router';
+
+import { filter, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-mobile-nav',
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule
+    RouterLink,
+    RouterLinkActive
   ],
   templateUrl: './mobile-nav.html',
   styleUrl: './mobile-nav.css'
 })
-export class MobileNavComponent implements AfterViewInit {
+export class MobileNavComponent implements AfterViewInit, OnDestroy {
 
-  @ViewChild('mobileNav')
-  mobileNav!: ElementRef<HTMLDivElement>;
+  isLibrarian = false;
 
-  currentUser = JSON.parse(
-    localStorage.getItem('currentUser') || '{}'
-  );
+  private routerSubscription?: Subscription;
 
   constructor(
-    private router: Router
+    private router: Router,
+    private elementRef: ElementRef<HTMLElement>
   ) {
-    this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe(() => {
-        setTimeout(() => this.centerActiveLink(), 50);
-      });
-  }
+    const currentUser = JSON.parse(
+      localStorage.getItem('currentUser') || '{}'
+    );
 
-  get isLibrarian(): boolean {
-    return this.currentUser?.role === 'bibliotecario';
-  }
-
-  get hasManyItems(): boolean {
-    return true;
+    this.isLibrarian =
+      currentUser?.role === 'bibliotecario';
   }
 
   ngAfterViewInit(): void {
-    setTimeout(() => this.centerActiveLink(), 100);
+    this.scrollActiveItemIntoView(false);
+
+    this.routerSubscription = this.router.events
+      .pipe(
+        filter(event => event instanceof NavigationEnd)
+      )
+      .subscribe(() => {
+        this.scrollActiveItemIntoView(true);
+      });
   }
 
-  private centerActiveLink(): void {
-    const nav = this.mobileNav?.nativeElement;
-
-    if (!nav) {
-      return;
-    }
-
-    const activeLink =
-      nav.querySelector('a.active') as HTMLElement;
-
-    if (!activeLink) {
-      nav.scrollLeft = 0;
-      return;
-    }
-
-    const navWidth = nav.clientWidth;
-    const linkLeft = activeLink.offsetLeft;
-    const linkWidth = activeLink.offsetWidth;
-
-    nav.scrollTo({
-      left: linkLeft - navWidth / 2 + linkWidth / 2,
-      behavior: 'smooth'
-    });
+  ngOnDestroy(): void {
+    this.routerSubscription?.unsubscribe();
   }
 
-  logout(): void {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('userRole');
+logout(): void {
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('currentUser');
+  localStorage.removeItem('userRole');
 
-    this.router.navigate(['/login']);
+  this.router.navigateByUrl(
+    '/login',
+    {
+      replaceUrl: true
+    }
+  );
+}
+
+  private scrollActiveItemIntoView(smooth: boolean): void {
+    setTimeout(() => {
+      const nav = this.elementRef.nativeElement.querySelector(
+        '.mobile-nav'
+      ) as HTMLElement | null;
+
+      if (!nav || !nav.classList.contains('many-items')) {
+        return;
+      }
+
+      const activeItem = nav.querySelector(
+        'a.active, a.router-link-active, a[aria-current="page"]'
+      ) as HTMLElement | null;
+
+      if (!activeItem) {
+        return;
+      }
+
+      const navRect = nav.getBoundingClientRect();
+      const activeRect = activeItem.getBoundingClientRect();
+
+      const isOutside =
+        activeRect.left < navRect.left + 16 ||
+        activeRect.right > navRect.right - 16;
+
+      if (isOutside) {
+        activeItem.scrollIntoView({
+          behavior: smooth ? 'smooth' : 'auto',
+          block: 'nearest',
+          inline: 'center'
+        });
+      }
+    }, 90);
   }
 }

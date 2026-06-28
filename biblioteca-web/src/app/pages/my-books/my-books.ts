@@ -20,6 +20,7 @@ import { Reservation } from '../../models/reservation.model';
 
 import { LoanService } from '../../services/loan.service';
 import { ReservationService } from '../../services/reservation';
+import { UiFeedbackService } from '../../services/ui-feedback.service';
 
 import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
 
@@ -58,6 +59,7 @@ export class MyBooks implements OnInit, OnDestroy {
   constructor(
     private loanService: LoanService,
     private reservationService: ReservationService,
+    private uiFeedback: UiFeedbackService,
     private changeDetectorRef: ChangeDetectorRef
   ) {}
 
@@ -139,28 +141,35 @@ export class MyBooks implements OnInit, OnDestroy {
     }
 
     this.loans =
-      this.loanService.getActiveLoansByUser(
-        this.currentUser.matricula
+      this.sortLoansNewestFirst(
+        this.loanService.getActiveLoansByUser(
+          this.currentUser.matricula
+        )
       );
 
     this.history =
-      this.loanService
-        .getHistory()
-        .filter(loan =>
-          loan.matricula === this.currentUser.matricula
-        );
-
-    this.reservations =
-      this.reservationService.getUserReservations(
-        this.currentUser.matricula
+      this.sortHistoryNewestFirst(
+        this.loanService
+          .getHistory()
+          .filter(loan =>
+            loan.matricula === this.currentUser.matricula
+          )
       );
 
-    this.folios = [
+    this.reservations =
+      this.sortReservationsNewestFirst(
+        this.reservationService.getUserReservations(
+          this.currentUser.matricula
+        )
+      );
+
+    this.folios = this.sortFoliosNewestFirst([
       ...this.reservations.map(reservation => ({
         folio: reservation.folio,
         book: reservation.bookTitle,
         date: reservation.requestDate,
-        status: this.getReservationStatusText(reservation.status)
+        status: this.getReservationStatusText(reservation.status),
+        orderValue: this.getReservationOrderValue(reservation)
       })),
 
       ...this.loans
@@ -169,7 +178,8 @@ export class MyBooks implements OnInit, OnDestroy {
           folio: loan.returnFolio,
           book: loan.bookTitle,
           date: loan.returnRequestDate || loan.returnDate || loan.dueDate,
-          status: 'Folio de devolución'
+          status: 'Folio de devolución',
+          orderValue: this.getLoanOrderValue(loan)
         })),
 
       ...this.history
@@ -178,9 +188,234 @@ export class MyBooks implements OnInit, OnDestroy {
           folio: loan.returnFolio,
           book: loan.bookTitle,
           date: loan.returnDate || loan.dueDate,
-          status: 'Libro devuelto'
+          status: 'Libro devuelto',
+          orderValue: this.getHistoryOrderValue(loan)
         }))
+    ]);
+  }
+
+  private sortReservationsNewestFirst(
+    reservations: Reservation[]
+  ): Reservation[] {
+    return [...reservations].sort((a, b) =>
+      this.getReservationOrderValue(b) -
+      this.getReservationOrderValue(a)
+    );
+  }
+
+  private getReservationOrderValue(
+    reservation: Reservation
+  ): number {
+    const item: any = reservation;
+
+    const idValue = this.getNumericValue(item.id);
+
+    if (idValue > 0) {
+      return idValue;
+    }
+
+    const folioValue = this.getNumericValue(item.folio);
+
+    if (folioValue > 0) {
+      return folioValue;
+    }
+
+    const dateTimeValue = this.getDateOrderValue(
+      `${reservation.requestDate} ${reservation.requestTime}`
+    );
+
+    if (dateTimeValue > 0) {
+      return dateTimeValue;
+    }
+
+    return this.getDateOrderValue(reservation.expiresAt);
+  }
+
+  private sortLoansNewestFirst(
+    loans: Loan[]
+  ): Loan[] {
+    return [...loans].sort((a, b) =>
+      this.getLoanOrderValue(b) -
+      this.getLoanOrderValue(a)
+    );
+  }
+
+  private getLoanOrderValue(
+    loan: Loan
+  ): number {
+    const item: any = loan;
+
+    const idValue = this.getNumericValue(item.id);
+
+    if (idValue > 0) {
+      return idValue;
+    }
+
+    const possibleNumericValues = [
+      item.loanFolio,
+      item.loan_folio,
+      item.folio,
+      item.returnFolio,
+      item.return_folio
     ];
+
+    for (const value of possibleNumericValues) {
+      const numericValue = this.getNumericValue(value);
+
+      if (numericValue > 0) {
+        return numericValue;
+      }
+    }
+
+    const possibleDates = [
+      item.createdAt,
+      item.created_at,
+      item.borrowDate,
+      item.borrow_date,
+      item.loanDate,
+      item.loan_date,
+      item.startDate,
+      item.start_date,
+      item.requestDate,
+      item.request_date,
+      item.dueDate,
+      item.due_date
+    ];
+
+    for (const date of possibleDates) {
+      const dateValue = this.getDateOrderValue(date);
+
+      if (dateValue > 0) {
+        return dateValue;
+      }
+    }
+
+    return 0;
+  }
+
+  private sortHistoryNewestFirst(
+    history: Loan[]
+  ): Loan[] {
+    return [...history].sort((a, b) =>
+      this.getHistoryOrderValue(b) -
+      this.getHistoryOrderValue(a)
+    );
+  }
+
+  private getHistoryOrderValue(
+    loan: Loan
+  ): number {
+    const item: any = loan;
+
+    /*
+      Para historial priorizamos folio de devolución,
+      porque normalmente es el dato que representa
+      el movimiento más reciente de devolución.
+    */
+    const returnFolioValue = this.getNumericValue(item.returnFolio);
+
+    if (returnFolioValue > 0) {
+      return returnFolioValue;
+    }
+
+    const returnFolioSnakeValue = this.getNumericValue(item.return_folio);
+
+    if (returnFolioSnakeValue > 0) {
+      return returnFolioSnakeValue;
+    }
+
+    const idValue = this.getNumericValue(item.id);
+
+    if (idValue > 0) {
+      return idValue;
+    }
+
+    const possibleDates = [
+      item.returnDate,
+      item.return_date,
+      item.returnRequestDate,
+      item.return_request_date,
+      item.updatedAt,
+      item.updated_at,
+      item.createdAt,
+      item.created_at,
+      item.dueDate,
+      item.due_date
+    ];
+
+    for (const date of possibleDates) {
+      const dateValue = this.getDateOrderValue(date);
+
+      if (dateValue > 0) {
+        return dateValue;
+      }
+    }
+
+    return 0;
+  }
+
+  private sortFoliosNewestFirst(
+    folios: any[]
+  ): any[] {
+    return [...folios].sort((a, b) =>
+      this.getFolioOrderValue(b) -
+      this.getFolioOrderValue(a)
+    );
+  }
+
+  private getFolioOrderValue(
+    folio: any
+  ): number {
+    if (folio?.orderValue) {
+      return folio.orderValue;
+    }
+
+    const numericFolio = this.getNumericValue(folio?.folio);
+
+    if (numericFolio > 0) {
+      return numericFolio;
+    }
+
+    return this.getDateOrderValue(folio?.date);
+  }
+
+  private getNumericValue(
+    value: any
+  ): number {
+    if (value === null || value === undefined) {
+      return 0;
+    }
+
+    const directNumber = Number(value);
+
+    if (!Number.isNaN(directNumber) && directNumber > 0) {
+      return directNumber;
+    }
+
+    const onlyNumbers = String(value).replace(/\D/g, '');
+    const parsedNumber = Number(onlyNumbers);
+
+    if (!Number.isNaN(parsedNumber) && parsedNumber > 0) {
+      return parsedNumber;
+    }
+
+    return 0;
+  }
+
+  private getDateOrderValue(
+    value?: string
+  ): number {
+    if (!value) {
+      return 0;
+    }
+
+    const dateValue = new Date(value).getTime();
+
+    if (Number.isNaN(dateValue)) {
+      return 0;
+    }
+
+    return dateValue;
   }
 
   requestReturn(loan: Loan): void {
@@ -188,30 +423,34 @@ export class MyBooks implements OnInit, OnDestroy {
       return;
     }
 
-    const confirmRequest = confirm(
-      `¿Deseas solicitar la devolución del libro "${loan.bookTitle}"?`
-    );
-
-    if (!confirmRequest) {
-      return;
-    }
-
-    this.processingLoanId = loan.id;
-
-    this.loanService.requestReturn(loan.id).subscribe({
-      next: () => {
-        this.processingLoanId = null;
-        alert('Solicitud de devolución enviada correctamente.');
-        this.loadDataFromApi(true);
-      },
-      error: error => {
-        this.processingLoanId = null;
-
-        alert(
-          error?.error?.detail ||
-          'No se pudo solicitar la devolución.'
-        );
+    this.uiFeedback.confirm({
+      title: 'Solicitar devolución',
+      message: `¿Deseas solicitar la devolución del libro "${loan.bookTitle}"?`,
+      confirmText: 'Solicitar',
+      cancelText: 'Cancelar',
+      type: 'warning'
+    }).subscribe(confirmed => {
+      if (!confirmed) {
+        return;
       }
+
+      this.processingLoanId = loan.id;
+
+      this.loanService.requestReturn(loan.id).subscribe({
+        next: () => {
+          this.processingLoanId = null;
+          this.uiFeedback.success('Solicitud de devolución enviada correctamente.');
+          this.loadDataFromApi(true);
+        },
+        error: error => {
+          this.processingLoanId = null;
+
+          this.uiFeedback.error(
+            error?.error?.detail ||
+            'No se pudo solicitar la devolución.'
+          );
+        }
+      });
     });
   }
 
@@ -226,13 +465,13 @@ export class MyBooks implements OnInit, OnDestroy {
       this.loanService.renewLoan(loan.id).subscribe({
         next: () => {
           this.processingLoanId = null;
-          alert('Préstamo renovado por 1 día adicional.');
+          this.uiFeedback.success('Préstamo renovado por 1 día adicional.');
           this.loadDataFromApi(true);
         },
         error: error => {
           this.processingLoanId = null;
 
-          alert(
+          this.uiFeedback.error(
             error?.error?.detail ||
             'No se pudo renovar el préstamo.'
           );
@@ -242,9 +481,9 @@ export class MyBooks implements OnInit, OnDestroy {
       this.processingLoanId = null;
 
       if (error instanceof Error) {
-        alert(error.message);
+        this.uiFeedback.error(error.message);
       } else {
-        alert('No se pudo renovar el préstamo.');
+        this.uiFeedback.error('No se pudo renovar el préstamo.');
       }
     }
   }

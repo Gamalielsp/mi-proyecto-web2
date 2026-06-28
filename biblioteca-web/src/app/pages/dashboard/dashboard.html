@@ -1,91 +1,130 @@
-<div class="dashboard">
+<div class="container">
 
-    <section class="hero">
+  <header class="hero">
 
-        <div>
-            <p class="eyebrow">Biblioteca Universitaria</p>
+    <div>
+      <p class="eyebrow">Biblioteca Universitaria</p>
 
-            <h1>Catálogo de Libros</h1>
+      <h1>Catálogo de Libros</h1>
 
-            <p class="subtitle">
-                Busca, filtra y reserva libros disponibles para préstamo.
-            </p>
-        </div>
+      <p class="subtitle">
+        Busca, filtra y reserva libros disponibles para préstamo.
+      </p>
+    </div>
 
-    </section>
+  </header>
 
-    <section class="filters">
+  <section
+    class="load-warning"
+    *ngIf="loadError">
 
-        <div class="search-box">
-            <span>🔎</span>
+    Algunos datos no se pudieron actualizar. Verifica la conexión con el backend.
 
-            <input
-                type="text"
-                [(ngModel)]="search"
-                placeholder="Buscar por título o autor">
-        </div>
+  </section>
 
-        <div class="select-box">
-            <span>🎓</span>
+  <section class="filters">
 
-            <select [(ngModel)]="career">
+    <div class="search-box">
 
-                <option
-                    *ngFor="let c of careers"
-                    [value]="c">
+      <span>🔎</span>
 
-                    {{ c }}
-
-                </option>
-
-            </select>
-        </div>
-
-    </section>
-
-    <section class="results-info">
-
-        <p>
-            {{ filteredBooks.length }}
-            libro{{ filteredBooks.length === 1 ? '' : 's' }}
-            encontrado{{ filteredBooks.length === 1 ? '' : 's' }}
-        </p>
-
-    </section>
-
-    <div
-        class="empty-state"
-        *ngIf="filteredBooks.length === 0">
-
-        <div>📭</div>
-
-        <h2>No se encontraron libros</h2>
-
-        <p>
-            Intenta cambiar el texto de búsqueda o seleccionar otra carrera.
-        </p>
+      <input
+        type="text"
+        [(ngModel)]="search"
+        placeholder="Buscar por título o autor">
 
     </div>
 
-    <div class="books">
+    <div class="career-select">
 
-        <app-book-card
-            *ngFor="let book of filteredBooks"
-            [book]="book"
-            [reserved]="isBookBlocked(book)"
-            [waitlistLocked]="isBookLockedByWaitlist(book)"
-            (reserve)="reserveBook($event)">
-        </app-book-card>
+      <button
+        type="button"
+        class="career-trigger"
+        [class.open]="careerDropdownOpen"
+        (click)="toggleCareerDropdown($event)">
+
+        <span class="career-icon">🎓</span>
+
+        <span class="career-current">
+          {{ career }}
+        </span>
+
+        <span class="career-arrow">
+          ▾
+        </span>
+
+      </button>
+
+      <div
+        class="career-menu"
+        *ngIf="careerDropdownOpen">
+
+        <button
+          type="button"
+          class="career-option"
+          *ngFor="let option of careers"
+          [class.selected]="career === option"
+          (click)="selectCareer(option, $event)">
+
+          <span>
+            {{ option }}
+          </span>
+
+          <span
+            class="option-check"
+            *ngIf="career === option">
+            ✓
+          </span>
+
+        </button>
+
+      </div>
 
     </div>
+
+  </section>
+
+  <p class="results-count">
+    {{ filteredBooks.length }} libros encontrados
+  </p>
+
+  <section
+    class="empty-state"
+    *ngIf="!isLoading && filteredBooks.length === 0">
+
+    <div class="empty-icon">
+      📫
+    </div>
+
+    <h2>No se encontraron libros</h2>
+
+    <p>
+      Intenta cambiar el texto de búsqueda o seleccionar otra carrera.
+    </p>
+
+  </section>
+
+  <section
+    class="books-grid"
+    *ngIf="filteredBooks.length > 0">
+
+    <app-book-card
+      *ngFor="let book of filteredBooks"
+      [book]="book"
+      [reserved]="isBookBlocked(book)"
+      [waitlistLocked]="isBookLockedByWaitlist(book)"
+      (reserve)="reserveBook($event)">
+    </app-book-card>
+
+  </section>
 
 </div>
 
 <app-folio-popup
-    [open]="showFolio"
-    [book]="selectedBook"
-    [folio]="selectedFolio"
-    (close)="closeFolio()">
+  *ngIf="showFolio && selectedBook"
+  [book]="selectedBook"
+  [folio]="selectedFolio"
+  (close)="closeFolio()">
 </app-folio-popup>
 
 <app-mobile-nav></app-mobile-nav>

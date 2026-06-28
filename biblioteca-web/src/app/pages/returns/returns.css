@@ -1,7 +1,13 @@
+:host {
+  display: block;
+}
+
 .container {
+  width: 100%;
   max-width: 1100px;
   margin: 0 auto;
   padding: 28px 20px 150px !important;
+  box-sizing: border-box;
 }
 
 .hero {
@@ -34,6 +40,7 @@ h1 {
 .subtitle {
   color: var(--muted);
   margin-bottom: 0;
+  line-height: 1.45;
 }
 
 .returns-list {
@@ -49,7 +56,9 @@ h1 {
   box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
   transition:
     transform 0.2s ease,
-    box-shadow 0.2s ease;
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+  box-sizing: border-box;
 }
 
 .return-card:hover {
@@ -85,6 +94,7 @@ h1 {
   color: #92400e;
   font-size: 12px;
   font-weight: 850;
+  line-height: 1.2;
 }
 
 h3 {
@@ -92,11 +102,15 @@ h3 {
   font-weight: 850;
   color: var(--text);
   margin-bottom: 6px;
+  line-height: 1.12;
+  letter-spacing: -0.5px;
+  overflow-wrap: anywhere;
 }
 
 .card-header p {
   color: var(--muted);
   margin-bottom: 0;
+  line-height: 1.35;
 }
 
 .details-grid {
@@ -111,6 +125,7 @@ h3 {
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 14px;
+  min-width: 0;
 }
 
 .detail span {
@@ -119,11 +134,15 @@ h3 {
   font-size: 12px;
   font-weight: 750;
   margin-bottom: 5px;
+  line-height: 1.2;
 }
 
 .detail strong {
+  display: block;
   color: var(--text);
   font-size: 14px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
 }
 
 .fine {
@@ -144,6 +163,7 @@ h3 {
   padding: 14px;
   margin-bottom: 18px;
   font-size: 14px;
+  line-height: 1.4;
 }
 
 :host-context(.dark) .notice {
@@ -154,6 +174,7 @@ h3 {
 
 .confirm-btn {
   width: 100%;
+  min-height: 46px;
   border: none;
   border-radius: 14px;
   padding: 13px 16px;
@@ -162,6 +183,21 @@ h3 {
   color: white;
   background: linear-gradient(135deg, #16a34a, #22c55e);
   box-shadow: 0 10px 24px rgba(34, 197, 94, 0.25);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.confirm-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(34, 197, 94, 0.28);
+}
+
+.confirm-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .empty-state {
@@ -183,20 +219,231 @@ h3 {
   margin-bottom: 8px;
 }
 
-@media (max-width: 720px) {
-  .container {
-    padding: 20px 14px 160px !important;
-  }
+.empty-state p {
+  line-height: 1.4;
+}
 
-  h1 {
-    font-size: 31px;
+@media (max-width: 760px) {
+  .container {
+    padding: 10px 10px 100px !important;
   }
 
   .hero {
-    padding: 22px;
+    padding: 14px;
+    border-radius: 19px;
+    margin-bottom: 12px;
+    box-shadow: none;
+  }
+
+  .eyebrow {
+    font-size: 9.5px;
+    letter-spacing: 0.8px;
+    margin-bottom: 4px;
+  }
+
+  h1 {
+    font-size: 20px;
+    line-height: 1.08;
+    letter-spacing: -0.55px;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  .returns-list {
+    gap: 10px;
+  }
+
+  .return-card {
+    padding: 12px;
+    border-radius: 18px;
+    box-shadow: none;
+  }
+
+  .return-card:hover {
+    transform: none;
+    box-shadow: none;
   }
 
   .card-header {
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 38px 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+    align-items: start;
+  }
+
+  .book-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 13px;
+    font-size: 18px;
+  }
+
+  .status-badge {
+    padding: 5px 8px;
+    font-size: 9.5px;
+    margin-bottom: 6px;
+  }
+
+  h3 {
+    font-size: 17px;
+    letter-spacing: -0.35px;
+    margin-bottom: 4px;
+  }
+
+  .card-header p {
+    font-size: 11px;
+  }
+
+  .details-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .detail {
+    padding: 9px;
+    border-radius: 13px;
+  }
+
+  .detail:first-child,
+  .fine {
+    grid-column: 1 / -1;
+  }
+
+  .detail span {
+    font-size: 9.5px;
+    margin-bottom: 4px;
+  }
+
+  .detail strong {
+    font-size: 11.2px;
+    line-height: 1.25;
+  }
+
+  .notice {
+    padding: 10px;
+    border-radius: 13px;
+    margin-bottom: 10px;
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  .confirm-btn {
+    min-height: 36px;
+    border-radius: 13px;
+    padding: 9px 12px;
+    font-size: 11px;
+  }
+
+  .empty-state {
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    column-gap: 10px;
+    row-gap: 3px;
+    text-align: left;
+    align-items: center;
+    padding: 14px;
+    border-radius: 17px;
+  }
+
+  .empty-state div {
+    grid-row: 1 / 3;
+    font-size: 24px;
+    margin-bottom: 0;
+    text-align: center;
+  }
+
+  .empty-state h2 {
+    font-size: 14px;
+    margin-bottom: 0;
+    line-height: 1.15;
+  }
+
+  .empty-state p {
+    font-size: 10.5px;
+    line-height: 1.3;
+  }
+}
+
+@media (max-width: 420px) {
+  .container {
+    padding: 8px 8px 96px !important;
+  }
+
+  .hero {
+    padding: 12px;
+    border-radius: 17px;
+  }
+
+  h1 {
+    font-size: 18px;
+  }
+
+  .subtitle {
+    font-size: 10.4px;
+  }
+
+  .return-card {
+    padding: 10px;
+    border-radius: 16px;
+  }
+
+  .card-header {
+    grid-template-columns: 34px 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .book-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    font-size: 16px;
+  }
+
+  .status-badge {
+    font-size: 9px;
+    padding: 4px 7px;
+  }
+
+  h3 {
+    font-size: 15.8px;
+  }
+
+  .card-header p {
+    font-size: 10.5px;
+  }
+
+  .details-grid {
+    gap: 7px;
+  }
+
+  .detail {
+    padding: 8px;
+    border-radius: 12px;
+  }
+
+  .detail span {
+    font-size: 9px;
+  }
+
+  .detail strong {
+    font-size: 10.5px;
+  }
+
+  .notice {
+    padding: 9px;
+    font-size: 10.3px;
+  }
+
+  .confirm-btn {
+    min-height: 34px;
+    font-size: 10.5px;
+    padding: 8px 10px;
   }
 }

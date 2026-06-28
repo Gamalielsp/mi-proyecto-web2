@@ -6,15 +6,49 @@ export const roleGuard: CanActivateFn = (route) => {
   const router = inject(Router);
 
   const token = localStorage.getItem('accessToken');
-  const currentUser = localStorage.getItem('currentUser');
+  const currentUserRaw = localStorage.getItem('currentUser');
   const userRole = localStorage.getItem('userRole');
 
-  if (!token || !currentUser || !userRole) {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('userRole');
+  if (!token || !currentUserRaw || !userRole) {
+    clearSession();
 
-    router.navigate(['/login']);
+    router.navigateByUrl('/login', {
+      replaceUrl: true
+    });
+
+    return false;
+  }
+
+  let currentUser: any;
+
+  try {
+    currentUser = JSON.parse(currentUserRaw);
+  } catch {
+    clearSession();
+
+    router.navigateByUrl('/login', {
+      replaceUrl: true
+    });
+
+    return false;
+  }
+
+  if (!currentUser?.role) {
+    clearSession();
+
+    router.navigateByUrl('/login', {
+      replaceUrl: true
+    });
+
+    return false;
+  }
+
+  if (currentUser.role !== userRole) {
+    clearSession();
+
+    router.navigateByUrl('/login', {
+      replaceUrl: true
+    });
 
     return false;
   }
@@ -25,11 +59,40 @@ export const roleGuard: CanActivateFn = (route) => {
     return true;
   }
 
-  if (userRole === 'bibliotecario') {
-    router.navigate(['/librarian-dashboard']);
-  } else {
-    router.navigate(['/dashboard']);
-  }
+  redirectByRole(router, userRole);
 
   return false;
 };
+
+function redirectByRole(
+  router: Router,
+  role: string
+): void {
+  if (role === 'bibliotecario') {
+    router.navigateByUrl('/librarian-dashboard', {
+      replaceUrl: true
+    });
+
+    return;
+  }
+
+  if (role === 'alumno' || role === 'profesor') {
+    router.navigateByUrl('/dashboard', {
+      replaceUrl: true
+    });
+
+    return;
+  }
+
+  clearSession();
+
+  router.navigateByUrl('/login', {
+    replaceUrl: true
+  });
+}
+
+function clearSession(): void {
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('currentUser');
+  localStorage.removeItem('userRole');
+}

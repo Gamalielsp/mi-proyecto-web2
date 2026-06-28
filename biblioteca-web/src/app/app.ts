@@ -1,7 +1,28 @@
-import { Component, OnInit } from '@angular/core';
-import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
+import {
+  Component,
+  OnDestroy,
+  OnInit
+} from '@angular/core';
+
+import {
+  NavigationEnd,
+  Router,
+  RouterOutlet
+} from '@angular/router';
+
 import { CommonModule } from '@angular/common';
-import { filter } from 'rxjs';
+
+import {
+  filter,
+  Observable,
+  Subscription
+} from 'rxjs';
+
+import {
+  UiConfirmRequest,
+  UiFeedbackService,
+  UiToast
+} from './services/ui-feedback.service';
 
 @Component({
   selector: 'app-root',
@@ -13,15 +34,29 @@ import { filter } from 'rxjs';
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
 
   isLoginPage = false;
 
-  constructor(private router: Router) {
-    this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe((event: any) => {
-        this.isLoginPage = event.urlAfterRedirects === '/login';
+  toasts$: Observable<UiToast[]>;
+  confirm$: Observable<UiConfirmRequest | null>;
+
+  private routerSubscription?: Subscription;
+
+  constructor(
+    private router: Router,
+    private uiFeedback: UiFeedbackService
+  ) {
+    this.toasts$ = this.uiFeedback.toasts$;
+    this.confirm$ = this.uiFeedback.confirm$;
+
+    this.routerSubscription = this.router.events
+      .pipe(
+        filter(event => event instanceof NavigationEnd)
+      )
+      .subscribe((event: NavigationEnd) => {
+        this.isLoginPage =
+          event.urlAfterRedirects === '/login';
       });
   }
 
@@ -33,5 +68,17 @@ export class AppComponent implements OnInit {
     } else {
       document.documentElement.classList.remove('dark');
     }
+  }
+
+  ngOnDestroy(): void {
+    this.routerSubscription?.unsubscribe();
+  }
+
+  closeToast(id: number): void {
+    this.uiFeedback.closeToast(id);
+  }
+
+  respondToConfirm(value: boolean): void {
+    this.uiFeedback.respondToConfirm(value);
   }
 }

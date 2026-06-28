@@ -11,6 +11,7 @@ import { WaitlistEntry } from '../../models/waitlist.model';
 import { WaitlistService } from '../../services/waitlist.service';
 import { ReservationService } from '../../services/reservation';
 import { BookService } from '../../services/book.service';
+import { UiFeedbackService } from '../../services/ui-feedback.service';
 
 import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
 
@@ -39,6 +40,7 @@ export class Alerts implements OnInit {
     private waitlistService: WaitlistService,
     private reservationService: ReservationService,
     private bookService: BookService,
+    private uiFeedback: UiFeedbackService,
     private changeDetectorRef: ChangeDetectorRef
   ) {}
 
@@ -103,9 +105,42 @@ export class Alerts implements OnInit {
       return;
     }
 
-    this.alerts = this.waitlistService.getUserNotifications(
-      this.currentUser.matricula
+    this.alerts = this.sortEntriesNewestFirst(
+      this.waitlistService.getUserNotifications(
+        this.currentUser.matricula
+      )
     );
+  }
+
+  private sortEntriesNewestFirst(
+    entries: WaitlistEntry[]
+  ): WaitlistEntry[] {
+    return [...entries].sort((a, b) =>
+      this.getEntryOrderValue(b) -
+      this.getEntryOrderValue(a)
+    );
+  }
+
+  private getEntryOrderValue(entry: WaitlistEntry): number {
+    const reservedUntil = Number(entry.reservedUntil);
+
+    if (!Number.isNaN(reservedUntil) && reservedUntil > 0) {
+      return reservedUntil;
+    }
+
+    const idValue = Number(entry.id);
+
+    if (!Number.isNaN(idValue) && idValue > 0) {
+      return idValue;
+    }
+
+    const dateValue = new Date(entry.requestDate).getTime();
+
+    if (!Number.isNaN(dateValue)) {
+      return dateValue;
+    }
+
+    return 0;
   }
 
   getMinutesLeft(entry: WaitlistEntry): number {
@@ -114,6 +149,19 @@ export class Alerts implements OnInit {
 
   confirmReservation(entry: WaitlistEntry): void {
     if (this.confirmingEntryId !== null) {
+      return;
+    }
+
+    if (
+      entry.status !== 'notificado' ||
+      !entry.reservedUntil ||
+      Date.now() > entry.reservedUntil
+    ) {
+      this.uiFeedback.warning(
+        'La notificación ya no está disponible. Vuelve a revisar tus alertas.'
+      );
+
+      this.loadData();
       return;
     }
 
@@ -126,19 +174,19 @@ export class Alerts implements OnInit {
 
     if (!book) {
       this.confirmingEntryId = null;
-      alert('No se encontró la información del libro o el libro ya no está activo.');
+      this.uiFeedback.error(
+        'No se encontró la información del libro o el libro ya no está activo.'
+      );
       return;
     }
 
-    const availableStock = Number(
-      book.availableCopies ?? book.stock ?? 0
-    );
+    /*
+      Importante:
+      NO se valida stock aquí.
 
-    if (availableStock <= 0) {
-      this.confirmingEntryId = null;
-      alert('El libro ya no tiene ejemplares disponibles para reservar.');
-      return;
-    }
+      Si el usuario recibió alerta, el backend ya apartó su copia.
+      Por eso el libro puede verse con stock 0 y aun así debe poder confirmar.
+    */
 
     try {
       this.reservationService.createReservation(
@@ -153,10 +201,10 @@ export class Alerts implements OnInit {
             item.id !== entry.id
           );
 
-          alert(
-            `Solicitud de reserva confirmada.\n\n` +
+          this.uiFeedback.success(
             `Folio: ${reservation.folio}\n` +
-            `Ahora aparecerá en Mis Libros / Reservas.`
+            `Ahora aparecerá en Mis Libros / Reservas.`,
+            'Solicitud de reserva confirmada'
           );
 
           this.confirmingEntryId = null;
@@ -165,20 +213,26 @@ export class Alerts implements OnInit {
         error: error => {
           this.confirmingEntryId = null;
 
-          alert(
+          this.uiFeedback.error(
             error?.error?.detail ||
             'Ocurrió un error al confirmar la solicitud de reserva.'
           );
+
+          this.loadData();
         }
       });
     } catch (error) {
       this.confirmingEntryId = null;
 
       if (error instanceof Error) {
-        alert(error.message);
+        this.uiFeedback.error(error.message);
       } else {
-        alert('Ocurrió un error al confirmar la solicitud de reserva.');
+        this.uiFeedback.error(
+          'Ocurrió un error al confirmar la solicitud de reserva.'
+        );
       }
+
+      this.loadData();
     }
   }
 }

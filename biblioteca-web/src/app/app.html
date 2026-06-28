@@ -1,21 +1,109 @@
 <div
   class="app-logo-row"
-  *ngIf="!isLoginPage">
-
+  *ngIf="!isLoginPage"
+>
   <div class="app-corner-logo">
 
     <img
       class="logo-light"
       src="/logo-light.png"
-      alt="Logo Biblioteca">
+      alt="Logo Biblioteca"
+    >
 
     <img
       class="logo-dark"
       src="/logo-dark.png"
-      alt="Logo Biblioteca">
+      alt="Logo Biblioteca"
+    >
 
   </div>
-
 </div>
 
 <router-outlet></router-outlet>
+
+<!-- TOASTS GLOBALES DEL SISTEMA -->
+<section
+  class="toast-stack"
+  aria-live="polite"
+  aria-label="Notificaciones del sistema"
+>
+  <article
+    class="app-toast"
+    *ngFor="let toast of toasts$ | async"
+    [class.toast-success]="toast.type === 'success'"
+    [class.toast-error]="toast.type === 'error'"
+    [class.toast-warning]="toast.type === 'warning'"
+    [class.toast-info]="toast.type === 'info'"
+    [class.toast-danger]="toast.type === 'danger'"
+  >
+    <div class="toast-icon">
+      <span *ngIf="toast.type === 'success'">✓</span>
+      <span *ngIf="toast.type === 'error'">!</span>
+      <span *ngIf="toast.type === 'warning'">!</span>
+      <span *ngIf="toast.type === 'info'">i</span>
+      <span *ngIf="toast.type === 'danger'">!</span>
+    </div>
+
+    <div class="toast-content">
+      <h3>{{ toast.title }}</h3>
+      <p>{{ toast.message }}</p>
+    </div>
+
+    <button
+      type="button"
+      class="toast-close"
+      aria-label="Cerrar notificación"
+      (click)="closeToast(toast.id)"
+    >
+      ×
+    </button>
+  </article>
+</section>
+
+<!-- MODAL GLOBAL DE CONFIRMACIÓN -->
+<div
+  class="confirm-backdrop"
+  *ngIf="confirm$ | async as confirm"
+>
+  <section
+    class="confirm-card"
+    [class.confirm-success]="confirm.type === 'success'"
+    [class.confirm-error]="confirm.type === 'error'"
+    [class.confirm-warning]="confirm.type === 'warning'"
+    [class.confirm-info]="confirm.type === 'info'"
+    [class.confirm-danger]="confirm.type === 'danger'"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div class="confirm-icon">
+      <span *ngIf="confirm.type === 'success'">✓</span>
+      <span *ngIf="confirm.type === 'error'">!</span>
+      <span *ngIf="confirm.type === 'warning'">!</span>
+      <span *ngIf="confirm.type === 'info'">i</span>
+      <span *ngIf="confirm.type === 'danger'">!</span>
+    </div>
+
+    <div class="confirm-content">
+      <h2>{{ confirm.title }}</h2>
+      <p>{{ confirm.message }}</p>
+    </div>
+
+    <div class="confirm-actions">
+      <button
+        type="button"
+        class="confirm-cancel"
+        (click)="respondToConfirm(false)"
+      >
+        {{ confirm.cancelText }}
+      </button>
+
+      <button
+        type="button"
+        class="confirm-accept"
+        (click)="respondToConfirm(true)"
+      >
+        {{ confirm.confirmText }}
+      </button>
+    </div>
+  </section>
+</div>

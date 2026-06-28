@@ -20,6 +20,7 @@ import { ReservationService } from '../../services/reservation';
 import { LoanService } from '../../services/loan.service';
 import { WaitlistService } from '../../services/waitlist.service';
 import { BookService } from '../../services/book.service';
+import { UiFeedbackService } from '../../services/ui-feedback.service';
 
 import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
 
@@ -48,6 +49,7 @@ export class Reservations implements OnInit, OnDestroy {
     private loanService: LoanService,
     private waitlistService: WaitlistService,
     private bookService: BookService,
+    private uiFeedback: UiFeedbackService,
     private changeDetectorRef: ChangeDetectorRef
   ) {}
 
@@ -90,10 +92,49 @@ export class Reservations implements OnInit, OnDestroy {
 
   loadReservations(): void {
     this.reservations =
-      this.reservationService.getPendingReservations();
+      this.sortReservationsNewestFirst(
+        this.reservationService.getPendingReservations()
+      );
 
     this.history =
-      this.reservationService.getReservationHistory();
+      this.sortReservationsNewestFirst(
+        this.reservationService.getReservationHistory()
+      );
+  }
+
+  private sortReservationsNewestFirst(
+    reservations: Reservation[]
+  ): Reservation[] {
+    return [...reservations].sort((a, b) =>
+      this.getReservationOrderValue(b) -
+      this.getReservationOrderValue(a)
+    );
+  }
+
+  private getReservationOrderValue(
+    reservation: Reservation
+  ): number {
+    const idValue = Number(reservation.id);
+
+    if (!Number.isNaN(idValue) && idValue > 0) {
+      return idValue;
+    }
+
+    const dateTimeValue = new Date(
+      `${reservation.requestDate} ${reservation.requestTime}`
+    ).getTime();
+
+    if (!Number.isNaN(dateTimeValue)) {
+      return dateTimeValue;
+    }
+
+    const expiresAtValue = new Date(reservation.expiresAt).getTime();
+
+    if (!Number.isNaN(expiresAtValue)) {
+      return expiresAtValue;
+    }
+
+    return 0;
   }
 
   confirmDelivery(reservation: Reservation): void {
@@ -142,7 +183,7 @@ export class Reservations implements OnInit, OnDestroy {
 
             this.waitlistService.notifyNextUser(deliveredReservation.bookId);
 
-            alert(
+            this.uiFeedback.success(
               'Libro entregado correctamente. El préstamo ha iniciado.'
             );
 
@@ -151,7 +192,7 @@ export class Reservations implements OnInit, OnDestroy {
           },
           error: error => {
             this.finishProcessing();
-            alert(
+            this.uiFeedback.error(
               error?.error?.detail ||
               'La reserva se marcó como entregada, pero no se pudo crear el préstamo.'
             );
@@ -160,7 +201,7 @@ export class Reservations implements OnInit, OnDestroy {
       },
       error: error => {
         this.finishProcessing();
-        alert(error?.error?.detail || 'No se pudo confirmar la entrega.');
+        this.uiFeedback.error(error?.error?.detail || 'No se pudo confirmar la entrega.');
       }
     });
   }
@@ -170,46 +211,50 @@ export class Reservations implements OnInit, OnDestroy {
       return;
     }
 
-    const confirmCancel = confirm(
-      `¿Seguro que deseas rechazar o cancelar la reserva ${reservation.folio}?`
-    );
-
-    if (!confirmCancel) {
-      return;
-    }
-
-    this.processingReservationId = reservation.id;
-    this.loading = true;
-
-    this.reservationService.cancelReservation(reservation.id).pipe(
-      finalize(() => {
-        this.changeDetectorRef.detectChanges();
-      })
-    ).subscribe({
-      next: cancelledReservation => {
-        this.bookService.loadBooks().subscribe({
-          next: () => {},
-          error: () => {}
-        });
-
-        this.waitlistService.completeReservationByBookAndMatricula(
-          cancelledReservation.bookId,
-          cancelledReservation.matricula
-        );
-
-        this.waitlistService.notifyNextUser(cancelledReservation.bookId);
-
-        alert(
-          'Reserva cancelada. El libro volvió al inventario y se notificó al siguiente usuario en lista de espera.'
-        );
-
-        this.finishProcessing();
-        this.loadReservationsFromApi();
-      },
-      error: error => {
-        this.finishProcessing();
-        alert(error?.error?.detail || 'No se pudo cancelar la reserva.');
+    this.uiFeedback.confirm({
+      title: 'Cancelar reserva',
+      message: `¿Seguro que deseas rechazar o cancelar la reserva ${reservation.folio}?`,
+      confirmText: 'Cancelar reserva',
+      cancelText: 'Conservar',
+      type: 'danger'
+    }).subscribe(confirmed => {
+      if (!confirmed) {
+        return;
       }
+
+      this.processingReservationId = reservation.id;
+      this.loading = true;
+
+      this.reservationService.cancelReservation(reservation.id).pipe(
+        finalize(() => {
+          this.changeDetectorRef.detectChanges();
+        })
+      ).subscribe({
+        next: cancelledReservation => {
+          this.bookService.loadBooks().subscribe({
+            next: () => {},
+            error: () => {}
+          });
+
+          this.waitlistService.completeReservationByBookAndMatricula(
+            cancelledReservation.bookId,
+            cancelledReservation.matricula
+          );
+
+          this.waitlistService.notifyNextUser(cancelledReservation.bookId);
+
+          this.uiFeedback.success(
+            'Reserva cancelada. El libro volvió al inventario y se notificó al siguiente usuario en lista de espera.'
+          );
+
+          this.finishProcessing();
+          this.loadReservationsFromApi();
+        },
+        error: error => {
+          this.finishProcessing();
+          this.uiFeedback.error(error?.error?.detail || 'No se pudo cancelar la reserva.');
+        }
+      });
     });
   }
 

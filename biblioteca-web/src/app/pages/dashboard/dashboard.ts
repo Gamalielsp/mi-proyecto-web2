@@ -1,4 +1,10 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ChangeDetectorRef,
+  HostListener
+} from '@angular/core';
+
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { catchError, finalize, forkJoin, of } from 'rxjs';
@@ -8,6 +14,7 @@ import { BookService } from '../../services/book.service';
 import { LoanService } from '../../services/loan.service';
 import { ReservationService } from '../../services/reservation';
 import { WaitlistService } from '../../services/waitlist.service';
+import { UiFeedbackService } from '../../services/ui-feedback.service';
 
 import { BookCardComponent } from '../../components/book-card/book-card';
 import { FolioPopupComponent } from '../../components/folio-popup/folio-popup';
@@ -30,6 +37,8 @@ export class Dashboard implements OnInit {
 
   search = '';
   career = 'Todas';
+
+  careerDropdownOpen = false;
 
   careers: string[] = [
     'Todas',
@@ -57,11 +66,21 @@ export class Dashboard implements OnInit {
     private loanService: LoanService,
     private reservationService: ReservationService,
     private waitlistService: WaitlistService,
+    private uiFeedback: UiFeedbackService,
     private changeDetectorRef: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.loadInitialData();
+  }
+
+  @HostListener('document:click', ['$event'])
+  closeDropdownWhenClickOutside(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+
+    if (!target.closest('.career-select')) {
+      this.careerDropdownOpen = false;
+    }
   }
 
   loadInitialData(): void {
@@ -119,6 +138,17 @@ export class Dashboard implements OnInit {
           this.loadError = true;
         }
       });
+  }
+
+  toggleCareerDropdown(event: MouseEvent): void {
+    event.stopPropagation();
+    this.careerDropdownOpen = !this.careerDropdownOpen;
+  }
+
+  selectCareer(career: string, event?: MouseEvent): void {
+    event?.stopPropagation();
+    this.career = career;
+    this.careerDropdownOpen = false;
   }
 
   get filteredBooks(): Book[] {
@@ -187,7 +217,7 @@ export class Dashboard implements OnInit {
     );
 
     if (!currentUser?.matricula) {
-      alert('No se encontró la sesión del usuario.');
+      this.uiFeedback.error('No se encontró la sesión del usuario.');
       return;
     }
 
@@ -198,7 +228,7 @@ export class Dashboard implements OnInit {
       );
 
     if (lockedByWaitlist) {
-      alert(
+      this.uiFeedback.warning(
         'Este ejemplar está apartado temporalmente para el primer usuario de la lista de espera.'
       );
       return;
@@ -210,7 +240,7 @@ export class Dashboard implements OnInit {
     );
 
     if (!validation.allowed) {
-      alert(validation.message);
+      this.uiFeedback.warning(validation.message);
       return;
     }
 
@@ -221,7 +251,7 @@ export class Dashboard implements OnInit {
       );
 
     if (alreadyReserved) {
-      alert('Ya tienes una reserva pendiente para este libro.');
+      this.uiFeedback.warning('Ya tienes una reserva pendiente para este libro.');
       return;
     }
 
@@ -244,7 +274,7 @@ export class Dashboard implements OnInit {
         error: error => {
           this.reservingBookId = null;
 
-          alert(
+          this.uiFeedback.error(
             error?.error?.detail ||
             'Ocurrió un error al generar la reserva.'
           );
@@ -254,9 +284,9 @@ export class Dashboard implements OnInit {
       this.reservingBookId = null;
 
       if (error instanceof Error) {
-        alert(error.message);
+        this.uiFeedback.error(error.message);
       } else {
-        alert('Ocurrió un error al generar la reserva.');
+        this.uiFeedback.error('Ocurrió un error al generar la reserva.');
       }
     }
   }

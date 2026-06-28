@@ -3,48 +3,103 @@
   min-height: 100vh;
 }
 
+/* ================================
+   CONTENEDOR GENERAL
+================================ */
+
 .container {
   min-height: 100vh;
   max-width: none;
+
   display: flex;
   justify-content: center;
   align-items: center;
+
+  padding: 22px !important;
+
   background:
-    radial-gradient(circle at top left, #dbeafe, transparent 35%),
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.22), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(99, 102, 241, 0.18), transparent 32%),
     linear-gradient(135deg, #f8fafc, #eef2ff);
-  padding: 20px !important;
+
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 :host-context(.dark) .container {
   background:
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(79, 70, 229, 0.14), transparent 32%),
     linear-gradient(135deg, #020617, #0f172a);
 }
+
+/* ================================
+   TARJETA LOGIN
+================================ */
 
 .card {
   width: 450px;
   max-width: 100%;
+
+  padding: 34px;
+  border-radius: 30px;
+
   background: rgba(255, 255, 255, 0.94);
-  padding: 36px;
-  border-radius: 28px;
-  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.2);
-  border: 1px solid rgba(255,255,255,0.75);
-  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+
+  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(18px);
+
+  box-sizing: border-box;
+
+  animation: loginEnter 0.45s ease both;
+}
+
+@keyframes loginEnter {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 :host-context(.dark) .card {
   background: rgba(17, 24, 39, 0.96);
   color: #e5e7eb;
-  border-color: #374151;
+  border-color: rgba(55, 65, 81, 0.95);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.38);
 }
+
+/* ================================
+   LOGO
+================================ */
 
 .login-logo {
   width: 82px;
   height: 82px;
-  margin: 0 auto 20px;
-  border-radius: 24px;
+
+  margin: 0 auto 18px;
+
+  border-radius: 25px;
+
   display: flex;
   justify-content: center;
   align-items: center;
+
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(226, 232, 240, 0.85);
+
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+}
+
+:host-context(.dark) .login-logo {
+  background: rgba(31, 41, 55, 0.78);
+  border-color: rgba(75, 85, 99, 0.75);
+  box-shadow: none;
 }
 
 .login-logo img {
@@ -65,18 +120,32 @@
   display: block;
 }
 
+/* ================================
+   TÍTULOS
+================================ */
+
 h1 {
   text-align: center;
+
   font-size: 34px;
-  font-weight: 850;
+  font-weight: 900;
+  line-height: 1;
   letter-spacing: -1.1px;
+
+  color: #111827;
+
   margin-bottom: 8px;
 }
 
 .card > p {
   text-align: center;
-  color: #6b7280;
-  margin-bottom: 28px;
+
+  color: #64748b;
+
+  margin-bottom: 26px;
+
+  font-size: 15px;
+  line-height: 1.4;
 }
 
 :host-context(.dark) h1,
@@ -89,189 +158,558 @@ h1 {
   color: #9ca3af;
 }
 
+/* ================================
+   SELECTOR DE ROL
+================================ */
+
 .roles {
   display: flex;
-  gap: 8px;
+  gap: 7px;
+
   padding: 6px;
+
   background: #f1f5f9;
-  border-radius: 18px;
-  margin-bottom: 24px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 19px;
+
+  margin-bottom: 22px;
+
+  box-sizing: border-box;
 }
 
 :host-context(.dark) .roles {
   background: #1f2937;
+  border-color: rgba(55, 65, 81, 0.95);
 }
 
 .roles button {
   flex: 1;
+
+  min-height: 44px;
+
   border: none;
-  padding: 12px 8px;
-  border-radius: 14px;
+  outline: none;
+  border-radius: 15px;
+
   background: transparent;
   color: #64748b;
-  font-weight: 800;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 850;
+
   cursor: pointer;
+
+  box-shadow: none;
+
+  transition:
+    background-color 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.roles button:hover {
+  background: rgba(59, 130, 246, 0.08);
+  color: #2563eb;
+}
+
+.roles button.active {
+  background: linear-gradient(135deg, #0f1b63, #15157a);
+  color: white;
+  transform: translateY(-1px);
 }
 
 :host-context(.dark) .roles button {
   color: #9ca3af;
 }
 
-.roles button.active {
+:host-context(.dark) .roles button:hover {
+  background: rgba(96, 165, 250, 0.12);
+  color: #93c5fd;
+}
+
+:host-context(.dark) .roles button.active {
   background: linear-gradient(135deg, #2563eb, #3b82f6);
   color: white;
 }
 
+/* ================================
+   FORMULARIO
+================================ */
+
 label {
   display: block;
+
   margin-bottom: 7px;
+
   color: #374151;
-  font-weight: 750;
+
+  font-weight: 800;
   font-size: 14px;
 }
 
 input {
   width: 100%;
-  padding: 14px 15px;
-  margin-bottom: 18px;
-  border-radius: 15px;
+  min-height: 52px;
+
+  padding: 0 15px;
+  margin-bottom: 17px;
+
+  border-radius: 16px;
   border: 1px solid #d1d5db;
   outline: none;
+
   background: white;
+  color: #111827;
+
+  font-family: inherit;
   font-size: 15px;
+  font-weight: 500;
+
+  box-sizing: border-box;
+
+  transition:
+    border-color 0.22s ease,
+    box-shadow 0.22s ease,
+    background-color 0.22s ease;
+}
+
+input::placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.14);
 }
 
 :host-context(.dark) input {
   background: #111827 !important;
   color: #e5e7eb !important;
-  border-color: #64748b;
+  border-color: #4b5563;
 }
 
-input:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 4px #dbeafe;
+:host-context(.dark) input::placeholder {
+  color: #6b7280;
 }
+
+:host-context(.dark) input:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.13);
+}
+
+/* ================================
+   BOTÓN LOGIN
+================================ */
 
 .login-btn {
   width: 100%;
-  padding: 15px;
-  border: none;
-  border-radius: 15px;
-  background: linear-gradient(135deg, #2563eb, #3b82f6);
-  color: white;
-  font-weight: 850;
-  font-size: 16px;
-  cursor: pointer;
+  min-height: 52px;
+
   margin-top: 4px;
-  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.28);
+
+  border: none;
+  outline: none;
+  border-radius: 16px;
+
+  background: linear-gradient(135deg, #0f1b63, #15157a);
+  color: white;
+
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 900;
+
+  cursor: pointer;
+
+  box-shadow: 0 14px 30px rgba(15, 23, 99, 0.26);
+
+  transition:
+    transform 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.24s ease,
+    opacity 0.24s ease;
 }
 
-/* BOTÓN DE TEMA SIN FONDO + ANIMACIÓN ACTUALIZADA */
+.login-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 34px rgba(15, 23, 99, 0.3);
+}
+
+.login-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 10px 22px rgba(15, 23, 99, 0.24);
+}
+
+:host-context(.dark) .login-btn {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.24);
+}
+
+/* ================================
+   TEXTO DE AYUDA
+================================ */
+
+.help-text {
+  margin: 20px 8px 0 !important;
+
+  color: #64748b;
+
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* ================================
+   BOTÓN DE TEMA
+   Respeta tus íconos originales
+================================ */
 
 .theme-btn {
   position: fixed;
   top: 22px;
   right: 22px;
+
   width: 48px;
   height: 48px;
+
   border: none;
+  outline: none;
+
   background: transparent;
   box-shadow: none;
+
   cursor: pointer;
   padding: 0;
+
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: hidden;
+
+  overflow: visible;
   z-index: 20;
+
+  -webkit-tap-highlight-color: transparent;
+
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease;
 }
 
 .theme-btn:hover {
-  transform: none;
-  filter: none;
-  box-shadow: none;
+  transform: scale(1.04);
 }
 
 .theme-icon {
   position: absolute;
-  font-size: 35px;
-  line-height: 1;
-  font-weight: 400;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
   transition:
-    transform 0.45s ease,
-    opacity 0.35s ease;
+    transform 0.38s ease,
+    opacity 0.3s ease,
+    color 0.25s ease;
 }
 
+/* Modo claro: aparece tu luna */
 .sun-icon {
-  color: #111827;
-  opacity: 1;
-  transform: rotate(0deg) scale(1);
+  opacity: 0;
+  transform: rotate(160deg) scale(0.45);
+  pointer-events: none;
 }
 
 .moon-icon {
-  color: #ffffff;
-  opacity: 0;
-  transform: rotate(-180deg) scale(0.4);
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+  pointer-events: auto;
 }
 
+/* Luna más visible en modo claro */
+.theme-btn:not(.dark-active) .moon-icon {
+  color: #111827 !important;
+  opacity: 1 !important;
+}
+
+/* Compatible con SVG de tipo stroke */
+.theme-btn:not(.dark-active) .moon-icon svg,
+.theme-btn:not(.dark-active) .moon-icon svg path,
+.theme-btn:not(.dark-active) .moon-icon svg circle,
+.theme-btn:not(.dark-active) .moon-icon svg line,
+.theme-btn:not(.dark-active) .moon-icon svg polyline,
+.theme-btn:not(.dark-active) .moon-icon svg polygon {
+  stroke: currentColor !important;
+}
+
+/* Compatible con SVG de tipo fill */
+.theme-btn:not(.dark-active) .moon-icon svg path[fill],
+.theme-btn:not(.dark-active) .moon-icon svg circle[fill],
+.theme-btn:not(.dark-active) .moon-icon svg polygon[fill] {
+  fill: currentColor !important;
+}
+
+/* Modo oscuro: aparece tu sol */
 .theme-btn.dark-active .sun-icon {
-  opacity: 0;
-  transform: rotate(180deg) scale(0.4);
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+  pointer-events: auto;
 }
 
 .theme-btn.dark-active .moon-icon {
-  opacity: 1;
-  transform: rotate(0deg) scale(1);
-}
-
-.theme-btn:not(.dark-active):hover .sun-icon {
-  transform: rotate(22deg) scale(1.08);
-}
-
-.theme-btn.dark-active:hover .moon-icon {
-  transform: rotate(22deg) scale(1.08);
-}
-
-.theme-btn:not(.dark-active):hover .moon-icon {
-  transform: rotate(-180deg) scale(0.4);
   opacity: 0;
+  transform: rotate(-160deg) scale(0.45);
+  pointer-events: none;
+}
+
+/* No deformar ni redibujar los íconos */
+.theme-icon svg,
+.theme-icon img {
+  display: block;
+}
+
+/* Animación suave sin cambiar el diseño del ícono */
+.theme-btn:not(.dark-active):hover .moon-icon {
+  transform: rotate(10deg) scale(1.05);
 }
 
 .theme-btn.dark-active:hover .sun-icon {
-  transform: rotate(180deg) scale(0.4);
-  opacity: 0;
+  transform: rotate(10deg) scale(1.05);
 }
 
-.help-text {
-  text-align: center;
-  margin-top: 17px;
-  margin-bottom: 0 !important;
-  font-size: 13px;
-  color: #6b7280;
-  line-height: 1.45;
-}
+/* ================================
+   MÓVIL
+================================ */
 
-@media (max-width: 520px) {
+@media (max-width: 760px) {
+  .container {
+    align-items: center;
+    padding: 18px 12px !important;
+  }
+
   .card {
+    width: 100%;
+    max-width: 430px;
+
     padding: 28px 22px;
+    border-radius: 28px;
+
+    box-shadow: 0 22px 54px rgba(15, 23, 42, 0.16);
+  }
+
+  .login-logo {
+    width: 70px;
+    height: 70px;
+
+    margin-bottom: 16px;
+
+    border-radius: 22px;
+  }
+
+  .login-logo img {
+    width: 50px;
+    height: 50px;
+  }
+
+  h1 {
+    font-size: 30px;
+    letter-spacing: -0.9px;
+  }
+
+  .card > p {
+    margin-bottom: 22px;
+
+    font-size: 13.5px;
+    line-height: 1.35;
+  }
+
+  .roles {
+    gap: 6px;
+    padding: 5px;
+    border-radius: 17px;
+    margin-bottom: 20px;
+  }
+
+  .roles button {
+    min-height: 42px;
+    padding: 0 6px;
+
+    border-radius: 13px;
+
+    font-size: 12.5px;
+  }
+
+  label {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  input {
+    min-height: 50px;
+
+    padding: 0 14px;
+    margin-bottom: 15px;
+
+    border-radius: 15px;
+
+    font-size: 14px;
+  }
+
+  .login-btn {
+    min-height: 50px;
+
+    border-radius: 15px;
+
+    font-size: 14.5px;
+  }
+
+  .help-text {
+    margin-top: 18px !important;
+
+    font-size: 12.8px;
+  }
+
+  .theme-btn {
+    top: 14px;
+    right: 14px;
+
+    width: 43px;
+    height: 43px;
+  }
+}
+
+/* ================================
+   CELULARES PEQUEÑOS
+================================ */
+
+@media (max-width: 420px) {
+  .container {
+    padding: 14px 10px !important;
+  }
+
+  .card {
+    padding: 24px 18px;
+    border-radius: 26px;
+  }
+
+  .login-logo {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    margin-bottom: 14px;
+  }
+
+  .login-logo img {
+    width: 46px;
+    height: 46px;
   }
 
   h1 {
     font-size: 28px;
   }
 
+  .card > p {
+    font-size: 12.8px;
+    margin-bottom: 20px;
+  }
+
   .roles {
-    flex-direction: column;
+    border-radius: 16px;
   }
 
-  .theme-btn {
-    top: 16px;
-    right: 16px;
-    width: 42px;
-    height: 42px;
+  .roles button {
+    min-height: 40px;
+    font-size: 11.5px;
+    border-radius: 12px;
   }
 
-  .theme-icon {
-    font-size: 31px;
+  input {
+    min-height: 48px;
+    font-size: 13.5px;
   }
+
+  .login-btn {
+    min-height: 48px;
+  }
+
+  .help-text {
+    font-size: 12.2px;
+  }
+}
+
+/* ================================
+   CELULARES MUY ANGOSTOS
+================================ */
+
+@media (max-width: 360px) {
+  .card {
+    padding: 22px 15px;
+  }
+
+  h1 {
+    font-size: 25px;
+  }
+
+  .card > p {
+    font-size: 12px;
+  }
+
+  .roles {
+    gap: 4px;
+    padding: 4px;
+  }
+
+  .roles button {
+    min-height: 38px;
+    font-size: 10.5px;
+    padding: 0 4px;
+  }
+
+  label {
+    font-size: 12.5px;
+  }
+
+  input {
+    min-height: 46px;
+    font-size: 13px;
+    padding: 0 12px;
+  }
+
+  .login-btn {
+    min-height: 46px;
+    font-size: 13.5px;
+  }
+}
+
+/* ==========================================
+   LUNA OSCURA EN MODO CLARO
+   Forzado final
+========================================== */
+
+.theme-btn:not(.dark-active) .moon-icon {
+  opacity: 1 !important;
+  color: #0f172a !important;
+  filter: brightness(0) saturate(100%) !important;
+}
+
+/* Si la luna es SVG */
+.theme-btn:not(.dark-active) .moon-icon svg {
+  color: #0f172a !important;
+  filter: brightness(0) saturate(100%) !important;
+}
+
+/* Si el SVG usa stroke */
+.theme-btn:not(.dark-active) .moon-icon svg * {
+  stroke: #0f172a !important;
+}
+
+/* Si el SVG usa fill */
+.theme-btn:not(.dark-active) .moon-icon svg path:not([fill="none"]),
+.theme-btn:not(.dark-active) .moon-icon svg circle:not([fill="none"]),
+.theme-btn:not(.dark-active) .moon-icon svg polygon:not([fill="none"]) {
+  fill: #0f172a !important;
+}
+
+/* Si la luna es imagen */
+.theme-btn:not(.dark-active) .moon-icon img {
+  filter: brightness(0) saturate(100%) !important;
+  opacity: 1 !important;
 }

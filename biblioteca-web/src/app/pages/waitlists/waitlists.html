@@ -26,84 +26,146 @@
 
   </div>
 
-  <div class="waitlist-grid">
+  <section
+    class="waitlist-groups"
+    *ngIf="entries.length > 0">
 
-    <div
-      class="waitlist-card"
-      *ngFor="let entry of entries">
+    <article
+      class="book-group"
+      *ngFor="let group of groupedEntries">
 
-      <div class="card-header">
+      <header class="book-group-header">
 
-        <div class="position-badge">
-          #{{ entry.position }}
+        <div class="book-icon">
+          📘
         </div>
 
-        <div>
-          <span class="status-badge">
-            {{ getStatusText(entry.status) }}
-          </span>
+        <div class="book-group-info">
+          <span class="group-eyebrow">Lista de espera</span>
 
-          <h3>{{ entry.bookTitle }}</h3>
+          <h2>{{ group.bookTitle }}</h2>
+
+          <p>
+            {{ group.total }}
+            usuario(s) esperando este libro
+          </p>
         </div>
 
-      </div>
-
-      <div class="details-grid">
-
-        <div class="detail">
-          <span>Usuario</span>
-          <strong>{{ entry.studentName }}</strong>
+        <div class="group-count">
+          {{ group.total }}
         </div>
 
-        <div class="detail">
-          <span>Matrícula / Control</span>
-          <strong>{{ entry.matricula }}</strong>
-        </div>
+      </header>
 
-        <div class="detail">
-          <span>Fecha de solicitud</span>
-          <strong>{{ entry.requestDate }}</strong>
-        </div>
-
-        <div class="detail">
-          <span>Estado</span>
-          <strong>{{ getStatusText(entry.status) }}</strong>
-        </div>
+      <div class="queue-list">
 
         <div
-          class="detail"
-          *ngIf="entry.status === 'notificado'">
-          <span>Tiempo restante</span>
-          <strong>{{ getMinutesLeft(entry) }} minuto(s)</strong>
+          class="queue-item"
+          *ngFor="let entry of group.entries">
+
+          <div class="position-column">
+
+            <div
+              class="position-badge"
+              [class.first-position]="entry.position === 1">
+              #{{ entry.position }}
+            </div>
+
+            <div class="queue-line"></div>
+
+          </div>
+
+          <div class="queue-content">
+
+            <div class="queue-top">
+
+              <div>
+                <span
+                  class="status-badge"
+                  [class.status-waiting]="entry.status === 'esperando'"
+                  [class.status-notified]="entry.status === 'notificado'"
+                  [class.status-confirmed]="entry.status === 'reserva_confirmada'"
+                  [class.status-expired]="entry.status === 'vencido'"
+                  [class.status-cancelled]="entry.status === 'cancelado'">
+                  {{ getStatusText(entry.status) }}
+                </span>
+
+                <h3>{{ entry.studentName }}</h3>
+              </div>
+
+              <div
+                class="priority-pill"
+                *ngIf="entry.position === 1">
+                Siguiente
+              </div>
+
+            </div>
+
+            <div class="details-grid">
+
+              <div class="detail">
+                <span>Matrícula / Control</span>
+                <strong>{{ entry.matricula }}</strong>
+              </div>
+
+              <div class="detail">
+                <span>Fecha de solicitud</span>
+                <strong>{{ entry.requestDate }}</strong>
+              </div>
+
+              <div class="detail">
+                <span>Estado</span>
+                <strong>{{ getStatusText(entry.status) }}</strong>
+              </div>
+
+              <div
+                class="detail"
+                *ngIf="entry.status === 'notificado'">
+                <span>Tiempo restante</span>
+                <strong>{{ getMinutesLeft(entry) }} minuto(s)</strong>
+              </div>
+
+            </div>
+
+            <div
+              class="notice"
+              *ngIf="entry.status === 'esperando'">
+              Este usuario conserva su lugar en la cola hasta que exista disponibilidad del libro.
+            </div>
+
+            <div
+              class="notice notice-blue"
+              *ngIf="entry.status === 'notificado'">
+              El usuario ya fue notificado. Tiene 60 minutos para confirmar su solicitud de reserva.
+            </div>
+
+            <div
+              class="notice notice-green"
+              *ngIf="entry.status === 'reserva_confirmada'">
+              El usuario confirmó la solicitud. Ahora debe aparecer en el panel de Reservas.
+            </div>
+
+            <div
+              class="notice notice-red"
+              *ngIf="entry.status === 'vencido'">
+              El tiempo para confirmar la reserva venció.
+            </div>
+
+            <div
+              class="notice notice-gray"
+              *ngIf="entry.status === 'cancelado'">
+              Esta solicitud fue cancelada.
+            </div>
+
+          </div>
+
         </div>
 
       </div>
 
-      <div
-        class="notice"
-        *ngIf="entry.status === 'esperando'">
-        Este usuario conserva su lugar en la cola hasta que exista disponibilidad del libro.
-      </div>
+    </article>
 
-      <div
-        class="notice"
-        *ngIf="entry.status === 'notificado'">
-        El usuario ya fue notificado. Tiene 60 minutos para confirmar su solicitud de reserva.
-      </div>
-
-      <div
-        class="notice"
-        *ngIf="entry.status === 'reserva_confirmada'">
-        El usuario confirmó la solicitud. Ahora debe aparecer en el panel de Reservas.
-      </div>
-
-      <div class="item-actions">
-
-      </div>
-
-    </div>
-
-  </div>
+  </section>
 
 </div>
 

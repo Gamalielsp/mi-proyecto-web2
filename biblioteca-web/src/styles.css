@@ -15,6 +15,29 @@
   --danger: #dc2626;
   --success: #16a34a;
   --warning: #d97706;
+
+  --btn-primary-bg: #11145f;
+  --btn-primary-text: #ffffff;
+
+  --btn-soft-bg: #edeef8;
+  --btn-soft-text: #11145f;
+
+  --btn-outline-bg: transparent;
+  --btn-outline-border: #11145f;
+  --btn-outline-text: #11145f;
+
+  --btn-danger-bg: #fff1f2;
+  --btn-danger-text: #991b1b;
+  --btn-danger-border: #fecdd3;
+
+  --btn-success-bg: #ecfdf5;
+  --btn-success-text: #166534;
+  --btn-success-border: #bbf7d0;
+
+  --btn-disabled-bg: #e5e7eb;
+  --btn-disabled-text: #9ca3af;
+
+  --btn-focus: rgba(17, 20, 95, 0.22);
 }
 
 html.dark,
@@ -33,6 +56,33 @@ html.dark body {
   --danger: #f87171;
   --success: #4ade80;
   --warning: #fbbf24;
+
+  --btn-primary-bg: #eef2ff;
+  --btn-primary-text: #111827;
+
+  --btn-soft-bg: rgba(255, 255, 255, 0.08);
+  --btn-soft-text: #e5e7eb;
+
+  --btn-outline-bg: transparent;
+  --btn-outline-border: rgba(226, 232, 240, 0.5);
+  --btn-outline-text: #e5e7eb;
+
+  --btn-danger-bg: rgba(127, 29, 29, 0.34);
+  --btn-danger-text: #fecaca;
+  --btn-danger-border: rgba(248, 113, 113, 0.34);
+
+  --btn-success-bg: rgba(20, 83, 45, 0.34);
+  --btn-success-text: #bbf7d0;
+  --btn-success-border: rgba(74, 222, 128, 0.32);
+
+  --btn-disabled-bg: rgba(148, 163, 184, 0.18);
+  --btn-disabled-text: #64748b;
+
+  --btn-focus: rgba(238, 242, 255, 0.25);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -40,24 +90,12 @@ body {
   font-family: 'Inter', sans-serif;
   background: var(--bg);
   color: var(--text);
-}
-
-button {
-  font-family: inherit;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    filter 0.2s ease;
-}
-
-button:hover {
-  transform: translateY(-2px);
-  filter: brightness(0.92);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.16);
+  overflow-x: hidden;
 }
 
 input,
-select {
+select,
+textarea {
   font-family: inherit;
   background: var(--card) !important;
   color: var(--text) !important;
@@ -78,9 +116,10 @@ h1 {
 .container,
 .dashboard,
 .page {
+  width: 100%;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 24px 20px 140px !important;
+  padding: 24px 20px 125px !important;
 }
 
 .hero {
@@ -99,25 +138,137 @@ h1 {
   margin-bottom: 22px;
 }
 
-.primary-btn {
-  background: linear-gradient(135deg, #2563eb, #3b82f6);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  padding: 11px 16px;
-  cursor: pointer;
-  font-weight: 700;
+/* =========================================================
+   BOTONES LIMPIOS
+   ========================================================= */
+
+button {
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.secondary-btn {
-  background: var(--border);
-  color: var(--text);
-  border: none;
-  border-radius: 12px;
-  padding: 11px 16px;
+button:not(.theme-btn) {
+  border-radius: 999px !important;
+  border: 1px solid transparent !important;
+  background: var(--btn-soft-bg) !important;
+  color: var(--btn-soft-text) !important;
+  box-shadow: none !important;
+  filter: none !important;
   cursor: pointer;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -0.1px;
+  min-height: 40px;
+
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    opacity 0.18s ease !important;
 }
+
+button:not(.theme-btn):hover {
+  transform: translateY(-1px) !important;
+  filter: none !important;
+  box-shadow: none !important;
+}
+
+button:not(.theme-btn):active {
+  transform: scale(0.985) !important;
+  box-shadow: none !important;
+}
+
+button:not(.theme-btn):focus-visible {
+  outline: 3px solid var(--btn-focus);
+  outline-offset: 3px;
+}
+
+button:not(.theme-btn):disabled,
+button.disabled-btn,
+button[disabled] {
+  background: var(--btn-disabled-bg) !important;
+  color: var(--btn-disabled-text) !important;
+  border-color: transparent !important;
+  cursor: not-allowed !important;
+  opacity: 1 !important;
+  transform: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+.primary-btn,
+.primary-action,
+.save,
+.login-btn,
+.confirm-btn,
+.deliver-btn,
+.renew-btn,
+.refresh-button,
+body app-book-card button:not(.disabled-btn),
+body app-folio-popup button {
+  background: var(--btn-primary-bg) !important;
+  color: var(--btn-primary-text) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.tabs button.active,
+.section-tabs button.active,
+.roles button.active,
+.role-tabs button.active {
+  background: var(--btn-primary-bg) !important;
+  color: var(--btn-primary-text) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.section-tabs button.active span {
+  background: rgba(255, 255, 255, 0.18) !important;
+  color: var(--btn-primary-text) !important;
+}
+
+.secondary-btn,
+.cancel {
+  background: var(--btn-soft-bg) !important;
+  color: var(--btn-soft-text) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.outline-btn {
+  background: var(--btn-outline-bg) !important;
+  color: var(--btn-outline-text) !important;
+  border-color: var(--btn-outline-border) !important;
+  box-shadow: none !important;
+}
+
+.edit-btn {
+  background: var(--btn-primary-bg) !important;
+  color: var(--btn-primary-text) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.delete-btn,
+.cancel-btn,
+.return-btn,
+.reset-btn {
+  background: var(--btn-danger-bg) !important;
+  color: var(--btn-danger-text) !important;
+  border-color: var(--btn-danger-border) !important;
+  box-shadow: none !important;
+}
+
+.success-btn {
+  background: var(--btn-success-bg) !important;
+  color: var(--btn-success-text) !important;
+  border-color: var(--btn-success-border) !important;
+  box-shadow: none !important;
+}
+
+/* =========================================================
+   CARDS GENERALES
+   ========================================================= */
 
 .app-card,
 .card,
@@ -141,34 +292,229 @@ h1 {
   color: var(--warning);
 }
 
-@media (max-width: 1200px) {
+/* =========================================================
+   NAVEGACIÓN INFERIOR
+   ========================================================= */
+
+.mobile-nav a {
+  border-radius: 999px !important;
+  box-shadow: none !important;
+
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease !important;
+}
+
+.mobile-nav a:hover {
+  transform: translateY(-1px) !important;
+  background: var(--btn-soft-bg) !important;
+  color: var(--btn-soft-text) !important;
+}
+
+.mobile-nav a.active {
+  background: var(--btn-primary-bg) !important;
+  color: var(--btn-primary-text) !important;
+  box-shadow: none !important;
+}
+
+.dark .mobile-nav a.active {
+  background: var(--btn-primary-bg) !important;
+  color: var(--btn-primary-text) !important;
+}
+
+/* =========================================================
+   ACCESOS RÁPIDOS
+   ========================================================= */
+
+.actions-grid a {
+  box-shadow: none !important;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease !important;
+}
+
+.actions-grid a:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: none !important;
+  border-color: var(--btn-outline-border) !important;
+}
+
+/* =========================================================
+   MODO COMPACTO GENERAL PARA TELÉFONO
+   ========================================================= */
+
+@media (max-width: 760px) {
+  body {
+    font-size: 14px;
+  }
 
   .container,
   .dashboard,
   .page {
-    width: 100%;
     max-width: 100%;
-    padding: 18px 18px 160px !important;
+    padding: 10px 10px 92px !important;
   }
 
-}
-
-@media (max-width: 768px) {
-  .container,
-  .dashboard,
-  .page {
-    padding: 14px 14px 170px !important;
-  }
-}
-
-@media (max-width: 480px) {
-  .container,
-  .dashboard,
-  .page {
-    padding: 12px 12px 175px !important;
+  .hero {
+    padding: 18px 18px !important;
+    border-radius: 22px !important;
+    margin-bottom: 14px !important;
   }
 
+  .hero h1,
   h1 {
-    font-size: 30px;
+    font-size: 25px !important;
+    line-height: 1.08 !important;
+    letter-spacing: -0.8px !important;
+  }
+
+  .hero p,
+  .subtitle,
+  .page-subtitle {
+    font-size: 13px !important;
+    line-height: 1.35 !important;
+  }
+
+  .page-title {
+    font-size: 24px !important;
+  }
+
+  input,
+  select,
+  textarea {
+    min-height: 42px !important;
+    padding: 10px 12px !important;
+    border-radius: 16px !important;
+    font-size: 13px !important;
+  }
+
+  button:not(.theme-btn) {
+    min-height: 34px !important;
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+  }
+
+  .grid,
+  .actions-grid,
+  .books-grid,
+  .cards-grid,
+  .list,
+  .content-grid {
+    gap: 10px !important;
+  }
+
+  .stat-card,
+  .app-card,
+  .modal,
+  .popup {
+    border-radius: 18px !important;
+    padding: 14px !important;
+    box-shadow: none !important;
+  }
+
+  .stat-card h2 {
+    font-size: 24px !important;
+  }
+
+  .stat-card p {
+    font-size: 12px !important;
+  }
+
+  .tabs,
+  .section-tabs,
+  .role-tabs {
+    gap: 6px !important;
+    padding: 6px !important;
+    overflow-x: auto !important;
+    scrollbar-width: none;
+  }
+
+  .tabs::-webkit-scrollbar,
+  .section-tabs::-webkit-scrollbar,
+  .role-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tabs button,
+  .section-tabs button,
+  .role-tabs button {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  .mobile-nav {
+    left: 10px !important;
+    right: 10px !important;
+    bottom: 8px !important;
+    min-height: 54px !important;
+    padding: 6px 8px !important;
+    border-radius: 22px !important;
+    gap: 4px !important;
+  }
+
+  .mobile-nav a {
+    min-width: auto !important;
+    padding: 8px 10px !important;
+    border-radius: 18px !important;
+    font-size: 10px !important;
+    gap: 3px !important;
+  }
+
+  .mobile-nav a span,
+  .mobile-nav a small,
+  .mobile-nav a label {
+    font-size: 10px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .container,
+  .dashboard,
+  .page {
+    padding: 8px 8px 88px !important;
+  }
+
+  .hero {
+    padding: 16px !important;
+    border-radius: 20px !important;
+  }
+
+  .hero h1,
+  h1 {
+    font-size: 23px !important;
+  }
+
+  button:not(.theme-btn) {
+    min-height: 32px !important;
+    padding: 7px 11px !important;
+    font-size: 11px !important;
+  }
+
+  .mobile-nav {
+    min-height: 52px !important;
+    padding: 5px 7px !important;
+  }
+
+  .mobile-nav a {
+    padding: 7px 8px !important;
+    font-size: 9.5px !important;
+  }
+}
+
+/* Menos movimiento para quien lo tenga configurado */
+@media (prefers-reduced-motion: reduce) {
+  button,
+  .mobile-nav a,
+  .actions-grid a {
+    transition: none !important;
+  }
+
+  button:hover,
+  .mobile-nav a:hover,
+  .actions-grid a:hover {
+    transform: none !important;
   }
 }

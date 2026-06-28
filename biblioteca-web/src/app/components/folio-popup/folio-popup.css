@@ -1,71 +1,326 @@
+/* ================================
+   FONDO DEL POPUP
+================================ */
+
 .popup-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
 
   display: flex;
   justify-content: center;
   align-items: center;
 
+  padding: 18px;
+
+  background: rgba(15, 23, 42, 0.52);
+  backdrop-filter: blur(8px);
+
   z-index: 9999;
+
+  box-sizing: border-box;
+
+  animation: popupFadeIn 0.22s ease both;
 }
 
+/* ================================
+   TARJETA PRINCIPAL
+================================ */
+
 .popup-card {
+  width: 420px;
+  max-width: 100%;
+
+  padding: 28px;
+
+  border-radius: 28px;
+  border: 1px solid var(--border);
+
   background: var(--card);
   color: var(--text);
 
-  padding: 28px;
-  border-radius: 18px;
-
-  width: 390px;
-  max-width: 90%;
-
   text-align: center;
 
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
-  border: 1px solid var(--border);
+  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.32);
+
+  box-sizing: border-box;
+
+  animation: popupCardIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* ================================
+   TEXTOS
+================================ */
+
 .popup-card h2 {
+  margin: 0 0 12px;
+
   color: var(--text);
-  font-size: 30px;
-  margin-bottom: 18px;
+
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.8px;
 }
 
 .popup-card h3 {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+
+  max-width: 100%;
+
+  margin: 0 0 22px;
+  padding: 12px 16px;
+
+  border-radius: 17px;
+
+  background: var(--primary-soft);
   color: var(--primary);
-  font-size: 26px;
-  margin-bottom: 24px;
+
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.35px;
+
+  overflow-wrap: anywhere;
 }
 
 .popup-card h4 {
+  margin: 0 0 5px;
+
   color: var(--text);
-  font-size: 20px;
-  margin-bottom: 4px;
+
+  font-size: 19px;
+  font-weight: 850;
+  line-height: 1.15;
+  letter-spacing: -0.35px;
+
+  overflow-wrap: anywhere;
 }
 
 .popup-card p {
+  margin: 0 0 14px;
+
   color: var(--muted);
-  font-size: 18px;
-  margin-bottom: 16px;
+
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
 }
 
-.popup-card button {
-  margin-top: 20px;
+/* Último texto del tiempo */
+.popup-card > p:last-of-type {
+  margin-top: 18px;
+  margin-bottom: 0;
 
-  padding: 12px 28px;
+  padding: 13px 14px;
 
+  border-radius: 16px;
+
+  background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 10px;
 
-  background: var(--primary);
-  color: white;
+  color: var(--text);
 
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* ================================
+   BOTÓN
+================================ */
+
+.popup-card button {
+  width: 100%;
+  min-height: 46px;
+
+  margin-top: 20px;
+  padding: 12px 18px;
+
+  border: none;
+  outline: none;
+  border-radius: 15px;
+
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 900;
+
   cursor: pointer;
+
+  box-shadow: 0 12px 26px rgba(37, 99, 235, 0.22);
+
+  transition:
+    transform 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.24s ease,
+    opacity 0.24s ease;
 }
 
 .popup-card button:hover {
-  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 16px 30px rgba(37, 99, 235, 0.26);
+}
+
+.popup-card button:active {
+  transform: translateY(0);
+  box-shadow: 0 9px 20px rgba(37, 99, 235, 0.2);
+}
+
+/* ================================
+   MODO OSCURO
+================================ */
+
+:host-context(.dark) .popup-backdrop {
+  background: rgba(2, 6, 23, 0.72);
+}
+
+:host-context(.dark) .popup-card {
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.45);
+}
+
+:host-context(.dark) .popup-card button {
+  box-shadow: 0 12px 26px rgba(37, 99, 235, 0.24);
+}
+
+/* ================================
+   ANIMACIONES
+================================ */
+
+@keyframes popupFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes popupCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ================================
+   MÓVIL
+================================ */
+
+@media (max-width: 760px) {
+  .popup-backdrop {
+    padding: 14px;
+    align-items: center;
+  }
+
+  .popup-card {
+    width: 100%;
+    max-width: 390px;
+
+    padding: 22px 18px;
+
+    border-radius: 24px;
+
+    box-shadow: 0 22px 54px rgba(15, 23, 42, 0.28);
+  }
+
+  .popup-card h2 {
+    font-size: 23px;
+    letter-spacing: -0.6px;
+    margin-bottom: 10px;
+  }
+
+  .popup-card h3 {
+    padding: 10px 13px;
+    border-radius: 15px;
+
+    font-size: 18px;
+
+    margin-bottom: 18px;
+  }
+
+  .popup-card h4 {
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+
+  .popup-card p {
+    font-size: 12.5px;
+    margin-bottom: 12px;
+  }
+
+  .popup-card > p:last-of-type {
+    margin-top: 14px;
+
+    padding: 11px 12px;
+
+    border-radius: 14px;
+
+    font-size: 12.5px;
+  }
+
+  .popup-card button {
+    min-height: 43px;
+
+    margin-top: 16px;
+
+    border-radius: 14px;
+
+    font-size: 13px;
+
+    box-shadow: none;
+  }
+
+  .popup-card button:hover {
+    box-shadow: none;
+  }
+}
+
+/* ================================
+   CELULARES PEQUEÑOS
+================================ */
+
+@media (max-width: 420px) {
+  .popup-backdrop {
+    padding: 12px;
+  }
+
+  .popup-card {
+    padding: 20px 16px;
+    border-radius: 22px;
+  }
+
+  .popup-card h2 {
+    font-size: 21px;
+  }
+
+  .popup-card h3 {
+    font-size: 16px;
+    padding: 9px 11px;
+    border-radius: 14px;
+  }
+
+  .popup-card h4 {
+    font-size: 15px;
+  }
+
+  .popup-card p {
+    font-size: 12px;
+  }
+
+  .popup-card > p:last-of-type {
+    font-size: 12px;
+  }
+
+  .popup-card button {
+    min-height: 42px;
+    font-size: 12.5px;
+  }
 }

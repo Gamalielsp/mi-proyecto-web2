@@ -23,12 +23,14 @@
 
   <section class="tabs">
     <button
+      type="button"
       [class.active]="activeTab === 'books'"
       (click)="activeTab = 'books'">
       📚 Libros
     </button>
 
     <button
+      type="button"
       [class.active]="activeTab === 'users'"
       (click)="activeTab = 'users'">
       👥 Usuarios
@@ -44,8 +46,9 @@
       </div>
 
       <button
+        type="button"
         class="primary-action"
-        (click)="showBookModal = true">
+        (click)="openAddBook()">
         + Agregar Libro
       </button>
     </div>
@@ -122,12 +125,14 @@
         <div class="item-actions">
 
           <button
+            type="button"
             class="edit-btn"
             (click)="openEditBook(book)">
             ✏️ Editar
           </button>
 
           <button
+            type="button"
             class="delete-btn"
             (click)="deleteBook(book)">
             {{ book.isActive === false ? '✅ Reactivar' : '🚫 Desactivar' }}
@@ -150,6 +155,7 @@
       </div>
 
       <button
+        type="button"
         class="primary-action"
         (click)="openAddUser()">
         + Dar de Alta
@@ -209,12 +215,14 @@
         <div class="item-actions">
 
           <button
+            type="button"
             class="edit-btn"
             (click)="openEditUser(user)">
             ✏️ Editar
           </button>
 
           <button
+            type="button"
             class="delete-btn"
             (click)="deleteUser(user)">
             {{ user.isActive === false ? '✅ Reactivar' : '🚫 Desactivar' }}
@@ -228,6 +236,7 @@
 
   </section>
 
+  <!-- MODAL: AGREGAR LIBRO -->
   <div
     class="modal-backdrop"
     *ngIf="showBookModal">
@@ -258,15 +267,45 @@
 
       <label class="form-field">
         <span>Carrera o área</span>
-        <select [(ngModel)]="newBook.career">
-          <option value="">Seleccionar carrera</option>
 
-          <option
-            *ngFor="let c of careers"
-            [value]="c">
-            {{ c }}
-          </option>
-        </select>
+        <div
+          class="custom-select"
+          [class.open]="careerDropdownOpen === 'newBook'"
+          (click)="$event.stopPropagation()">
+
+          <button
+            type="button"
+            class="custom-select-trigger"
+            (click)="toggleCareerDropdown('newBook', $event)">
+
+            <span [class.placeholder]="!newBook.career">
+              {{ getCareerLabel('newBook') }}
+            </span>
+
+            <span class="custom-select-arrow">
+              ▾
+            </span>
+
+          </button>
+
+          <div
+            class="custom-select-menu"
+            *ngIf="careerDropdownOpen === 'newBook'">
+
+            <button
+              type="button"
+              class="custom-select-option"
+              *ngFor="let c of careers"
+              [class.selected]="isCareerSelected('newBook', c)"
+              (click)="selectCareer('newBook', c, $event)">
+
+              {{ c }}
+
+            </button>
+
+          </div>
+
+        </div>
       </label>
 
       <label class="form-field">
@@ -324,15 +363,19 @@
 
       <div class="modal-buttons">
         <button
+          type="button"
           class="cancel"
-          (click)="showBookModal = false">
+          [disabled]="isSavingBook"
+          (click)="closeAddBook()">
           Cancelar
         </button>
 
         <button
+          type="button"
           class="save"
+          [disabled]="isSavingBook"
           (click)="addBook()">
-          Agregar
+          {{ isSavingBook ? 'Guardando...' : 'Agregar' }}
         </button>
       </div>
 
@@ -340,6 +383,7 @@
 
   </div>
 
+  <!-- MODAL: EDITAR LIBRO -->
   <div
     class="modal-backdrop"
     *ngIf="showEditBookModal">
@@ -368,15 +412,45 @@
 
       <label class="form-field">
         <span>Carrera o área</span>
-        <select [(ngModel)]="editBook.career">
-          <option value="">Seleccionar carrera</option>
 
-          <option
-            *ngFor="let c of careers"
-            [value]="c">
-            {{ c }}
-          </option>
-        </select>
+        <div
+          class="custom-select"
+          [class.open]="careerDropdownOpen === 'editBook'"
+          (click)="$event.stopPropagation()">
+
+          <button
+            type="button"
+            class="custom-select-trigger"
+            (click)="toggleCareerDropdown('editBook', $event)">
+
+            <span [class.placeholder]="!editBook.career">
+              {{ getCareerLabel('editBook') }}
+            </span>
+
+            <span class="custom-select-arrow">
+              ▾
+            </span>
+
+          </button>
+
+          <div
+            class="custom-select-menu"
+            *ngIf="careerDropdownOpen === 'editBook'">
+
+            <button
+              type="button"
+              class="custom-select-option"
+              *ngFor="let c of careers"
+              [class.selected]="isCareerSelected('editBook', c)"
+              (click)="selectCareer('editBook', c, $event)">
+
+              {{ c }}
+
+            </button>
+
+          </div>
+
+        </div>
       </label>
 
       <label class="form-field">
@@ -390,7 +464,7 @@
         <span>URL de portada</span>
         <input
           type="text"
-          placeholder="https://ejemplo.com/portada.jpg"
+          placeholder="Opcional al editar"
           [(ngModel)]="editBook.cover">
       </label>
 
@@ -433,15 +507,19 @@
 
       <div class="modal-buttons">
         <button
+          type="button"
           class="cancel"
-          (click)="showEditBookModal = false">
+          [disabled]="isSavingBook"
+          (click)="closeEditBook()">
           Cancelar
         </button>
 
         <button
+          type="button"
           class="save"
+          [disabled]="isSavingBook"
           (click)="updateBook()">
-          Guardar cambios
+          {{ isSavingBook ? 'Guardando...' : 'Guardar cambios' }}
         </button>
       </div>
 
@@ -449,6 +527,7 @@
 
   </div>
 
+  <!-- MODAL: AGREGAR USUARIO -->
   <div
     class="modal-backdrop"
     *ngIf="showUserModal">
@@ -495,15 +574,45 @@
 
       <label class="form-field">
         <span>{{ newUserCareerLabel }}</span>
-        <select [(ngModel)]="newUser.career">
-          <option value="">Seleccionar carrera</option>
 
-          <option
-            *ngFor="let c of careers"
-            [value]="c">
-            {{ c }}
-          </option>
-        </select>
+        <div
+          class="custom-select"
+          [class.open]="careerDropdownOpen === 'newUser'"
+          (click)="$event.stopPropagation()">
+
+          <button
+            type="button"
+            class="custom-select-trigger"
+            (click)="toggleCareerDropdown('newUser', $event)">
+
+            <span [class.placeholder]="!newUser.career">
+              {{ getCareerLabel('newUser') }}
+            </span>
+
+            <span class="custom-select-arrow">
+              ▾
+            </span>
+
+          </button>
+
+          <div
+            class="custom-select-menu"
+            *ngIf="careerDropdownOpen === 'newUser'">
+
+            <button
+              type="button"
+              class="custom-select-option"
+              *ngFor="let c of careers"
+              [class.selected]="isCareerSelected('newUser', c)"
+              (click)="selectCareer('newUser', c, $event)">
+
+              {{ c }}
+
+            </button>
+
+          </div>
+
+        </div>
       </label>
 
       <label class="form-field">
@@ -524,15 +633,19 @@
 
       <div class="modal-buttons">
         <button
+          type="button"
           class="cancel"
-          (click)="showUserModal = false">
+          [disabled]="isSavingUser"
+          (click)="closeAddUser()">
           Cancelar
         </button>
 
         <button
+          type="button"
           class="save"
+          [disabled]="isSavingUser"
           (click)="addUser()">
-          Dar de Alta
+          {{ isSavingUser ? 'Guardando...' : 'Dar de Alta' }}
         </button>
       </div>
 
@@ -540,6 +653,7 @@
 
   </div>
 
+  <!-- MODAL: EDITAR USUARIO -->
   <div
     class="modal-backdrop"
     *ngIf="showEditUserModal">
@@ -578,16 +692,47 @@
       <label
         class="form-field"
         *ngIf="showEditUserCareer">
-        <span>{{ editUserCareerLabel }}</span>
-        <select [(ngModel)]="editUser.career">
-          <option value="">Seleccionar carrera</option>
 
-          <option
-            *ngFor="let c of careers"
-            [value]="c">
-            {{ c }}
-          </option>
-        </select>
+        <span>{{ editUserCareerLabel }}</span>
+
+        <div
+          class="custom-select"
+          [class.open]="careerDropdownOpen === 'editUser'"
+          (click)="$event.stopPropagation()">
+
+          <button
+            type="button"
+            class="custom-select-trigger"
+            (click)="toggleCareerDropdown('editUser', $event)">
+
+            <span [class.placeholder]="!editUser.career">
+              {{ getCareerLabel('editUser') }}
+            </span>
+
+            <span class="custom-select-arrow">
+              ▾
+            </span>
+
+          </button>
+
+          <div
+            class="custom-select-menu"
+            *ngIf="careerDropdownOpen === 'editUser'">
+
+            <button
+              type="button"
+              class="custom-select-option"
+              *ngFor="let c of careers"
+              [class.selected]="isCareerSelected('editUser', c)"
+              (click)="selectCareer('editUser', c, $event)">
+
+              {{ c }}
+
+            </button>
+
+          </div>
+
+        </div>
       </label>
 
       <label class="form-field">
@@ -600,25 +745,150 @@
       <button
         type="button"
         class="reset-password-btn"
+        [disabled]="isSavingUser || isResettingPassword"
         (click)="resetUserPassword()">
         🔐 Restablecer contraseña
       </button>
 
       <div class="modal-buttons">
         <button
+          type="button"
           class="cancel"
-          (click)="showEditUserModal = false">
+          [disabled]="isSavingUser"
+          (click)="closeEditUser()">
           Cancelar
         </button>
 
         <button
+          type="button"
           class="save"
+          [disabled]="isSavingUser"
           (click)="updateUser()">
-          Guardar cambios
+          {{ isSavingUser ? 'Guardando...' : 'Guardar cambios' }}
         </button>
       </div>
 
     </div>
+
+  </div>
+
+  <!-- MODAL: CONFIRMACIÓN ACTIVAR / DESACTIVAR -->
+  <div
+    class="modal-backdrop confirmation-backdrop"
+    *ngIf="showConfirmationModal">
+
+    <div class="modal confirmation-modal">
+
+      <div
+        class="modal-icon"
+        [class.danger-icon]="confirmation.danger">
+        {{ confirmation.icon }}
+      </div>
+
+      <h2>{{ confirmation.title }}</h2>
+
+      <p class="modal-message">
+        {{ confirmation.message }}
+      </p>
+
+      <div class="modal-buttons">
+        <button
+          type="button"
+          class="cancel"
+          [disabled]="isConfirmationProcessing"
+          (click)="closeConfirmation()">
+          {{ confirmation.cancelText }}
+        </button>
+
+        <button
+          type="button"
+          class="confirm-action"
+          [class.danger-confirm]="confirmation.danger"
+          [disabled]="isConfirmationProcessing"
+          (click)="confirmAction()">
+          {{ isConfirmationProcessing ? 'Procesando...' : confirmation.confirmText }}
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- MODAL: RESTABLECER CONTRASEÑA -->
+  <div
+    class="modal-backdrop password-backdrop"
+    *ngIf="showPasswordModal">
+
+    <div class="modal password-modal">
+
+      <div class="modal-icon">
+        🔐
+      </div>
+
+      <h2>Restablecer contraseña</h2>
+
+      <p class="modal-subtitle">
+        Nueva contraseña para
+        <strong>{{ selectedUser?.name }}</strong>
+      </p>
+
+      <label class="form-field">
+        <span>Nueva contraseña</span>
+
+        <input
+          type="password"
+          placeholder="Mínimo 4 caracteres"
+          [(ngModel)]="passwordValue"
+          (keyup.enter)="submitPasswordReset()">
+      </label>
+
+      <p class="password-help">
+        La contraseña se actualizará inmediatamente para este usuario.
+      </p>
+
+      <div class="modal-buttons">
+        <button
+          type="button"
+          class="cancel"
+          [disabled]="isResettingPassword"
+          (click)="closePasswordModal()">
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          class="confirm-action"
+          [disabled]="isResettingPassword"
+          (click)="submitPasswordReset()">
+          {{ isResettingPassword ? 'Guardando...' : 'Restablecer' }}
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- TOAST / NOTIFICACIÓN -->
+  <div
+    class="toast"
+    [ngClass]="'toast-' + toast.type"
+    *ngIf="toast.visible">
+
+    <div class="toast-icon">
+      {{ getToastIcon() }}
+    </div>
+
+    <div class="toast-content">
+      <strong>{{ toast.title }}</strong>
+      <span>{{ toast.message }}</span>
+    </div>
+
+    <button
+      type="button"
+      class="toast-close"
+      (click)="closeToast()">
+      ×
+    </button>
 
   </div>
 

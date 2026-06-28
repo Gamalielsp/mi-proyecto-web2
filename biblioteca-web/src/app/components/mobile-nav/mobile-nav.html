@@ -1,89 +1,123 @@
 <nav
-    #mobileNav
-    class="mobile-nav"
-    [class.many-items]="hasManyItems">
+  class="mobile-nav"
+  [class.many-items]="isLibrarian"
+  aria-label="Menú principal"
+>
 
-    <ng-container *ngIf="!isLibrarian">
+  <!-- MENÚ ALUMNO / PROFESOR -->
+  <ng-container *ngIf="!isLibrarian; else librarianMenu">
 
-        <a
-            routerLink="/dashboard"
-            routerLinkActive="active">
-            📚
-            <span>Catálogo</span>
-        </a>
-
-        <a
-            routerLink="/my-books"
-            routerLinkActive="active">
-            📖
-            <span>Mis Libros</span>
-        </a>
-
-        <a
-            routerLink="/alerts"
-            routerLinkActive="active">
-            🔔
-            <span>Alertas</span>
-        </a>
-
-        <a
-            routerLink="/profile"
-            routerLinkActive="active">
-            👤
-            <span>Perfil</span>
-        </a>
-
-    </ng-container>
-
-    <ng-container *ngIf="isLibrarian">
-
-        <a
-            routerLink="/librarian-dashboard"
-            routerLinkActive="active">
-            🏠
-            <span>Panel</span>
-        </a>
-
-        <a
-            routerLink="/reservations"
-            routerLinkActive="active">
-            🎟️
-            <span>Reservas</span>
-        </a>
-
-        <a
-            routerLink="/active-loans"
-            routerLinkActive="active">
-            📖
-            <span>Préstamos</span>
-        </a>
-
-        <a
-            routerLink="/inventory"
-            routerLinkActive="active">
-            📦
-            <span>Inventario</span>
-        </a>
-
-        <a
-            routerLink="/returns"
-            routerLinkActive="active">
-            ↩️
-            <span>Devoluciones</span>
-        </a>
-
-        <a
-            routerLink="/waitlists"
-            routerLinkActive="active">
-            📋
-            <span>Espera</span>
-        </a>
-
-    </ng-container>
-
-    <a (click)="logout()">
-        🚪
-        <span>Salir</span>
+    <a
+      routerLink="/dashboard"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
+      <span>📚</span>
+      <span>Catálogo</span>
     </a>
+
+    <a
+      routerLink="/my-books"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
+      <span>📖</span>
+      <span>Mis Libros</span>
+    </a>
+
+    <a
+      routerLink="/alerts"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
+      <span>🔔</span>
+      <span>Alertas</span>
+    </a>
+
+    <a
+      routerLink="/profile"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
+      <span>👤</span>
+      <span>Perfil</span>
+    </a>
+
+    <button
+      type="button"
+      (click)="logout()"
+    >
+      <span>🚪</span>
+      <span>Salir</span>
+    </button>
+
+  </ng-container>
+
+  <!-- MENÚ BIBLIOTECARIO -->
+  <ng-template #librarianMenu>
+
+    <a
+      routerLink="/librarian-dashboard"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
+      <span>📊</span>
+      <span>Panel</span>
+    </a>
+
+    <a
+      routerLink="/reservations"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
+      <span>🧾</span>
+      <span>Reservas</span>
+    </a>
+
+    <a
+      routerLink="/active-loans"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
+      <span>📖</span>
+      <span>Préstamos</span>
+    </a>
+
+    <a
+      routerLink="/inventory"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
+      <span>📦</span>
+      <span>Inventario</span>
+    </a>
+
+    <a
+      routerLink="/returns"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
+      <span>↩️</span>
+      <span>Devolución</span>
+    </a>
+
+    <a
+      routerLink="/waitlists"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
+      <span>📋</span>
+      <span>Espera</span>
+    </a>
+
+    <button
+      type="button"
+      (click)="logout()"
+    >
+      <span>🚪</span>
+      <span>Salir</span>
+    </button>
+
+  </ng-template>
 
 </nav>

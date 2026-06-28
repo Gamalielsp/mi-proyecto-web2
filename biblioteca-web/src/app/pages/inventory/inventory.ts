@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { catchError, finalize, forkJoin, of } from 'rxjs';
@@ -15,6 +15,8 @@ import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
 
 type UserRole = 'Alumno' | 'Profesor' | 'Bibliotecario';
 type CreatableUserRole = 'Alumno' | 'Profesor';
+type ToastType = 'success' | 'error' | 'warning' | 'info';
+type CareerDropdownTarget = 'newBook' | 'editBook' | 'newUser' | 'editUser';
 
 @Component({
   selector: 'app-inventory',
@@ -37,8 +39,13 @@ export class InventoryComponent implements OnInit {
   showEditBookModal = false;
   showEditUserModal = false;
 
+  showConfirmationModal = false;
+  showPasswordModal = false;
+
   selectedBook: Book | null = null;
   selectedUser: User | null = null;
+
+  careerDropdownOpen: CareerDropdownTarget | null = null;
 
   careers = [
     'Ingeniería en Computación',
@@ -93,8 +100,35 @@ export class InventoryComponent implements OnInit {
     email: ''
   };
 
+  confirmation = {
+    title: '',
+    message: '',
+    icon: '⚠️',
+    confirmText: 'Aceptar',
+    cancelText: 'Cancelar',
+    danger: false
+  };
+
+  private confirmationAction: (() => void) | null = null;
+
+  toast = {
+    visible: false,
+    type: 'info' as ToastType,
+    title: '',
+    message: ''
+  };
+
+  private toastTimer: any = null;
+
+  passwordValue = '';
+
   isLoading = false;
   loadError = false;
+
+  isSavingBook = false;
+  isSavingUser = false;
+  isConfirmationProcessing = false;
+  isResettingPassword = false;
 
   constructor(
     private bookService: BookService,
@@ -106,6 +140,16 @@ export class InventoryComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadInitialData();
+  }
+
+  @HostListener('document:click')
+  closeCareerDropdownFromDocument(): void {
+    if (!this.careerDropdownOpen) {
+      return;
+    }
+
+    this.careerDropdownOpen = null;
+    this.forceViewUpdate();
   }
 
   loadInitialData(): void {
@@ -132,7 +176,7 @@ export class InventoryComponent implements OnInit {
       .pipe(
         finalize(() => {
           this.isLoading = false;
-          this.changeDetectorRef.detectChanges();
+          this.forceViewUpdate();
         })
       )
       .subscribe({
@@ -145,6 +189,7 @@ export class InventoryComponent implements OnInit {
           this.books = this.bookService.getBooks();
           this.users = this.userService.getUsers();
           this.loadError = true;
+          this.forceViewUpdate();
         }
       });
   }
@@ -157,7 +202,7 @@ export class InventoryComponent implements OnInit {
         return of(this.bookService.getBooks());
       }),
       finalize(() => {
-        this.changeDetectorRef.detectChanges();
+        this.forceViewUpdate();
       })
     ).subscribe({
       next: books => {
@@ -179,7 +224,7 @@ export class InventoryComponent implements OnInit {
         return of(this.userService.getUsers());
       }),
       finalize(() => {
-        this.changeDetectorRef.detectChanges();
+        this.forceViewUpdate();
       })
     ).subscribe({
       next: users => {
@@ -193,6 +238,14 @@ export class InventoryComponent implements OnInit {
     });
   }
 
+  private forceViewUpdate(): void {
+    this.changeDetectorRef.detectChanges();
+
+    setTimeout(() => {
+      this.changeDetectorRef.detectChanges();
+    }, 0);
+  }
+
   private isEmpty(value: any): boolean {
     return value === null ||
       value === undefined ||
@@ -203,14 +256,184 @@ export class InventoryComponent implements OnInit {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   }
 
+  toggleCareerDropdown(
+    target: CareerDropdownTarget,
+    event: MouseEvent
+  ): void {
+    event.stopPropagation();
+
+    this.careerDropdownOpen =
+      this.careerDropdownOpen === target
+        ? null
+        : target;
+
+    this.forceViewUpdate();
+  }
+
+  selectCareer(
+    target: CareerDropdownTarget,
+    career: string,
+    event: MouseEvent
+  ): void {
+    event.stopPropagation();
+
+    if (target === 'newBook') {
+      this.newBook.career = career;
+    }
+
+    if (target === 'editBook') {
+      this.editBook.career = career;
+    }
+
+    if (target === 'newUser') {
+      this.newUser.career = career;
+    }
+
+    if (target === 'editUser') {
+      this.editUser.career = career;
+    }
+
+    this.careerDropdownOpen = null;
+    this.forceViewUpdate();
+  }
+
+  getCareerValue(target: CareerDropdownTarget): string {
+    if (target === 'newBook') {
+      return this.newBook.career;
+    }
+
+    if (target === 'editBook') {
+      return this.editBook.career;
+    }
+
+    if (target === 'newUser') {
+      return this.newUser.career;
+    }
+
+    return this.editUser.career;
+  }
+
+  getCareerLabel(target: CareerDropdownTarget): string {
+    return this.getCareerValue(target) || 'Seleccionar carrera';
+  }
+
+  isCareerSelected(
+    target: CareerDropdownTarget,
+    career: string
+  ): boolean {
+    return this.getCareerValue(target) === career;
+  }
+
+  showToast(
+    type: ToastType,
+    title: string,
+    message: string
+  ): void {
+    if (this.toastTimer) {
+      clearTimeout(this.toastTimer);
+    }
+
+    this.toast = {
+      visible: true,
+      type,
+      title,
+      message
+    };
+
+    this.forceViewUpdate();
+
+    this.toastTimer = setTimeout(() => {
+      this.closeToast();
+    }, 3200);
+  }
+
+  closeToast(): void {
+    this.toast.visible = false;
+    this.forceViewUpdate();
+  }
+
+  getToastIcon(): string {
+    if (this.toast.type === 'success') {
+      return '✅';
+    }
+
+    if (this.toast.type === 'error') {
+      return '❌';
+    }
+
+    if (this.toast.type === 'warning') {
+      return '⚠️';
+    }
+
+    return 'ℹ️';
+  }
+
+  private openConfirmation(
+    config: {
+      title: string;
+      message: string;
+      icon?: string;
+      confirmText?: string;
+      cancelText?: string;
+      danger?: boolean;
+    },
+    action: () => void
+  ): void {
+    this.confirmation = {
+      title: config.title,
+      message: config.message,
+      icon: config.icon || '⚠️',
+      confirmText: config.confirmText || 'Aceptar',
+      cancelText: config.cancelText || 'Cancelar',
+      danger: config.danger || false
+    };
+
+    this.confirmationAction = action;
+    this.isConfirmationProcessing = false;
+    this.showConfirmationModal = true;
+    this.careerDropdownOpen = null;
+
+    this.forceViewUpdate();
+  }
+
+  closeConfirmation(): void {
+    if (this.isConfirmationProcessing) {
+      return;
+    }
+
+    this.showConfirmationModal = false;
+    this.confirmationAction = null;
+
+    this.forceViewUpdate();
+  }
+
+  confirmAction(): void {
+    if (!this.confirmationAction || this.isConfirmationProcessing) {
+      return;
+    }
+
+    this.isConfirmationProcessing = true;
+    this.forceViewUpdate();
+
+    this.confirmationAction();
+  }
+
+  private closeConfirmationAfterAction(): void {
+    this.isConfirmationProcessing = false;
+    this.showConfirmationModal = false;
+    this.confirmationAction = null;
+
+    this.forceViewUpdate();
+  }
+
   get filteredBooks(): Book[] {
     const term = this.search.toLowerCase();
 
     return this.books.filter(book =>
-      book.title.toLowerCase().includes(term) ||
-      book.author.toLowerCase().includes(term) ||
-      book.career.toLowerCase().includes(term) ||
-      book.isbn.toLowerCase().includes(term)
+      (book.title || '').toLowerCase().includes(term) ||
+      (book.author || '').toLowerCase().includes(term) ||
+      (book.career || '').toLowerCase().includes(term) ||
+      (book.isbn || '').toLowerCase().includes(term)
     );
   }
 
@@ -218,10 +441,10 @@ export class InventoryComponent implements OnInit {
     const term = this.search.toLowerCase();
 
     return this.users.filter(user =>
-      user.name.toLowerCase().includes(term) ||
-      user.matricula.toLowerCase().includes(term) ||
-      user.career.toLowerCase().includes(term) ||
-      user.role.toLowerCase().includes(term) ||
+      (user.name || '').toLowerCase().includes(term) ||
+      (user.matricula || '').toLowerCase().includes(term) ||
+      (user.career || '').toLowerCase().includes(term) ||
+      (user.role || '').toLowerCase().includes(term) ||
       (user.email || '').toLowerCase().includes(term)
     );
   }
@@ -254,6 +477,32 @@ export class InventoryComponent implements OnInit {
     return this.editUser.role !== 'Bibliotecario';
   }
 
+  openAddBook(): void {
+    this.newBook = {
+      title: '',
+      author: '',
+      career: '',
+      isbn: '',
+      stock: 1,
+      libraryStock: 1,
+      cover: ''
+    };
+
+    this.careerDropdownOpen = null;
+    this.showBookModal = true;
+    this.forceViewUpdate();
+  }
+
+  closeAddBook(): void {
+    if (this.isSavingBook) {
+      return;
+    }
+
+    this.careerDropdownOpen = null;
+    this.showBookModal = false;
+    this.forceViewUpdate();
+  }
+
   openAddUser(): void {
     this.newUser = {
       name: '',
@@ -264,12 +513,26 @@ export class InventoryComponent implements OnInit {
       password: ''
     };
 
+    this.careerDropdownOpen = null;
     this.showUserModal = true;
+    this.forceViewUpdate();
+  }
+
+  closeAddUser(): void {
+    if (this.isSavingUser) {
+      return;
+    }
+
+    this.careerDropdownOpen = null;
+    this.showUserModal = false;
+    this.forceViewUpdate();
   }
 
   setNewUserRole(role: CreatableUserRole): void {
     this.newUser.role = role;
     this.newUser.career = '';
+    this.careerDropdownOpen = null;
+    this.forceViewUpdate();
   }
 
   addBook(): void {
@@ -291,32 +554,56 @@ export class InventoryComponent implements OnInit {
       this.isEmpty(this.newBook.stock) ||
       this.isEmpty(this.newBook.libraryStock)
     ) {
-      alert('Todos los campos del libro son obligatorios.');
+      this.showToast(
+        'warning',
+        'Campos obligatorios',
+        'Todos los campos del libro son obligatorios.'
+      );
       return;
     }
 
     if (this.bookService.hasIsbnRegistered(isbn)) {
-      alert('Ya existe un libro registrado con ese ISBN.');
+      this.showToast(
+        'warning',
+        'ISBN duplicado',
+        'Ya existe un libro registrado con ese ISBN.'
+      );
       return;
     }
 
     if (isNaN(loanCopies) || isNaN(libraryCopies)) {
-      alert('Los ejemplares deben ser números válidos.');
+      this.showToast(
+        'warning',
+        'Ejemplares inválidos',
+        'Los ejemplares deben ser números válidos.'
+      );
       return;
     }
 
     if (loanCopies < 0 || libraryCopies < 0) {
-      alert('Los ejemplares no pueden ser negativos.');
+      this.showToast(
+        'warning',
+        'Ejemplares inválidos',
+        'Los ejemplares no pueden ser negativos.'
+      );
       return;
     }
 
     if (libraryCopies <= 0) {
-      alert('Los ejemplares disponibles en biblioteca deben ser mayores a 0.');
+      this.showToast(
+        'warning',
+        'Ejemplares inválidos',
+        'Los ejemplares disponibles en biblioteca deben ser mayores a 0.'
+      );
       return;
     }
 
     if (loanCopies > libraryCopies) {
-      alert('Los ejemplares para préstamo no pueden ser mayores que los ejemplares disponibles en biblioteca.');
+      this.showToast(
+        'warning',
+        'Stock inválido',
+        'Los ejemplares para préstamo no pueden ser mayores que los ejemplares disponibles en biblioteca.'
+      );
       return;
     }
 
@@ -333,6 +620,9 @@ export class InventoryComponent implements OnInit {
       cover,
       isActive: true
     };
+
+    this.isSavingBook = true;
+    this.forceViewUpdate();
 
     this.bookService.addBook(book).subscribe({
       next: createdBook => {
@@ -352,11 +642,27 @@ export class InventoryComponent implements OnInit {
           cover: ''
         };
 
+        this.careerDropdownOpen = null;
         this.showBookModal = false;
-        alert('Libro agregado correctamente.');
+        this.isSavingBook = false;
+
+        this.forceViewUpdate();
+
+        this.showToast(
+          'success',
+          'Libro agregado',
+          'Libro agregado correctamente.'
+        );
       },
       error: error => {
-        alert(error?.error?.detail || 'No se pudo agregar el libro.');
+        this.isSavingBook = false;
+        this.forceViewUpdate();
+
+        this.showToast(
+          'error',
+          'No se pudo agregar',
+          error?.error?.detail || 'No se pudo agregar el libro.'
+        );
       }
     });
   }
@@ -368,17 +674,31 @@ export class InventoryComponent implements OnInit {
 
     this.editBook = {
       id: book.id,
-      title: book.title,
-      author: book.author,
-      career: book.career,
+      title: book.title || '',
+      author: book.author || '',
+      career: book.career || '',
       isbn: book.isbn || '',
-      stock: book.stock,
+      stock: book.stock ?? 0,
       libraryStock,
       totalCopies: libraryStock,
       cover: book.cover || ''
     };
 
+    this.careerDropdownOpen = null;
     this.showEditBookModal = true;
+    this.forceViewUpdate();
+  }
+
+  closeEditBook(): void {
+    if (this.isSavingBook) {
+      return;
+    }
+
+    this.careerDropdownOpen = null;
+    this.showEditBookModal = false;
+    this.selectedBook = null;
+
+    this.forceViewUpdate();
   }
 
   updateBook(): void {
@@ -387,6 +707,11 @@ export class InventoryComponent implements OnInit {
     );
 
     if (!currentBook) {
+      this.showToast(
+        'error',
+        'Libro no encontrado',
+        'No se encontró el libro seleccionado para editar.'
+      );
       return;
     }
 
@@ -394,7 +719,8 @@ export class InventoryComponent implements OnInit {
     const author = this.editBook.author.trim();
     const career = this.editBook.career.trim();
     const isbn = this.editBook.isbn.trim();
-    const cover = this.editBook.cover.trim();
+
+    const cover = this.editBook.cover.trim() || currentBook.cover || '';
 
     const loanCopies = Number(this.editBook.stock);
     const libraryCopies = Number(this.editBook.libraryStock);
@@ -404,36 +730,59 @@ export class InventoryComponent implements OnInit {
       this.isEmpty(author) ||
       this.isEmpty(career) ||
       this.isEmpty(isbn) ||
-      this.isEmpty(cover) ||
       this.isEmpty(this.editBook.stock) ||
       this.isEmpty(this.editBook.libraryStock)
     ) {
-      alert('Todos los campos del libro son obligatorios.');
+      this.showToast(
+        'warning',
+        'Campos incompletos',
+        'Revisa que título, autor, carrera, ISBN y ejemplares estén completos.'
+      );
       return;
     }
 
     if (this.bookService.hasIsbnRegistered(isbn, this.editBook.id)) {
-      alert('Ya existe otro libro registrado con ese ISBN.');
+      this.showToast(
+        'warning',
+        'ISBN duplicado',
+        'Ya existe otro libro registrado con ese ISBN.'
+      );
       return;
     }
 
     if (isNaN(loanCopies) || isNaN(libraryCopies)) {
-      alert('Los ejemplares deben ser números válidos.');
+      this.showToast(
+        'warning',
+        'Ejemplares inválidos',
+        'Los ejemplares deben ser números válidos.'
+      );
       return;
     }
 
     if (loanCopies < 0 || libraryCopies < 0) {
-      alert('Los ejemplares no pueden ser negativos.');
+      this.showToast(
+        'warning',
+        'Ejemplares inválidos',
+        'Los ejemplares no pueden ser negativos.'
+      );
       return;
     }
 
     if (libraryCopies <= 0) {
-      alert('Los ejemplares disponibles en biblioteca deben ser mayores a 0.');
+      this.showToast(
+        'warning',
+        'Ejemplares inválidos',
+        'Los ejemplares disponibles en biblioteca deben ser mayores a 0.'
+      );
       return;
     }
 
     if (loanCopies > libraryCopies) {
-      alert('Los ejemplares para préstamo no pueden ser mayores que los ejemplares disponibles en biblioteca.');
+      this.showToast(
+        'warning',
+        'Stock inválido',
+        'Los ejemplares para préstamo no pueden ser mayores que los ejemplares disponibles en biblioteca.'
+      );
       return;
     }
 
@@ -452,6 +801,9 @@ export class InventoryComponent implements OnInit {
       isActive: currentBook.isActive !== false
     };
 
+    this.isSavingBook = true;
+    this.forceViewUpdate();
+
     this.bookService.updateBook(updatedBook).subscribe({
       next: bookFromApi => {
         this.books = this.bookService.getBooks();
@@ -460,65 +812,113 @@ export class InventoryComponent implements OnInit {
           this.waitlistService.notifyNextUser(bookFromApi.id);
         }
 
+        this.careerDropdownOpen = null;
         this.showEditBookModal = false;
         this.selectedBook = null;
-        alert('Libro actualizado correctamente.');
+        this.isSavingBook = false;
+
+        this.forceViewUpdate();
+
+        this.showToast(
+          'success',
+          'Cambios guardados',
+          'Libro actualizado correctamente.'
+        );
       },
       error: error => {
-        alert(error?.error?.detail || 'No se pudo actualizar el libro.');
+        this.isSavingBook = false;
+        this.forceViewUpdate();
+
+        this.showToast(
+          'error',
+          'No se pudo actualizar',
+          error?.error?.detail || 'No se pudo actualizar el libro.'
+        );
       }
     });
   }
 
   deleteBook(book: Book): void {
     if (book.isActive === false) {
-      const confirmActivate = confirm(
-        `¿Deseas reactivar el libro "${book.title}"?`
-      );
-
-      if (!confirmActivate) {
-        return;
-      }
-
-      this.bookService.activateBook(book.id).subscribe({
-        next: () => {
-          this.books = this.bookService.getBooks();
-          alert('Libro reactivado correctamente.');
+      this.openConfirmation(
+        {
+          title: 'Reactivar libro',
+          message: `¿Deseas reactivar el libro "${book.title}"?`,
+          icon: '✅',
+          confirmText: 'Reactivar',
+          danger: false
         },
-        error: () => {
-          alert('No se pudo reactivar el libro.');
+        () => {
+          this.bookService.activateBook(book.id).subscribe({
+            next: () => {
+              this.books = this.bookService.getBooks();
+              this.closeConfirmationAfterAction();
+
+              this.showToast(
+                'success',
+                'Libro reactivado',
+                'Libro reactivado correctamente.'
+              );
+            },
+            error: () => {
+              this.closeConfirmationAfterAction();
+
+              this.showToast(
+                'error',
+                'No se pudo reactivar',
+                'No se pudo reactivar el libro.'
+              );
+            }
+          });
         }
-      });
+      );
 
       return;
     }
 
     if (this.loanService.hasActiveLoansByBook(book.id)) {
-      alert(
-        'Este libro tiene préstamos activos.\n\n' +
-        'No puede ser desactivado hasta que todos los préstamos sean devueltos.'
+      this.showToast(
+        'warning',
+        'Libro con préstamos activos',
+        'Este libro tiene préstamos activos. No puede ser desactivado hasta que todos los préstamos sean devueltos.'
       );
       return;
     }
 
-    const confirmDeactivate = confirm(
-      `¿Seguro que deseas desactivar el libro "${book.title}"?\n\n` +
-      'El libro conservará su historial, pero ya no estará disponible para nuevas reservas.'
-    );
-
-    if (!confirmDeactivate) {
-      return;
-    }
-
-    this.bookService.deactivateBook(book.id).subscribe({
-      next: () => {
-        this.books = this.bookService.getBooks();
-        alert('Libro desactivado correctamente.');
+    this.openConfirmation(
+      {
+        title: 'Desactivar libro',
+        message:
+          `¿Seguro que deseas desactivar el libro "${book.title}"?\n\n` +
+          'El libro conservará su historial, pero ya no estará disponible para nuevas reservas.',
+        icon: '🚫',
+        confirmText: 'Desactivar',
+        danger: true
       },
-      error: () => {
-        alert('No se pudo desactivar el libro.');
+      () => {
+        this.bookService.deactivateBook(book.id).subscribe({
+          next: () => {
+            this.books = this.bookService.getBooks();
+            this.closeConfirmationAfterAction();
+
+            this.showToast(
+              'success',
+              'Libro desactivado',
+              'Libro desactivado correctamente.'
+            );
+          },
+          error: () => {
+            this.closeConfirmationAfterAction();
+
+            this.showToast(
+              'error',
+              'No se pudo desactivar',
+              'No se pudo desactivar el libro.'
+            );
+          }
+        });
       }
-    });
+    );
   }
 
   addUser(): void {
@@ -536,26 +936,42 @@ export class InventoryComponent implements OnInit {
       this.isEmpty(password) ||
       this.isEmpty(career)
     ) {
-      alert('Todos los campos del usuario son obligatorios.');
+      this.showToast(
+        'warning',
+        'Campos obligatorios',
+        'Todos los campos del usuario son obligatorios.'
+      );
       return;
     }
 
     if (!this.isValidEmail(email)) {
-      alert('Ingresa un correo electrónico válido.');
+      this.showToast(
+        'warning',
+        'Correo inválido',
+        'Ingresa un correo electrónico válido.'
+      );
       return;
     }
 
     if (password.length < 4) {
-      alert('La contraseña inicial debe tener al menos 4 caracteres.');
+      this.showToast(
+        'warning',
+        'Contraseña inválida',
+        'La contraseña inicial debe tener al menos 4 caracteres.'
+      );
       return;
     }
 
     const duplicatedMatricula = this.users.some(user =>
-      user.matricula.toLowerCase() === matricula.toLowerCase()
+      (user.matricula || '').toLowerCase() === matricula.toLowerCase()
     );
 
     if (duplicatedMatricula) {
-      alert('Ya existe un usuario con esa matrícula o número de control.');
+      this.showToast(
+        'warning',
+        'Registro duplicado',
+        'Ya existe un usuario con esa matrícula o número de control.'
+      );
       return;
     }
 
@@ -564,7 +980,11 @@ export class InventoryComponent implements OnInit {
     );
 
     if (duplicatedEmail) {
-      alert('Ya existe un usuario con ese correo electrónico.');
+      this.showToast(
+        'warning',
+        'Correo duplicado',
+        'Ya existe un usuario con ese correo electrónico.'
+      );
       return;
     }
 
@@ -580,6 +1000,9 @@ export class InventoryComponent implements OnInit {
       isActive: true
     };
 
+    this.isSavingUser = true;
+    this.forceViewUpdate();
+
     this.userService.addUser(user).subscribe({
       next: () => {
         this.users = this.userService.getUsers();
@@ -593,11 +1016,27 @@ export class InventoryComponent implements OnInit {
           password: ''
         };
 
+        this.careerDropdownOpen = null;
         this.showUserModal = false;
-        alert('Usuario agregado correctamente.');
+        this.isSavingUser = false;
+
+        this.forceViewUpdate();
+
+        this.showToast(
+          'success',
+          'Usuario agregado',
+          'Usuario agregado correctamente.'
+        );
       },
       error: error => {
-        alert(error?.error?.detail || 'No se pudo agregar el usuario.');
+        this.isSavingUser = false;
+        this.forceViewUpdate();
+
+        this.showToast(
+          'error',
+          'No se pudo agregar',
+          error?.error?.detail || 'No se pudo agregar el usuario.'
+        );
       }
     });
   }
@@ -607,14 +1046,28 @@ export class InventoryComponent implements OnInit {
 
     this.editUser = {
       id: user.id,
-      name: user.name,
-      matricula: user.matricula,
-      career: user.career,
-      role: user.role,
+      name: user.name || '',
+      matricula: user.matricula || '',
+      career: user.career || '',
+      role: user.role as UserRole,
       email: user.email || ''
     };
 
+    this.careerDropdownOpen = null;
     this.showEditUserModal = true;
+    this.forceViewUpdate();
+  }
+
+  closeEditUser(): void {
+    if (this.isSavingUser) {
+      return;
+    }
+
+    this.careerDropdownOpen = null;
+    this.showEditUserModal = false;
+    this.selectedUser = null;
+
+    this.forceViewUpdate();
   }
 
   updateUser(): void {
@@ -623,15 +1076,21 @@ export class InventoryComponent implements OnInit {
     );
 
     if (!currentUser) {
+      this.showToast(
+        'error',
+        'Usuario no encontrado',
+        'No se encontró el usuario seleccionado para editar.'
+      );
       return;
     }
 
     const name = this.editUser.name.trim();
     const matricula = this.editUser.matricula.trim();
     const email = this.editUser.email.trim();
+
     const career = currentUser.role === 'Bibliotecario'
       ? 'Biblioteca'
-      : this.editUser.career.trim();
+      : (this.editUser.career.trim() || currentUser.career || '');
 
     if (
       this.isEmpty(name) ||
@@ -639,22 +1098,34 @@ export class InventoryComponent implements OnInit {
       this.isEmpty(email) ||
       this.isEmpty(career)
     ) {
-      alert('Todos los campos del usuario son obligatorios.');
+      this.showToast(
+        'warning',
+        'Campos incompletos',
+        'Revisa que nombre, matrícula o número de control, correo y carrera estén completos.'
+      );
       return;
     }
 
     if (!this.isValidEmail(email)) {
-      alert('Ingresa un correo electrónico válido.');
+      this.showToast(
+        'warning',
+        'Correo inválido',
+        'Ingresa un correo electrónico válido.'
+      );
       return;
     }
 
     const duplicatedMatricula = this.users.some(user =>
       user.id !== this.editUser.id &&
-      user.matricula.toLowerCase() === matricula.toLowerCase()
+      (user.matricula || '').toLowerCase() === matricula.toLowerCase()
     );
 
     if (duplicatedMatricula) {
-      alert('Ya existe otro usuario con esa matrícula o número de control.');
+      this.showToast(
+        'warning',
+        'Registro duplicado',
+        'Ya existe otro usuario con esa matrícula o número de control.'
+      );
       return;
     }
 
@@ -664,7 +1135,11 @@ export class InventoryComponent implements OnInit {
     );
 
     if (duplicatedEmail) {
-      alert('Ya existe otro usuario con ese correo electrónico.');
+      this.showToast(
+        'warning',
+        'Correo duplicado',
+        'Ya existe otro usuario con ese correo electrónico.'
+      );
       return;
     }
 
@@ -678,16 +1153,35 @@ export class InventoryComponent implements OnInit {
       isActive: currentUser.isActive !== false
     };
 
+    this.isSavingUser = true;
+    this.forceViewUpdate();
+
     this.userService.updateUser(updatedUser).subscribe({
       next: () => {
         this.users = this.userService.getUsers();
 
+        this.careerDropdownOpen = null;
         this.showEditUserModal = false;
         this.selectedUser = null;
-        alert('Usuario actualizado correctamente.');
+        this.isSavingUser = false;
+
+        this.forceViewUpdate();
+
+        this.showToast(
+          'success',
+          'Cambios guardados',
+          'Usuario actualizado correctamente.'
+        );
       },
       error: error => {
-        alert(error?.error?.detail || 'No se pudo actualizar el usuario.');
+        this.isSavingUser = false;
+        this.forceViewUpdate();
+
+        this.showToast(
+          'error',
+          'No se pudo actualizar',
+          error?.error?.detail || 'No se pudo actualizar el usuario.'
+        );
       }
     });
   }
@@ -697,76 +1191,153 @@ export class InventoryComponent implements OnInit {
       return;
     }
 
-    const newPassword = prompt(
-      `Nueva contraseña para ${this.selectedUser.name}:`
-    );
+    this.passwordValue = '';
+    this.showPasswordModal = true;
+    this.careerDropdownOpen = null;
 
-    if (!newPassword || newPassword.trim().length < 4) {
-      alert('La contraseña debe tener al menos 4 caracteres.');
+    this.forceViewUpdate();
+  }
+
+  closePasswordModal(): void {
+    if (this.isResettingPassword) {
       return;
     }
 
+    this.passwordValue = '';
+    this.showPasswordModal = false;
+
+    this.forceViewUpdate();
+  }
+
+  submitPasswordReset(): void {
+    if (!this.selectedUser) {
+      return;
+    }
+
+    const newPassword = this.passwordValue.trim();
+
+    if (newPassword.length < 4) {
+      this.showToast(
+        'warning',
+        'Contraseña inválida',
+        'La contraseña debe tener al menos 4 caracteres.'
+      );
+      return;
+    }
+
+    this.isResettingPassword = true;
+    this.forceViewUpdate();
+
     this.userService.resetPassword(
       this.selectedUser.id,
-      newPassword.trim()
+      newPassword
     ).subscribe({
       next: () => {
-        alert('Contraseña restablecida correctamente.');
+        this.isResettingPassword = false;
+        this.showPasswordModal = false;
+        this.passwordValue = '';
+
+        this.forceViewUpdate();
+
+        this.showToast(
+          'success',
+          'Contraseña restablecida',
+          'Contraseña restablecida correctamente.'
+        );
       },
       error: error => {
-        alert(error?.error?.detail || 'No se pudo restablecer la contraseña.');
+        this.isResettingPassword = false;
+        this.forceViewUpdate();
+
+        this.showToast(
+          'error',
+          'No se pudo restablecer',
+          error?.error?.detail || 'No se pudo restablecer la contraseña.'
+        );
       }
     });
   }
 
   deleteUser(user: User): void {
     if (user.isActive === false) {
-      const confirmActivate = confirm(
-        `¿Deseas reactivar al usuario "${user.name}"?`
-      );
-
-      if (!confirmActivate) {
-        return;
-      }
-
-      this.userService.activateUser(user.id).subscribe({
-        next: () => {
-          this.users = this.userService.getUsers();
-          alert('Usuario reactivado correctamente.');
+      this.openConfirmation(
+        {
+          title: 'Reactivar usuario',
+          message: `¿Deseas reactivar al usuario "${user.name}"?`,
+          icon: '✅',
+          confirmText: 'Reactivar',
+          danger: false
         },
-        error: error => {
-          alert(error?.error?.detail || 'No se pudo reactivar el usuario.');
+        () => {
+          this.userService.activateUser(user.id).subscribe({
+            next: () => {
+              this.users = this.userService.getUsers();
+              this.closeConfirmationAfterAction();
+
+              this.showToast(
+                'success',
+                'Usuario reactivado',
+                'Usuario reactivado correctamente.'
+              );
+            },
+            error: error => {
+              this.closeConfirmationAfterAction();
+
+              this.showToast(
+                'error',
+                'No se pudo reactivar',
+                error?.error?.detail || 'No se pudo reactivar el usuario.'
+              );
+            }
+          });
         }
-      });
+      );
 
       return;
     }
 
     if (this.loanService.hasActiveLoansByUser(user.matricula)) {
-      alert(
-        'Este usuario tiene préstamos activos.\n\n' +
-        'Debe devolver todos sus libros antes de ser desactivado.'
+      this.showToast(
+        'warning',
+        'Usuario con préstamos activos',
+        'Este usuario tiene préstamos activos. Debe devolver todos sus libros antes de ser desactivado.'
       );
       return;
     }
 
-    const confirmDeactivate = confirm(
-      `¿Seguro que deseas desactivar al usuario "${user.name}"?\n\n` +
-      'El usuario conservará su historial, pero ya no podrá iniciar sesión.'
-    );
-
-    if (!confirmDeactivate) {
-      return;
-    }
-
-    this.userService.deactivateUser(user.id).subscribe({
-      next: () => {
-        this.users = this.userService.getUsers();
-        alert('Usuario desactivado correctamente.');
+    this.openConfirmation(
+      {
+        title: 'Desactivar usuario',
+        message:
+          `¿Seguro que deseas desactivar al usuario "${user.name}"?\n\n` +
+          'El usuario conservará su historial, pero ya no podrá iniciar sesión.',
+        icon: '🚫',
+        confirmText: 'Desactivar',
+        danger: true
       },
-      error: error => {
-        alert(error?.error?.detail || 'No se pudo desactivar el usuario.');
+      () => {
+        this.userService.deactivateUser(user.id).subscribe({
+          next: () => {
+            this.users = this.userService.getUsers();
+            this.closeConfirmationAfterAction();
+
+            this.showToast(
+              'success',
+              'Usuario desactivado',
+              'Usuario desactivado correctamente.'
+            );
+          },
+          error: error => {
+            this.closeConfirmationAfterAction();
+
+            this.showToast(
+              'error',
+              'No se pudo desactivar',
+              error?.error?.detail || 'No se pudo desactivar el usuario.'
+            );
+          }
+        });
       }
-    });
+    );
   }
 }

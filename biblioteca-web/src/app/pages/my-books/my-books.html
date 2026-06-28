@@ -22,7 +22,13 @@
             [class.active]="activeSection === 'reservations'"
             (click)="changeSection('reservations')">
 
-            Solicitudes de Reserva
+            <span class="tab-label tab-label-long">
+                Solicitudes de Reserva
+            </span>
+
+            <span class="tab-label tab-label-short">
+                Reservas
+            </span>
 
             <span>{{ reservations.length }}</span>
 
@@ -32,7 +38,13 @@
             [class.active]="activeSection === 'loans'"
             (click)="changeSection('loans')">
 
-            Préstamos Activos
+            <span class="tab-label tab-label-long">
+                Préstamos Activos
+            </span>
+
+            <span class="tab-label tab-label-short">
+                Préstamos
+            </span>
 
             <span>{{ loans.length }}</span>
 
@@ -42,7 +54,13 @@
             [class.active]="activeSection === 'folios'"
             (click)="changeSection('folios')">
 
-            Mis Folios
+            <span class="tab-label tab-label-long">
+                Mis Folios
+            </span>
+
+            <span class="tab-label tab-label-short">
+                Folios
+            </span>
 
             <span>{{ folios.length }}</span>
 
@@ -52,7 +70,13 @@
             [class.active]="activeSection === 'history'"
             (click)="changeSection('history')">
 
-            Historial
+            <span class="tab-label tab-label-long">
+                Historial
+            </span>
+
+            <span class="tab-label tab-label-short">
+                Historial
+            </span>
 
             <span>{{ history.length }}</span>
 
@@ -97,27 +121,27 @@
 
             <h3>{{ reservation.bookTitle }}</h3>
 
-            <p>{{ reservation.author }}</p>
-
-            <p class="folio">
-                Folio de reserva:
-                {{ reservation.folio }}
+            <p class="author-line">
+                {{ reservation.author }}
             </p>
 
-            <p>
-                Fecha de solicitud:
-                {{ reservation.requestDate }}
-            </p>
+            <div class="info-list">
+                <p class="folio">
+                    Folio de reserva: {{ reservation.folio }}
+                </p>
 
-            <p>
-                Hora de solicitud:
-                {{ reservation.requestTime }}
-            </p>
+                <p>
+                    Fecha de solicitud: {{ reservation.requestDate }}
+                </p>
 
-            <p *ngIf="reservation.status === 'pendiente'">
-                Expira:
-                {{ getExpirationTime(reservation) }}
-            </p>
+                <p class="optional-mobile">
+                    Hora de solicitud: {{ reservation.requestTime }}
+                </p>
+
+                <p *ngIf="reservation.status === 'pendiente'">
+                    Expira: {{ getExpirationTime(reservation) }}
+                </p>
+            </div>
 
             <div class="reservation-message">
                 {{ getReservationMessage(reservation) }}
@@ -146,17 +170,39 @@
 
             <h3>{{ loan.bookTitle }}</h3>
 
-            <p>{{ loan.author }}</p>
-
-            <p>
-                Vence:
-                {{ loan.dueDate }}
+            <p class="author-line">
+                {{ loan.author }}
             </p>
 
-            <p *ngIf="loan.status !== 'vencido'">
-                Días restantes:
-                {{ loan.daysLeft }}
-            </p>
+            <div class="info-list">
+                <p>
+                    Vence: {{ loan.dueDate }}
+                </p>
+
+                <p *ngIf="loan.status !== 'vencido'">
+                    Días restantes: {{ loan.daysLeft }}
+                </p>
+
+                <p *ngIf="loan.renewed">
+                    ✅ Renovación utilizada
+                </p>
+
+                <p
+                    *ngIf="loan.status === 'devolucion_pendiente'"
+                    class="pending">
+
+                    Pendiente de entrega en biblioteca
+
+                </p>
+
+                <p
+                    *ngIf="loan.returnFolio"
+                    class="folio">
+
+                    Folio de devolución: {{ loan.returnFolio }}
+
+                </p>
+            </div>
 
             <div
                 class="overdue-box"
@@ -167,13 +213,11 @@
                 </p>
 
                 <p>
-                    Días de retraso:
-                    {{ loan.daysOverdue }}
+                    Días de retraso: {{ loan.daysOverdue }}
                 </p>
 
                 <p>
-                    Multa:
-                    ${{ loan.fineAmount }}
+                    Multa: ${{ loan.fineAmount }}
                 </p>
 
                 <p>
@@ -181,27 +225,6 @@
                 </p>
 
             </div>
-
-            <p *ngIf="loan.renewed">
-                ✅ Renovación utilizada
-            </p>
-
-            <p
-                *ngIf="loan.status === 'devolucion_pendiente'"
-                class="pending">
-
-                Pendiente de entrega en biblioteca
-
-            </p>
-
-            <p
-                *ngIf="loan.returnFolio"
-                class="folio">
-
-                Folio de devolución:
-                {{ loan.returnFolio }}
-
-            </p>
 
             <div
                 class="actions"
@@ -256,11 +279,11 @@
 
             <h3>{{ folio.folio }}</h3>
 
-            <p>{{ folio.book }}</p>
-
-            <p>{{ folio.date }}</p>
-
-            <p>{{ folio.status }}</p>
+            <div class="info-list">
+                <p>{{ folio.book }}</p>
+                <p>{{ folio.date }}</p>
+                <p>{{ folio.status }}</p>
+            </div>
 
         </div>
 
@@ -284,22 +307,23 @@
 
             <h3>{{ item.bookTitle }}</h3>
 
-            <p>{{ item.author }}</p>
-
-            <p>
-                Devuelto:
-                {{ item.returnDate }}
+            <p class="author-line">
+                {{ item.author }}
             </p>
 
-            <p *ngIf="item.returnFolio">
-                Folio:
-                {{ item.returnFolio }}
-            </p>
+            <div class="info-list">
+                <p>
+                    Devuelto: {{ item.returnDate }}
+                </p>
 
-            <p *ngIf="item.fineAmount && item.fineAmount > 0">
-                Multa registrada:
-                ${{ item.fineAmount }}
-            </p>
+                <p *ngIf="item.returnFolio">
+                    Folio: {{ item.returnFolio }}
+                </p>
+
+                <p *ngIf="item.fineAmount && item.fineAmount > 0">
+                    Multa registrada: ${{ item.fineAmount }}
+                </p>
+            </div>
 
         </div>
 

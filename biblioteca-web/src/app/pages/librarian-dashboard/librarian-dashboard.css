@@ -1,8 +1,18 @@
+:host {
+  display: block;
+}
+
 .container {
+  width: 100%;
   max-width: 1100px;
   margin: 0 auto;
   padding: 28px 20px 150px !important;
+  box-sizing: border-box;
 }
+
+/* =========================================================
+   HERO / ENCABEZADO
+   ========================================================= */
 
 .hero {
   background: var(--card);
@@ -11,6 +21,11 @@
   padding: 28px;
   box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
   margin-bottom: 24px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
 }
 
 .eyebrow {
@@ -34,13 +49,78 @@ h1 {
 .subtitle {
   color: var(--muted);
   margin-bottom: 0;
+  line-height: 1.45;
 }
+
+.hero .subtitle + .subtitle {
+  margin-top: 8px;
+}
+
+.refresh-button {
+  flex-shrink: 0;
+  min-width: 132px;
+  min-height: 44px;
+  border: none;
+  border-radius: 14px;
+  padding: 12px 16px;
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--primary), #3b82f6);
+  font-size: 14px;
+  font-weight: 850;
+  cursor: pointer;
+  box-shadow: 0 12px 26px rgba(37, 99, 235, 0.24);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.refresh-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 30px rgba(37, 99, 235, 0.28);
+}
+
+.refresh-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* =========================================================
+   ERROR / AVISO
+   ========================================================= */
+
+.empty-state {
+  background: var(--card);
+  border: 1px dashed var(--border);
+  border-radius: 24px;
+  padding: 22px;
+  margin-bottom: 18px;
+  color: var(--muted);
+}
+
+.empty-state h2 {
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 850;
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  color: var(--muted);
+  margin-bottom: 0;
+  line-height: 1.4;
+}
+
+/* =========================================================
+   TARJETAS DE ESTADÍSTICAS
+   ========================================================= */
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
   gap: 16px;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
 .stat-card {
@@ -49,45 +129,59 @@ h1 {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 24px;
-  padding: 22px;
+  padding: 20px;
+  min-height: 150px;
   box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+  box-sizing: border-box;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.1);
 }
 
 .stat-card::after {
   content: "";
   position: absolute;
-  width: 120px;
-  height: 120px;
-  right: -55px;
-  top: -55px;
+  width: 104px;
+  height: 104px;
+  right: -50px;
+  top: -50px;
   border-radius: 999px;
-  opacity: 0.16;
+  opacity: 0.12;
 }
 
 .icon {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 23px;
-  margin-bottom: 16px;
+  font-size: 21px;
+  margin-bottom: 12px;
   background: var(--primary-soft);
 }
 
 .stat-card h2 {
-  font-size: 34px;
+  font-size: 32px;
   font-weight: 900;
-  letter-spacing: -1px;
+  letter-spacing: -0.8px;
   color: var(--text);
   margin-bottom: 6px;
+  line-height: 1;
+  word-break: break-word;
 }
 
 .stat-card p {
   color: var(--muted);
   font-weight: 650;
   margin-bottom: 0;
+  line-height: 1.25;
 }
 
 .blue::after {
@@ -120,36 +214,41 @@ h1 {
 }
 
 .warning {
-  border-color: rgba(245, 158, 11, 0.35);
+  border-color: rgba(245, 158, 11, 0.28);
 }
 
 .yellow {
-  border-color: rgba(234, 179, 8, 0.35);
+  border-color: rgba(234, 179, 8, 0.28);
 }
 
 .danger {
-  border-color: rgba(220, 38, 38, 0.35);
+  border-color: rgba(220, 38, 38, 0.28);
 }
+
+/* =========================================================
+   ACCESOS RÁPIDOS
+   ========================================================= */
 
 .quick-actions {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 26px;
-  padding: 24px;
+  border-radius: 24px;
+  padding: 22px;
   box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
 }
 
 .quick-actions h2 {
-  margin-bottom: 18px;
-  font-size: 24px;
+  margin-bottom: 14px;
+  font-size: 22px;
   font-weight: 850;
   color: var(--text);
+  letter-spacing: -0.4px;
 }
 
 .actions-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  gap: 12px;
 }
 
 .actions-grid a {
@@ -158,39 +257,277 @@ h1 {
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 18px;
-  padding: 18px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  font-size: 19px;
   font-weight: 800;
+  box-shadow: none;
+
   transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease;
 }
 
 .actions-grid a:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
+  transform: translateY(-1px);
+  border-color: var(--primary);
 }
 
 .actions-grid a span {
   font-size: 14px;
+  line-height: 1.25;
 }
 
-@media (max-width: 720px) {
-  .container {
-    padding: 20px 14px 160px !important;
-  }
+/* =========================================================
+   MODO OSCURO
+   ========================================================= */
 
-  h1 {
-    font-size: 31px;
+.dark .actions-grid a,
+:host-context(.dark) .actions-grid a {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.dark .actions-grid a:hover,
+:host-context(.dark) .actions-grid a:hover {
+  border-color: rgba(226, 232, 240, 0.24);
+}
+
+.dark .empty-state,
+:host-context(.dark) .empty-state {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* =========================================================
+   MODO MÓVIL COMPACTO
+   ========================================================= */
+
+@media (max-width: 760px) {
+  .container {
+    padding: 10px 10px 104px !important;
   }
 
   .hero {
-    padding: 22px;
+    padding: 14px;
+    border-radius: 19px;
+    margin-bottom: 12px;
+    gap: 10px;
+    box-shadow: none;
+
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .eyebrow {
+    font-size: 9.5px;
+    letter-spacing: 0.8px;
+    margin-bottom: 4px;
+  }
+
+  h1 {
+    font-size: 20px;
+    line-height: 1.08;
+    letter-spacing: -0.55px;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  .hero .subtitle + .subtitle {
+    font-size: 10.3px;
+    margin-top: 4px;
+  }
+
+  .refresh-button {
+    width: 100%;
+    min-width: 0;
+    min-height: 36px;
+    padding: 9px 12px;
+    border-radius: 13px;
+    font-size: 11px;
+    box-shadow: none;
+  }
+
+  .empty-state {
+    padding: 12px;
+    border-radius: 15px;
+    margin-bottom: 10px;
+  }
+
+  .empty-state h2 {
+    font-size: 13px;
+    margin-bottom: 5px;
+  }
+
+  .empty-state p {
+    font-size: 10.5px;
+    line-height: 1.3;
   }
 
   .grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .stat-card {
+    min-height: 94px;
+    padding: 10px;
+    border-radius: 16px;
+    box-shadow: none;
+  }
+
+  .stat-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .stat-card::after {
+    width: 68px;
+    height: 68px;
+    right: -34px;
+    top: -34px;
+    opacity: 0.1;
+  }
+
+  .icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 10px;
+    font-size: 14px;
+    margin-bottom: 7px;
+  }
+
+  .stat-card h2 {
+    font-size: 18px;
+    margin-bottom: 3px;
+    letter-spacing: -0.35px;
+  }
+
+  .stat-card p {
+    font-size: 10px;
+    line-height: 1.15;
+    font-weight: 750;
+  }
+
+  .quick-actions {
+    padding: 12px;
+    border-radius: 17px;
+    box-shadow: none;
+  }
+
+  .quick-actions h2 {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  .actions-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .actions-grid a {
+    padding: 10px;
+    border-radius: 14px;
+    gap: 5px;
+    font-size: 15px;
+    min-height: 68px;
+    justify-content: center;
+  }
+
+  .actions-grid a:hover {
+    transform: none;
+  }
+
+  .actions-grid a span {
+    font-size: 10px;
+    line-height: 1.15;
+  }
+}
+
+/* =========================================================
+   TELÉFONOS MÁS PEQUEÑOS
+   ========================================================= */
+
+@media (max-width: 420px) {
+  .container {
+    padding: 8px 8px 98px !important;
+  }
+
+  .hero {
+    padding: 12px;
+    border-radius: 17px;
+  }
+
+  h1 {
+    font-size: 18px;
+  }
+
+  .subtitle {
+    font-size: 10.4px;
+  }
+
+  .hero .subtitle + .subtitle {
+    font-size: 9.7px;
+  }
+
+  .refresh-button {
+    min-height: 34px;
+    padding: 8px 10px;
+    font-size: 10.5px;
+  }
+
+  .grid {
+    gap: 7px;
+  }
+
+  .stat-card {
+    min-height: 86px;
+    padding: 9px;
+    border-radius: 15px;
+  }
+
+  .icon {
+    width: 25px;
+    height: 25px;
+    border-radius: 9px;
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  .stat-card h2 {
+    font-size: 16px;
+  }
+
+  .stat-card p {
+    font-size: 9.2px;
+  }
+
+  .quick-actions {
+    padding: 10px;
+    border-radius: 16px;
+  }
+
+  .quick-actions h2 {
+    font-size: 13px;
+  }
+
+  .actions-grid {
+    gap: 7px;
+  }
+
+  .actions-grid a {
+    padding: 9px;
+    border-radius: 13px;
+    min-height: 62px;
+  }
+
+  .actions-grid a span {
+    font-size: 9.5px;
   }
 }

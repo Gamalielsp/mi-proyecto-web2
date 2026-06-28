@@ -1,3 +1,7 @@
+/* ================================
+   LOGO GLOBAL
+================================ */
+
 .app-logo-row {
   display: none;
 }
@@ -5,13 +9,17 @@
 .app-corner-logo {
   width: 54px;
   height: 54px;
+
   border-radius: 17px;
+
   background: var(--card);
   border: 1px solid var(--border);
+
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
+
+  box-shadow: 0 12px 25px rgba(15, 23, 42, 0.12);
 }
 
 .app-corner-logo img {
@@ -32,10 +40,430 @@
   display: block;
 }
 
-/* ===== ESCRITORIO ===== */
+/* ================================
+   TOASTS GLOBALES
+================================ */
+
+.toast-stack {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+
+  width: min(380px, calc(100vw - 24px));
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  z-index: 9000;
+
+  pointer-events: none;
+}
+
+.app-toast {
+  position: relative;
+
+  width: 100%;
+
+  display: grid;
+  grid-template-columns: 38px 1fr 28px;
+  gap: 11px;
+  align-items: start;
+
+  padding: 13px 13px;
+
+  border-radius: 18px;
+
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+  backdrop-filter: blur(16px);
+
+  box-sizing: border-box;
+
+  pointer-events: auto;
+
+  animation: toastIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.toast-icon {
+  width: 38px;
+  height: 38px;
+
+  border-radius: 14px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-size: 16px;
+  font-weight: 900;
+
+  background: #eff6ff;
+  color: #2563eb;
+
+  flex-shrink: 0;
+}
+
+.toast-content {
+  min-width: 0;
+}
+
+.toast-content h3 {
+  margin: 0 0 3px;
+
+  color: #111827;
+
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.toast-content p {
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.35;
+
+  overflow-wrap: anywhere;
+}
+
+.toast-close {
+  width: 28px;
+  height: 28px;
+
+  border: none;
+  outline: none;
+  border-radius: 10px;
+
+  background: transparent;
+  color: #94a3b8;
+
+  font-size: 20px;
+  line-height: 1;
+
+  cursor: pointer;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.toast-close:hover {
+  background: rgba(15, 23, 42, 0.06);
+  color: #334155;
+  transform: scale(1.04);
+}
+
+/* Tipos de toast */
+
+.toast-success .toast-icon {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.toast-error .toast-icon,
+.toast-danger .toast-icon {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.toast-warning .toast-icon {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.toast-info .toast-icon {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.toast-success {
+  border-color: rgba(22, 163, 74, 0.18);
+}
+
+.toast-error,
+.toast-danger {
+  border-color: rgba(220, 38, 38, 0.2);
+}
+
+.toast-warning {
+  border-color: rgba(245, 158, 11, 0.22);
+}
+
+.toast-info {
+  border-color: rgba(37, 99, 235, 0.18);
+}
+
+/* ================================
+   MODAL GLOBAL DE CONFIRMACIÓN
+================================ */
+
+.confirm-backdrop {
+  position: fixed;
+  inset: 0;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 18px;
+
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(8px);
+
+  z-index: 9500;
+
+  box-sizing: border-box;
+
+  animation: confirmFadeIn 0.22s ease both;
+}
+
+.confirm-card {
+  width: 430px;
+  max-width: 100%;
+
+  padding: 26px;
+
+  border-radius: 28px;
+
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+
+  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.34);
+
+  box-sizing: border-box;
+
+  animation: confirmCardIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.confirm-icon {
+  width: 54px;
+  height: 54px;
+
+  margin-bottom: 16px;
+
+  border-radius: 18px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: #dbeafe;
+  color: #1d4ed8;
+
+  font-size: 23px;
+  font-weight: 900;
+}
+
+.confirm-success .confirm-icon {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.confirm-error .confirm-icon,
+.confirm-danger .confirm-icon {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.confirm-warning .confirm-icon {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.confirm-info .confirm-icon {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.confirm-content h2 {
+  margin: 0 0 8px;
+
+  color: var(--text);
+
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1.08;
+  letter-spacing: -0.6px;
+}
+
+.confirm-content p {
+  margin: 0;
+
+  color: var(--muted);
+
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+
+  overflow-wrap: anywhere;
+}
+
+.confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+
+  margin-top: 22px;
+}
+
+.confirm-actions button {
+  min-height: 45px;
+
+  border: none;
+  outline: none;
+  border-radius: 14px;
+
+  padding: 11px 14px;
+
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 900;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.22s ease,
+    box-shadow 0.22s ease,
+    opacity 0.22s ease;
+}
+
+.confirm-cancel {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border) !important;
+}
+
+.confirm-cancel:hover {
+  transform: translateY(-1px);
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.confirm-accept {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+
+  box-shadow: 0 12px 26px rgba(37, 99, 235, 0.22);
+}
+
+.confirm-accept:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 30px rgba(37, 99, 235, 0.26);
+}
+
+.confirm-warning .confirm-accept {
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+  color: white;
+  box-shadow: 0 12px 26px rgba(245, 158, 11, 0.22);
+}
+
+.confirm-danger .confirm-accept,
+.confirm-error .confirm-accept {
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+  color: white;
+  box-shadow: 0 12px 26px rgba(239, 68, 68, 0.22);
+}
+
+.confirm-success .confirm-accept {
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+  color: white;
+  box-shadow: 0 12px 26px rgba(34, 197, 94, 0.22);
+}
+
+/* ================================
+   MODO OSCURO
+================================ */
+
+:host-context(.dark) .app-corner-logo {
+  box-shadow: none;
+}
+
+:host-context(.dark) .app-toast {
+  background: rgba(17, 24, 39, 0.96);
+  border-color: rgba(55, 65, 81, 0.95);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+:host-context(.dark) .toast-content h3 {
+  color: #e5e7eb;
+}
+
+:host-context(.dark) .toast-content p {
+  color: #9ca3af;
+}
+
+:host-context(.dark) .toast-close {
+  color: #9ca3af;
+}
+
+:host-context(.dark) .toast-close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e5e7eb;
+}
+
+:host-context(.dark) .confirm-backdrop {
+  background: rgba(2, 6, 23, 0.72);
+}
+
+:host-context(.dark) .confirm-card {
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.45);
+}
+
+/* ================================
+   ANIMACIONES
+================================ */
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateX(18px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes confirmFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes confirmCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ================================
+   ESCRITORIO
+================================ */
 
 @media (min-width: 1201px) {
-
   .app-logo-row {
     display: block;
 
@@ -45,20 +473,19 @@
 
     z-index: 3000;
   }
-
 }
 
-/* ===== TABLETS Y MÓVILES ===== */
+/* ================================
+   TABLETS Y MÓVILES
+================================ */
 
 @media (max-width: 1200px) {
-
   .app-logo-row {
     display: block;
 
     max-width: 1100px;
 
     margin: 12px auto 10px;
-
     padding: 0 18px;
   }
 
@@ -72,5 +499,140 @@
     width: 30px;
     height: 30px;
   }
+}
 
+/* ================================
+   MÓVIL
+================================ */
+
+@media (max-width: 760px) {
+  .toast-stack {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+
+    width: auto;
+
+    gap: 8px;
+  }
+
+  .app-toast {
+    grid-template-columns: 34px 1fr 26px;
+    gap: 9px;
+
+    padding: 11px;
+
+    border-radius: 16px;
+
+    box-shadow: 0 14px 32px rgba(15, 23, 42, 0.14);
+  }
+
+  .toast-icon {
+    width: 34px;
+    height: 34px;
+
+    border-radius: 12px;
+
+    font-size: 14px;
+  }
+
+  .toast-content h3 {
+    font-size: 12.8px;
+  }
+
+  .toast-content p {
+    font-size: 11.2px;
+  }
+
+  .toast-close {
+    width: 26px;
+    height: 26px;
+    border-radius: 9px;
+    font-size: 18px;
+  }
+
+  .confirm-backdrop {
+    padding: 14px;
+  }
+
+  .confirm-card {
+    width: 100%;
+    max-width: 390px;
+
+    padding: 22px 18px;
+
+    border-radius: 24px;
+  }
+
+  .confirm-icon {
+    width: 46px;
+    height: 46px;
+
+    border-radius: 16px;
+
+    font-size: 20px;
+
+    margin-bottom: 14px;
+  }
+
+  .confirm-content h2 {
+    font-size: 20px;
+  }
+
+  .confirm-content p {
+    font-size: 12.5px;
+  }
+
+  .confirm-actions {
+    gap: 8px;
+    margin-top: 18px;
+  }
+
+  .confirm-actions button {
+    min-height: 42px;
+
+    border-radius: 13px;
+
+    font-size: 12.5px;
+    padding: 10px 12px;
+  }
+}
+
+/* ================================
+   CELULARES PEQUEÑOS
+================================ */
+
+@media (max-width: 420px) {
+  .app-logo-row {
+    margin: 10px auto 8px;
+    padding: 0 14px;
+  }
+
+  .app-corner-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+  }
+
+  .app-corner-logo img {
+    width: 28px;
+    height: 28px;
+  }
+
+  .confirm-card {
+    padding: 20px 16px;
+    border-radius: 22px;
+  }
+
+  .confirm-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .confirm-cancel {
+    order: 2;
+  }
+
+  .confirm-accept {
+    order: 1;
+  }
 }

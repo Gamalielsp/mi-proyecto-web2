@@ -1,71 +1,101 @@
 .card {
   display: grid;
-  grid-template-columns: 120px 1fr;
+  grid-template-columns: 118px 1fr;
   gap: 18px;
+
+  width: 100%;
+  padding: 16px;
+
   border: 1px solid var(--border);
   border-radius: 24px;
-  padding: 18px;
   background: var(--card);
-  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+
+  box-sizing: border-box;
+
   transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    border-color 0.2s ease;
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 20px 42px rgba(15, 23, 42, 0.12);
-  border-color: rgba(37, 99, 235, 0.35);
+  transform: translateY(-1px);
+  border-color: rgba(59, 130, 246, 0.28);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
 }
 
+.cover,
 img {
-  width: 120px;
+  width: 118px;
   height: 166px;
+
   object-fit: cover;
   object-position: center center;
+
   border-radius: 18px;
   background: #e5e7eb;
-  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+
   display: block;
-  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .content {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+
+  min-width: 0;
+}
+
+.book-header {
+  width: 100%;
+  min-width: 0;
 }
 
 h3 {
   color: var(--text);
-  font-size: 21px;
+  font-size: 20px;
   font-weight: 850;
-  letter-spacing: -0.4px;
-  margin-bottom: 8px;
+  letter-spacing: -0.45px;
+  line-height: 1.12;
+
+  margin: 0 0 7px;
+
+  overflow-wrap: anywhere;
 }
 
+.author,
 p {
   color: var(--muted);
-  margin-bottom: 10px;
+  margin: 0 0 10px;
+  font-size: 15px;
+  line-height: 1.35;
 }
 
 .career {
   display: inline-flex;
   align-items: center;
-  padding: 6px 11px;
+
+  max-width: 100%;
+
+  padding: 7px 13px;
+  margin-bottom: 12px;
+
   border-radius: 999px;
   background: var(--primary-soft);
   color: var(--primary);
+
   font-weight: 800;
   font-size: 13px;
-  margin-bottom: 10px;
+  line-height: 1.2;
+
+  overflow-wrap: anywhere;
 }
 
 .stock {
   font-weight: 850;
-  margin-bottom: 14px;
+  margin: 0 0 12px;
+  font-size: 15px;
 }
 
 .available {
@@ -73,166 +103,654 @@ p {
 }
 
 .unavailable {
-  color: var(--warning);
+  color: #d97706;
 }
 
-button {
-  border: none;
-  border-radius: 13px;
-  padding: 11px 16px;
-  cursor: pointer;
-  font-weight: 800;
-  background: linear-gradient(135deg, #2563eb, #3b82f6);
-  color: white;
-  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.22);
-}
+/* =========================================================
+   LISTA DE ESPERA COMPACTA
+========================================================= */
 
-button:hover {
-  filter: brightness(0.93);
-}
-
-.disabled-btn {
-  background: #9ca3af !important;
-  color: white !important;
-  box-shadow: none !important;
-  cursor: not-allowed !important;
-  opacity: 0.85;
-}
-
-.disabled-btn:hover {
-  filter: none !important;
-  transform: none !important;
-  box-shadow: none !important;
-}
-
-.waitlist {
+.waitlist-panel {
   width: 100%;
-  margin-top: 14px;
-  padding: 14px;
-  border: 1px solid rgba(245, 158, 11, 0.35);
-  border-radius: 16px;
-  background: #fffbeb;
-  color: #92400e;
-}
-
-:host-context(.dark) .waitlist {
-  background: rgba(120, 53, 15, 0.35);
-  border-color: rgba(251, 191, 36, 0.35);
-  color: #fbbf24;
-}
-
-.waitlist p {
-  color: inherit;
-  margin-bottom: 8px;
-}
-
-.waitlist button {
   margin-top: 4px;
-  background: linear-gradient(135deg, #d97706, #f59e0b);
-  box-shadow: 0 10px 24px rgba(245, 158, 11, 0.22);
+  padding: 12px;
+
+  border: 1px solid rgba(217, 119, 6, 0.22);
+  border-radius: 16px;
+  background: #fffaf0;
+
+  box-sizing: border-box;
 }
 
-/* TARJETA DISPONIBLE PARA TI */
+.waitlist-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.waitlist-info h4 {
+  margin: 0 0 4px;
+
+  color: #9a3412;
+  font-size: 15px;
+  font-weight: 850;
+  letter-spacing: -0.25px;
+  line-height: 1.15;
+}
+
+.waitlist-info p {
+  margin: 0;
+
+  color: #b45309;
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+
+.waitlist-info strong {
+  color: #9a3412;
+}
+
+.position-pill {
+  min-width: 40px;
+  height: 32px;
+  padding: 0 10px;
+
+  border-radius: 999px;
+  background: #fff1cc;
+  color: #9a3412;
+
+  font-size: 13px;
+  font-weight: 900;
+
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+
+  flex-shrink: 0;
+}
+
+.waitlist-disabled {
+  width: 100%;
+  margin-top: 10px;
+  min-height: 32px !important;
+  font-size: 11px !important;
+}
+
+/* =========================================================
+   LIBRO DISPONIBLE PARA TI
+========================================================= */
 
 .reserved-notice {
   width: 100%;
-  margin-top: 10px;
+  margin-top: 8px;
   padding: 14px;
-  border-radius: 16px;
-  border: 1px solid rgba(37, 99, 235, 0.18);
-  background: rgba(239, 246, 255, 0.95);
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.08);
+
+  border-radius: 18px;
+  border: 1px solid rgba(37, 99, 235, 0.16);
+  background: linear-gradient(180deg, #f8fbff 0%, #eef6ff 100%);
+
+  box-sizing: border-box;
 }
 
 .notice-main {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
 }
 
-.reserved-notice h4 {
-  margin: 0 0 4px;
-  color: #2563eb;
-  font-size: 17px;
-  font-weight: 900;
+.notice-copy {
+  min-width: 0;
 }
 
-.reserved-notice p {
+.notice-copy h4 {
+  margin: 0 0 5px;
+
+  color: #1d4ed8;
+  font-size: 16px;
+  font-weight: 850;
+  letter-spacing: -0.3px;
+  line-height: 1.15;
+}
+
+.notice-copy p {
   margin: 0;
+
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12.5px;
+  line-height: 1.4;
 }
 
 .timer-box {
-  text-align: right;
-  min-width: 92px;
+  min-width: 86px;
+  padding: 9px 11px;
+
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(37, 99, 235, 0.12);
+
+  text-align: center;
+  box-sizing: border-box;
 }
 
 .timer-box span {
   display: block;
-  font-size: 11px;
-  font-weight: 700;
+
+  font-size: 10px;
+  font-weight: 800;
   color: var(--muted);
-  margin-bottom: 3px;
+
+  margin-bottom: 4px;
 }
 
 .timer {
   display: block;
-  font-size: 26px;
-  font-weight: 950;
-  color: #2563eb;
+
+  font-size: 22px;
   line-height: 1;
+  font-weight: 900;
+  color: #1d4ed8;
+
   white-space: nowrap;
 }
 
 .confirm-btn {
   margin-top: 12px;
-  padding: 10px 14px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #16a34a, #22c55e) !important;
-  box-shadow: 0 8px 18px rgba(34, 197, 94, 0.22) !important;
 }
 
-/* RESPONSIVE */
+/* =========================================================
+   FEEDBACK LISTA DE ESPERA
+========================================================= */
 
-@media (max-width: 640px) {
+.waitlist-feedback {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+
+  border: 1px solid rgba(22, 163, 74, 0.16);
+  border-radius: 16px;
+  background: linear-gradient(180deg, #f7fff9 0%, #effcf3 100%);
+
+  box-sizing: border-box;
+}
+
+.feedback-top {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.feedback-icon {
+  width: 32px;
+  height: 32px;
+
+  border-radius: 12px;
+  background: #dcfce7;
+  color: #166534;
+
+  font-weight: 900;
+  font-size: 15px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+}
+
+.feedback-copy {
+  min-width: 0;
+}
+
+.feedback-copy h4 {
+  margin: 0 0 4px;
+
+  color: #166534;
+  font-size: 14px;
+  font-weight: 850;
+  line-height: 1.15;
+}
+
+.feedback-copy p {
+  margin: 0;
+
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+/* =========================================================
+   BOTONES
+========================================================= */
+
+.reserve-btn,
+.waitlist-btn,
+.confirm-btn,
+.secondary-btn,
+.disabled-btn {
+  width: 100%;
+  min-height: 40px;
+
+  border: none;
+  border-radius: 13px;
+
+  padding: 10px 13px;
+
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1.2;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease,
+    background 0.18s ease;
+}
+
+.reserve-btn,
+.confirm-btn {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.22);
+}
+
+.waitlist-btn {
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+  color: white;
+  box-shadow: 0 10px 24px rgba(245, 158, 11, 0.22);
+}
+
+.secondary-btn {
+  margin-top: 10px;
+
+  background: #dcfce7;
+  color: #166534;
+  box-shadow: none;
+}
+
+.disabled-btn {
+  background: #f1f5f9;
+  color: #64748b;
+  cursor: not-allowed !important;
+  box-shadow: none;
+}
+
+.reserve-btn:hover:not(:disabled),
+.waitlist-btn:hover:not(:disabled),
+.confirm-btn:hover:not(:disabled),
+.secondary-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.reserve-btn:disabled,
+.waitlist-btn:disabled,
+.confirm-btn:disabled,
+.secondary-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* =========================================================
+   MODO OSCURO
+========================================================= */
+
+:host-context(.dark) .card {
+  box-shadow: none;
+}
+
+:host-context(.dark) .card:hover {
+  box-shadow: none;
+  border-color: rgba(96, 165, 250, 0.35);
+}
+
+:host-context(.dark) .cover,
+:host-context(.dark) img {
+  background: #1f2937;
+}
+
+:host-context(.dark) .waitlist-panel {
+  background: rgba(120, 53, 15, 0.14);
+  border-color: rgba(251, 191, 36, 0.22);
+}
+
+:host-context(.dark) .waitlist-info h4 {
+  color: #fbbf24;
+}
+
+:host-context(.dark) .waitlist-info p,
+:host-context(.dark) .waitlist-info strong {
+  color: #fde68a;
+}
+
+:host-context(.dark) .position-pill {
+  background: rgba(251, 191, 36, 0.12);
+  color: #fde68a;
+}
+
+:host-context(.dark) .reserved-notice {
+  background: rgba(37, 99, 235, 0.12);
+  border-color: rgba(96, 165, 250, 0.25);
+}
+
+:host-context(.dark) .timer-box {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(96, 165, 250, 0.16);
+}
+
+:host-context(.dark) .waitlist-feedback {
+  background: rgba(20, 83, 45, 0.16);
+  border-color: rgba(74, 222, 128, 0.18);
+}
+
+:host-context(.dark) .feedback-icon {
+  background: rgba(74, 222, 128, 0.16);
+  color: #bbf7d0;
+}
+
+:host-context(.dark) .feedback-copy h4 {
+  color: #bbf7d0;
+}
+
+:host-context(.dark) .secondary-btn {
+  background: rgba(22, 101, 52, 0.28);
+  color: #bbf7d0;
+}
+
+:host-context(.dark) .disabled-btn {
+  background: rgba(71, 85, 105, 0.35);
+  color: #cbd5e1;
+}
+
+/* =========================================================
+   MODO MÓVIL
+========================================================= */
+
+@media (max-width: 760px) {
   .card {
-    grid-template-columns: 92px 1fr;
-    gap: 14px;
-    padding: 14px;
-    border-radius: 20px;
+    grid-template-columns: 66px 1fr;
+    gap: 8px;
+
+    padding: 8px;
+    border-radius: 15px;
+
+    align-items: start;
   }
 
+  .card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .cover,
   img {
-    width: 92px;
-    height: 132px;
-    object-fit: cover;
-    object-position: center center;
-    border-radius: 14px;
-    display: block;
-    overflow: hidden;
+    width: 66px;
+    height: 94px;
+    border-radius: 12px;
   }
 
   h3 {
-    font-size: 17px;
+    font-size: 12.8px;
+    line-height: 1.1;
+    letter-spacing: -0.2px;
+    margin-bottom: 3px;
   }
 
-  button {
-    width: 100%;
+  .author,
+  p {
+    font-size: 10.2px;
+    margin-bottom: 4px;
+    line-height: 1.2;
+  }
+
+  .career {
+    padding: 4px 7px;
+    font-size: 9px;
+    margin-bottom: 5px;
+    line-height: 1.1;
+  }
+
+  .stock {
+    font-size: 10.5px;
+    margin-bottom: 5px;
+  }
+
+  .reserve-btn,
+  .waitlist-btn,
+  .confirm-btn,
+  .secondary-btn,
+  .disabled-btn {
+    min-height: 28px !important;
+    padding: 5px 8px !important;
+
+    border-radius: 10px;
+
+    font-size: 9.8px !important;
+    line-height: 1.1;
+
+    box-shadow: none;
+  }
+
+  .waitlist-panel {
+    padding: 7px;
+    border-radius: 12px;
+    margin-top: 2px;
+  }
+
+  .waitlist-info {
+    gap: 6px;
+  }
+
+  .waitlist-info h4 {
+    font-size: 10.7px;
+    margin-bottom: 2px;
+  }
+
+  .waitlist-info p {
+    font-size: 9.2px;
+    line-height: 1.2;
+  }
+
+  .position-pill {
+    min-width: 29px;
+    height: 23px;
+    padding: 0 6px;
+    font-size: 9.5px;
+  }
+
+  .waitlist-disabled {
+    margin-top: 6px;
+    min-height: 24px !important;
+    padding: 4px 7px !important;
+    font-size: 9px !important;
+  }
+
+  .reserved-notice {
+    padding: 8px;
+    border-radius: 13px;
+    margin-top: 4px;
   }
 
   .notice-main {
-    flex-direction: column;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .notice-copy h4 {
+    font-size: 10.8px;
+    margin-bottom: 3px;
+  }
+
+  .notice-copy p {
+    font-size: 9.2px;
+    line-height: 1.25;
   }
 
   .timer-box {
+    width: 100%;
+    min-width: 0;
+
+    padding: 6px 8px;
+    border-radius: 11px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
     text-align: left;
-    min-width: auto;
+  }
+
+  .timer-box span {
+    margin-bottom: 0;
+    font-size: 8.8px;
   }
 
   .timer {
-    font-size: 26px;
+    font-size: 16px;
+  }
+
+  .confirm-btn {
+    margin-top: 7px;
+  }
+
+  .waitlist-feedback {
+    padding: 8px;
+    border-radius: 13px;
+    margin-top: 7px;
+  }
+
+  .feedback-top {
+    gap: 7px;
+  }
+
+  .feedback-icon {
+    width: 25px;
+    height: 25px;
+    border-radius: 9px;
+    font-size: 12px;
+  }
+
+  .feedback-copy h4 {
+    font-size: 10.7px;
+    margin-bottom: 2px;
+  }
+
+  .feedback-copy p {
+    font-size: 9.2px;
+    line-height: 1.25;
+  }
+
+  .secondary-btn {
+    margin-top: 7px;
+  }
+}
+
+@media (max-width: 420px) {
+  .card {
+    grid-template-columns: 62px 1fr;
+    gap: 7px;
+
+    padding: 7px;
+    border-radius: 14px;
+  }
+
+  .cover,
+  img {
+    width: 62px;
+    height: 88px;
+    border-radius: 11px;
+  }
+
+  h3 {
+    font-size: 12px;
+  }
+
+  .author,
+  p {
+    font-size: 9.6px;
+  }
+
+  .career {
+    font-size: 8.5px;
+    padding: 3px 6px;
+  }
+
+  .stock {
+    font-size: 9.8px;
+  }
+
+  .reserve-btn,
+  .waitlist-btn,
+  .confirm-btn,
+  .secondary-btn,
+  .disabled-btn {
+    min-height: 26px !important;
+    padding: 4px 7px !important;
+    font-size: 9.2px !important;
+  }
+
+  .waitlist-panel {
+    padding: 6px;
+    border-radius: 11px;
+  }
+
+  .waitlist-info h4 {
+    font-size: 10px;
+  }
+
+  .waitlist-info p {
+    font-size: 8.7px;
+  }
+
+  .position-pill {
+    min-width: 27px;
+    height: 21px;
+    font-size: 9px;
+  }
+
+  .waitlist-disabled {
+    min-height: 22px !important;
+    font-size: 8.8px !important;
+  }
+
+  .reserved-notice {
+    padding: 7px;
+    border-radius: 12px;
+  }
+
+  .notice-copy h4 {
+    font-size: 10.2px;
+  }
+
+  .notice-copy p {
+    font-size: 8.8px;
+  }
+
+  .timer {
+    font-size: 15px;
+  }
+
+  .waitlist-feedback {
+    padding: 7px;
+    border-radius: 12px;
+  }
+
+  .feedback-icon {
+    width: 23px;
+    height: 23px;
+    border-radius: 8px;
+    font-size: 11px;
+  }
+
+  .feedback-copy h4 {
+    font-size: 10px;
+  }
+
+  .feedback-copy p {
+    font-size: 8.8px;
   }
 }

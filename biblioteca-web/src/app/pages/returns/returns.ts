@@ -11,6 +11,7 @@ import { Loan } from '../../models/loan.model';
 import { LoanService } from '../../services/loan.service';
 import { BookService } from '../../services/book.service';
 import { WaitlistService } from '../../services/waitlist.service';
+import { UiFeedbackService } from '../../services/ui-feedback.service';
 
 import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
 
@@ -34,6 +35,7 @@ export class Returns implements OnInit {
     private loanService: LoanService,
     private bookService: BookService,
     private waitlistService: WaitlistService,
+    private uiFeedback: UiFeedbackService,
     private changeDetectorRef: ChangeDetectorRef
   ) {}
 
@@ -55,14 +57,49 @@ export class Returns implements OnInit {
       })
     ).subscribe({
       next: () => {
-        this.pendingReturns = this.loanService.getPendingReturns();
+        this.pendingReturns = this.sortLoansNewestFirst(
+          this.loanService.getPendingReturns()
+        );
       },
       error: error => {
         console.error('Error general al cargar devoluciones:', error);
-        this.pendingReturns = this.loanService.getPendingReturns();
+        this.pendingReturns = this.sortLoansNewestFirst(
+          this.loanService.getPendingReturns()
+        );
         this.loadError = true;
       }
     });
+  }
+
+  private sortLoansNewestFirst(loans: Loan[]): Loan[] {
+    return [...loans].sort((a, b) =>
+      this.getLoanOrderValue(b) -
+      this.getLoanOrderValue(a)
+    );
+  }
+
+  private getLoanOrderValue(loan: Loan): number {
+    const movementDate =
+      loan.returnRequestDate ||
+      loan.returnDate ||
+      loan.borrowDate ||
+      loan.dueDate;
+
+    const dateValue = movementDate
+      ? new Date(movementDate).getTime()
+      : 0;
+
+    const idValue = Number(loan.id);
+
+    if (!Number.isNaN(dateValue) && dateValue > 0 && !Number.isNaN(idValue)) {
+      return dateValue + idValue / 10000000000000;
+    }
+
+    if (!Number.isNaN(idValue) && idValue > 0) {
+      return idValue;
+    }
+
+    return Number.isNaN(dateValue) ? 0 : dateValue;
   }
 
   confirmReturn(loan: Loan): void {
@@ -70,46 +107,51 @@ export class Returns implements OnInit {
       return;
     }
 
-    const confirmReception = confirm(
-      `¿Confirmas la recepción física del libro "${loan.bookTitle}"?`
-    );
-
-    if (!confirmReception) {
-      return;
-    }
-
-    this.loading = true;
-
-    this.loanService.confirmReturn(loan.id).pipe(
-      finalize(() => {
-        this.changeDetectorRef.detectChanges();
-      })
-    ).subscribe({
-      next: returnedLoan => {
-        this.bookService.loadBooks().subscribe({
-          next: () => {
-            this.waitlistService.notifyNextUser(
-              returnedLoan.bookId
-            );
-          },
-          error: () => {}
-        });
-
-        alert(
-          `Libro recibido correctamente.\n\nFolio: ${returnedLoan.returnFolio}`
-        );
-
-        this.loading = false;
-        this.loadData();
-      },
-      error: error => {
-        this.loading = false;
-
-        alert(
-          error?.error?.detail ||
-          'No se pudo confirmar la devolución.'
-        );
+    this.uiFeedback.confirm({
+      title: 'Confirmar devolución',
+      message: `¿Confirmas la recepción física del libro "${loan.bookTitle}"?`,
+      confirmText: 'Confirmar recepción',
+      cancelText: 'Cancelar',
+      type: 'warning'
+    }).subscribe(confirmed => {
+      if (!confirmed) {
+        return;
       }
+
+      this.loading = true;
+
+      this.loanService.confirmReturn(loan.id).pipe(
+        finalize(() => {
+          this.changeDetectorRef.detectChanges();
+        })
+      ).subscribe({
+        next: returnedLoan => {
+          this.bookService.loadBooks().subscribe({
+            next: () => {
+              this.waitlistService.notifyNextUser(
+                returnedLoan.bookId
+              );
+            },
+            error: () => {}
+          });
+
+          this.uiFeedback.success(
+            `Folio: ${returnedLoan.returnFolio}`,
+            'Libro recibido correctamente'
+          );
+
+          this.loading = false;
+          this.loadData();
+        },
+        error: error => {
+          this.loading = false;
+
+          this.uiFeedback.error(
+            error?.error?.detail ||
+            'No se pudo confirmar la devolución.'
+          );
+        }
+      });
     });
   }
 }

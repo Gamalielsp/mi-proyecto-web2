@@ -1,122 +1,503 @@
+:host {
+  display: block;
+}
+
+/* ================================
+   MENÚ INFERIOR RESPONSIVE
+================================ */
+
 .mobile-nav {
   position: fixed;
-  bottom: 10px;
-  left: 12px;
-  right: 12px;
+
+  left: 50%;
+  right: auto;
+  bottom: 12px;
+
+  transform: translateX(-50%);
+
+  width: calc(100% - 24px);
+  max-width: 760px;
 
   min-height: 70px;
-
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid #e5e7eb;
-  border-radius: 24px;
+  padding: 9px 12px;
 
   display: flex;
-  justify-content: center;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 
-  z-index: 1000;
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  border-radius: 25px;
 
-  box-shadow: 0 14px 38px rgba(15, 23, 42, 0.18);
+  box-shadow: 0 16px 38px rgba(15, 23, 42, 0.16);
   backdrop-filter: blur(18px);
 
-  padding: 8px 14px;
-
-  overflow-x: auto;
-  overflow-y: hidden;
+  z-index: 1000;
 
   box-sizing: border-box;
 
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+
+  scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
+  scroll-padding-inline: 18px;
 }
 
 .mobile-nav::-webkit-scrollbar {
   display: none;
 }
 
-:host-context(.dark) .mobile-nav {
-  background: rgba(17, 24, 39, 0.96);
-  border-color: #374151;
+/* ================================
+   MENÚ ALUMNO / PROFESOR
+================================ */
+
+.mobile-nav:not(.many-items) {
+  justify-content: space-between;
+  overflow-x: hidden;
+  overflow-y: hidden;
 }
 
-.mobile-nav a {
-  flex: 0 0 auto;
+.mobile-nav:not(.many-items) a,
+.mobile-nav:not(.many-items) button {
+  flex: 1 1 0;
+  min-width: 0;
+}
 
-  width: 76px;
-  min-width: 76px;
+/* ================================
+   MENÚ BIBLIOTECARIO EN ESCRITORIO
+================================ */
+
+.mobile-nav.many-items {
+  justify-content: space-between;
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+.mobile-nav.many-items a,
+.mobile-nav.many-items button {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* ================================
+   LINKS / BOTONES BASE
+================================ */
+
+.mobile-nav a,
+.mobile-nav button {
+  height: 52px;
+
+  padding: 7px 8px;
+
+  border: none;
+  outline: none;
+  border-radius: 19px;
+
+  background: transparent;
+  color: var(--muted);
 
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
   gap: 4px;
 
   text-decoration: none;
-  color: #6b7280;
-
-  font-size: 10px;
-  font-weight: 750;
-
-  padding: 8px 6px;
-  border-radius: 15px;
-
   cursor: pointer;
-  transition: all 0.2s ease;
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.05;
+
+  white-space: nowrap;
+  box-sizing: border-box;
+
+  box-shadow: none;
+
+  -webkit-tap-highlight-color: transparent;
+
+  transition:
+    background-color 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.32s ease,
+    border-radius 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ================================
+   EFECTOS
+================================ */
+
+.mobile-nav a:hover {
+  background: rgba(59, 130, 246, 0.08);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.mobile-nav a.active,
+.mobile-nav a.router-link-active,
+.mobile-nav a[aria-current='page'] {
+  background: var(--primary-soft);
+  color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.mobile-nav a:not(.active):not(.router-link-active):not([aria-current='page']) {
+  background: transparent;
+  transform: translateY(0);
+}
+
+/* ================================
+   BOTÓN SALIR LIMPIO
+================================ */
+
+.mobile-nav button {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.mobile-nav button,
+.mobile-nav button:hover,
+.mobile-nav button:focus,
+.mobile-nav button:focus-visible,
+.mobile-nav button:active {
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  color: var(--muted) !important;
+  transform: none !important;
+}
+
+.mobile-nav button:hover span,
+.mobile-nav button:focus span,
+.mobile-nav button:focus-visible span,
+.mobile-nav button:active span {
+  color: #dc2626 !important;
+}
+
+/* ================================
+   ÍCONOS Y TEXTOS
+================================ */
+
+.mobile-nav a span,
+.mobile-nav button span {
+  transition:
+    color 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.32s ease;
+}
+
+.mobile-nav a span:first-child,
+.mobile-nav button span:first-child {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.mobile-nav a span:last-child,
+.mobile-nav button span:last-child {
+  width: 100%;
+  max-width: 100%;
+
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
 
   text-align: center;
+
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: -0.1px;
 }
 
-.mobile-nav a span {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
+.mobile-nav a.active span:first-child,
+.mobile-nav a.router-link-active span:first-child,
+.mobile-nav a[aria-current='page'] span:first-child {
+  transform: translateY(-1px);
 }
 
-:host-context(.dark) .mobile-nav a {
+.mobile-nav a.active span:last-child,
+.mobile-nav a.router-link-active span:last-child,
+.mobile-nav a[aria-current='page'] span:last-child {
+  transform: translateY(1px);
+}
+
+/* ================================
+   MODO OSCURO
+================================ */
+
+:host-context(.dark) .mobile-nav {
+  background: rgba(17, 24, 39, 0.96);
+  border-color: rgba(55, 65, 81, 0.95);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.35);
+}
+
+:host-context(.dark) .mobile-nav a,
+:host-context(.dark) .mobile-nav button {
   color: #9ca3af;
 }
 
-.mobile-nav a.active {
-  color: #2563eb;
-  background: #eff6ff;
+:host-context(.dark) .mobile-nav a:hover {
+  background: rgba(96, 165, 250, 0.12);
+  color: #93c5fd;
 }
 
-:host-context(.dark) .mobile-nav a.active {
-  color: #60a5fa;
-  background: #1e3a8a;
+:host-context(.dark) .mobile-nav a.active,
+:host-context(.dark) .mobile-nav a.router-link-active,
+:host-context(.dark) .mobile-nav a[aria-current='page'] {
+  background: rgba(59, 130, 246, 0.18);
+  color: #93c5fd;
 }
 
-/* TABLET */
-@media (max-width: 1024px) {
+:host-context(.dark) .mobile-nav button,
+:host-context(.dark) .mobile-nav button:hover,
+:host-context(.dark) .mobile-nav button:focus,
+:host-context(.dark) .mobile-nav button:focus-visible,
+:host-context(.dark) .mobile-nav button:active {
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  color: #9ca3af !important;
+  transform: none !important;
+}
+
+:host-context(.dark) .mobile-nav button:hover span,
+:host-context(.dark) .mobile-nav button:focus span,
+:host-context(.dark) .mobile-nav button:focus-visible span,
+:host-context(.dark) .mobile-nav button:active span {
+  color: #fca5a5 !important;
+}
+
+/* ================================
+   TABLET
+================================ */
+
+@media (max-width: 900px) {
   .mobile-nav {
-    justify-content: center;
-    gap: 8px;
-  }
-
-  .mobile-nav a {
-    width: 72px;
-    min-width: 72px;
+    max-width: 700px;
   }
 }
 
-/* CELULAR */
-@media (max-width: 600px) {
+/* ================================
+   MÓVIL
+================================ */
+
+@media (max-width: 760px) {
   .mobile-nav {
-    min-height: 64px;
-    gap: 8px;
-    padding: 6px 10px;
+    left: 8px !important;
+    right: 8px !important;
+    bottom: 8px !important;
+
+    transform: none !important;
+
+    width: auto !important;
+    max-width: none !important;
+
+    min-height: 66px;
+    padding: 8px 10px;
+    gap: 7px;
+
+    border-radius: 23px;
+
+    scroll-padding-left: 18px;
+    scroll-padding-right: 18px;
   }
 
+  .mobile-nav a,
+  .mobile-nav button {
+    height: 50px;
+    border-radius: 18px;
+  }
+
+  /* Alumno / profesor: 5 botones repartidos */
+  .mobile-nav:not(.many-items) {
+    justify-content: space-between;
+    overflow-x: hidden;
+    overflow-y: hidden;
+  }
+
+  .mobile-nav:not(.many-items) a,
+  .mobile-nav:not(.many-items) button {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 7px 5px;
+  }
+
+  /* Bibliotecario: cinta desplazable */
   .mobile-nav.many-items {
     justify-content: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    scroll-snap-type: x proximity;
   }
 
-  .mobile-nav a {
-    width: 68px;
-    min-width: 68px;
+  .mobile-nav.many-items::before,
+  .mobile-nav.many-items::after {
+    content: '';
+    flex: 0 0 4px;
+    min-width: 4px;
+  }
+
+  .mobile-nav.many-items a,
+  .mobile-nav.many-items button {
+    flex: 0 0 82px;
+    min-width: 82px;
+    max-width: 82px;
+    padding: 6px 6px;
+
+    scroll-snap-align: center;
+  }
+
+  .mobile-nav.many-items a.active,
+  .mobile-nav.many-items a.router-link-active,
+  .mobile-nav.many-items a[aria-current='page'] {
+    transform: translateY(-1px);
+  }
+
+  .mobile-nav a span:first-child,
+  .mobile-nav button span:first-child {
+    font-size: 17px;
+  }
+
+  .mobile-nav a span:last-child,
+  .mobile-nav button span:last-child {
     font-size: 9px;
-    padding: 6px 3px;
+    letter-spacing: -0.2px;
+  }
+
+  .mobile-nav.many-items a span:last-child,
+  .mobile-nav.many-items button span:last-child {
+    font-size: 8.7px;
+    letter-spacing: -0.28px;
+  }
+}
+
+/* ================================
+   CELULARES PEQUEÑOS
+================================ */
+
+@media (max-width: 420px) {
+  .mobile-nav {
+    left: 7px !important;
+    right: 7px !important;
+    bottom: 7px !important;
+
+    width: auto !important;
+    max-width: none !important;
+
+    min-height: 64px;
+    padding: 7px 8px;
+    gap: 6px;
+
+    border-radius: 22px;
+
+    scroll-padding-left: 16px;
+    scroll-padding-right: 16px;
+  }
+
+  .mobile-nav a,
+  .mobile-nav button {
+    height: 49px;
+    border-radius: 17px;
+  }
+
+  .mobile-nav:not(.many-items) a,
+  .mobile-nav:not(.many-items) button {
+    padding: 6px 4px;
+  }
+
+  .mobile-nav.many-items::before,
+  .mobile-nav.many-items::after {
+    content: '';
+    flex: 0 0 4px;
+    min-width: 4px;
+  }
+
+  .mobile-nav.many-items a,
+  .mobile-nav.many-items button {
+    flex: 0 0 80px;
+    min-width: 80px;
+    max-width: 80px;
+    padding: 6px 5px;
+  }
+
+  .mobile-nav a span:first-child,
+  .mobile-nav button span:first-child {
+    font-size: 16px;
+  }
+
+  .mobile-nav a span:last-child,
+  .mobile-nav button span:last-child {
+    font-size: 8.6px;
+    letter-spacing: -0.25px;
+  }
+
+  .mobile-nav.many-items a span:last-child,
+  .mobile-nav.many-items button span:last-child {
+    font-size: 8.3px;
+    letter-spacing: -0.35px;
+  }
+}
+
+/* ================================
+   CELULARES MUY ANGOSTOS
+================================ */
+
+@media (max-width: 360px) {
+  .mobile-nav {
+    left: 6px !important;
+    right: 6px !important;
+
+    min-height: 60px;
+    padding: 6px;
+    gap: 5px;
+
+    scroll-padding-left: 14px;
+    scroll-padding-right: 14px;
+  }
+
+  .mobile-nav a,
+  .mobile-nav button {
+    height: 46px;
+    gap: 3px;
+  }
+
+  .mobile-nav:not(.many-items) a,
+  .mobile-nav:not(.many-items) button {
+    padding: 5px 3px;
+  }
+
+  .mobile-nav.many-items::before,
+  .mobile-nav.many-items::after {
+    content: '';
+    flex: 0 0 3px;
+    min-width: 3px;
+  }
+
+  .mobile-nav.many-items a,
+  .mobile-nav.many-items button {
+    flex: 0 0 76px;
+    min-width: 76px;
+    max-width: 76px;
+    padding: 5px 4px;
+  }
+
+  .mobile-nav a span:first-child,
+  .mobile-nav button span:first-child {
+    font-size: 15px;
+  }
+
+  .mobile-nav a span:last-child,
+  .mobile-nav button span:last-child {
+    font-size: 7.8px;
+    letter-spacing: -0.3px;
+  }
+
+  .mobile-nav.many-items a span:last-child,
+  .mobile-nav.many-items button span:last-child {
+    font-size: 7.7px;
+    letter-spacing: -0.4px;
   }
 }
