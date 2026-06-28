@@ -19,7 +19,7 @@ import { UiFeedbackService } from './ui-feedback.service';
 })
 export class WaitlistService {
 
-  private apiUrl = 'http://127.0.0.1:8000/waitlist';
+  private apiUrl = 'https://biblioteca-api-zppt.onrender.com/waitlist';
   private waitlist: WaitlistEntry[] = [];
 
   private processingBookIds = new Set<number>();

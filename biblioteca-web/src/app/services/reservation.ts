@@ -9,7 +9,7 @@ import { Reservation } from '../models/reservation.model';
 })
 export class ReservationService {
 
-  private apiUrl = 'http://127.0.0.1:8000/reservations';
+  private apiUrl = 'https://biblioteca-api-zppt.onrender.com/reservations';
   private reservations: Reservation[] = [];
 
   constructor(

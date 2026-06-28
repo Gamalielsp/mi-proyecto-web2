@@ -9,7 +9,7 @@ import { User } from '../models/user.model';
 })
 export class UserService {
 
-  private apiUrl = 'http://127.0.0.1:8000/users';
+  private apiUrl = 'https://biblioteca-api-zppt.onrender.com/users';
 
   private users: User[] = [];
 

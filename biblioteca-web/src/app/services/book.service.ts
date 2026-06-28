@@ -15,7 +15,7 @@ interface BookCreateResponse {
 })
 export class BookService {
 
-  private apiUrl = 'http://127.0.0.1:8000/books/';
+  private apiUrl = 'https://biblioteca-api-zppt.onrender.com/books/';
 
   private books: Book[] = [];
 

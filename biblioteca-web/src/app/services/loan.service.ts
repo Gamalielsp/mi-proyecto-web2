@@ -9,7 +9,7 @@ import { Loan } from '../models/loan.model';
 })
 export class LoanService {
 
-  private apiUrl = 'http://127.0.0.1:8000/loans';
+  private apiUrl = 'https://biblioteca-api-zppt.onrender.com/loans';
 
   private loans: Loan[] = [];
   private history: Loan[] = [];
