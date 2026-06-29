@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   ChangeDetectorRef
 } from '@angular/core';
 
@@ -25,7 +26,7 @@ import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
   templateUrl: './alerts.html',
   styleUrl: './alerts.css'
 })
-export class Alerts implements OnInit {
+export class Alerts implements OnInit, OnDestroy {
 
   currentUser: any = {};
 
@@ -35,6 +36,10 @@ export class Alerts implements OnInit {
 
   isLoading = false;
   loadError = false;
+
+  private syncTimer: any = null;
+  private readonly syncInterval = 3000;
+  private isSyncing = false;
 
   constructor(
     private waitlistService: WaitlistService,
@@ -49,7 +54,31 @@ export class Alerts implements OnInit {
       localStorage.getItem('currentUser') || '{}'
     );
 
-    this.loadData();
+    this.loadData(true);
+    this.startAutoSync();
+  }
+
+  ngOnDestroy(): void {
+    this.stopAutoSync();
+  }
+
+  private startAutoSync(): void {
+    this.stopAutoSync();
+
+    this.syncTimer = setInterval(() => {
+      if (this.confirmingEntryId !== null) {
+        return;
+      }
+
+      this.loadData(true);
+    }, this.syncInterval);
+  }
+
+  private stopAutoSync(): void {
+    if (this.syncTimer) {
+      clearInterval(this.syncTimer);
+      this.syncTimer = null;
+    }
   }
 
   get roleLabel(): string {
@@ -60,8 +89,17 @@ export class Alerts implements OnInit {
     return 'Alumno';
   }
 
-  loadData(): void {
-    this.isLoading = true;
+  loadData(silent: boolean = false): void {
+    if (this.isSyncing) {
+      return;
+    }
+
+    this.isSyncing = true;
+
+    if (!silent) {
+      this.isLoading = true;
+    }
+
     this.loadError = false;
 
     forkJoin({
@@ -83,7 +121,12 @@ export class Alerts implements OnInit {
     })
       .pipe(
         finalize(() => {
-          this.isLoading = false;
+          this.isSyncing = false;
+
+          if (!silent) {
+            this.isLoading = false;
+          }
+
           this.changeDetectorRef.detectChanges();
         })
       )
@@ -161,7 +204,7 @@ export class Alerts implements OnInit {
         'La notificación ya no está disponible. Vuelve a revisar tus alertas.'
       );
 
-      this.loadData();
+      this.loadData(true);
       return;
     }
 
@@ -208,7 +251,7 @@ export class Alerts implements OnInit {
           );
 
           this.confirmingEntryId = null;
-          this.loadData();
+          this.loadData(true);
         },
         error: error => {
           this.confirmingEntryId = null;
@@ -218,7 +261,7 @@ export class Alerts implements OnInit {
             'Ocurrió un error al confirmar la solicitud de reserva.'
           );
 
-          this.loadData();
+          this.loadData(true);
         }
       });
     } catch (error) {
@@ -232,7 +275,7 @@ export class Alerts implements OnInit {
         );
       }
 
-      this.loadData();
+      this.loadData(true);
     }
   }
 }

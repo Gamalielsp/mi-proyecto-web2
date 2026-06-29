@@ -43,6 +43,8 @@ export class Reservations implements OnInit, OnDestroy {
   processingReservationId: number | null = null;
 
   private timerSubscription?: Subscription;
+  private syncSubscription?: Subscription;
+  private isSyncing = false;
 
   constructor(
     private reservationService: ReservationService,
@@ -60,13 +62,27 @@ export class Reservations implements OnInit, OnDestroy {
       this.loadReservations();
       this.changeDetectorRef.detectChanges();
     });
+
+    this.syncSubscription = interval(3000).subscribe(() => {
+      if (this.processingReservationId !== null) {
+        return;
+      }
+
+      this.loadReservationsFromApi(true);
+    });
   }
 
   ngOnDestroy(): void {
     this.timerSubscription?.unsubscribe();
+    this.syncSubscription?.unsubscribe();
   }
 
-  loadReservationsFromApi(): void {
+  loadReservationsFromApi(silent: boolean = false): void {
+    if (this.isSyncing) {
+      return;
+    }
+
+    this.isSyncing = true;
     this.loadError = false;
 
     this.reservationService.loadReservations().pipe(
@@ -76,6 +92,7 @@ export class Reservations implements OnInit, OnDestroy {
         return of([]);
       }),
       finalize(() => {
+        this.isSyncing = false;
         this.changeDetectorRef.detectChanges();
       })
     ).subscribe({
@@ -147,6 +164,7 @@ export class Reservations implements OnInit, OnDestroy {
 
     this.reservationService.markAsDelivered(reservation.id).pipe(
       finalize(() => {
+        this.isSyncing = false;
         this.changeDetectorRef.detectChanges();
       })
     ).subscribe({
@@ -188,7 +206,7 @@ export class Reservations implements OnInit, OnDestroy {
             );
 
             this.finishProcessing();
-            this.loadReservationsFromApi();
+            this.loadReservationsFromApi(true);
           },
           error: error => {
             this.finishProcessing();
@@ -248,7 +266,7 @@ export class Reservations implements OnInit, OnDestroy {
           );
 
           this.finishProcessing();
-          this.loadReservationsFromApi();
+          this.loadReservationsFromApi(true);
         },
         error: error => {
           this.finishProcessing();

@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   ChangeDetectorRef
 } from '@angular/core';
 
@@ -25,11 +26,15 @@ import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
   templateUrl: './returns.html',
   styleUrl: './returns.css'
 })
-export class Returns implements OnInit {
+export class Returns implements OnInit, OnDestroy {
 
   pendingReturns: Loan[] = [];
   loading = false;
   loadError = false;
+
+  private syncTimer: any = null;
+  private readonly syncInterval = 3000;
+  private isSyncing = false;
 
   constructor(
     private loanService: LoanService,
@@ -40,10 +45,39 @@ export class Returns implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.loadData();
+    this.loadData(true);
+    this.startAutoSync();
   }
 
-  loadData(): void {
+  ngOnDestroy(): void {
+    this.stopAutoSync();
+  }
+
+  private startAutoSync(): void {
+    this.stopAutoSync();
+
+    this.syncTimer = setInterval(() => {
+      if (this.loading) {
+        return;
+      }
+
+      this.loadData(true);
+    }, this.syncInterval);
+  }
+
+  private stopAutoSync(): void {
+    if (this.syncTimer) {
+      clearInterval(this.syncTimer);
+      this.syncTimer = null;
+    }
+  }
+
+  loadData(silent: boolean = false): void {
+    if (this.isSyncing) {
+      return;
+    }
+
+    this.isSyncing = true;
     this.loadError = false;
 
     this.loanService.loadLoans().pipe(
@@ -53,6 +87,7 @@ export class Returns implements OnInit {
         return of([]);
       }),
       finalize(() => {
+        this.isSyncing = false;
         this.changeDetectorRef.detectChanges();
       })
     ).subscribe({
@@ -141,7 +176,7 @@ export class Returns implements OnInit {
           );
 
           this.loading = false;
-          this.loadData();
+          this.loadData(true);
         },
         error: error => {
           this.loading = false;

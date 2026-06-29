@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   ChangeDetectorRef
 } from '@angular/core';
 
@@ -22,12 +23,16 @@ import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
   templateUrl: './active-loans.html',
   styleUrl: './active-loans.css'
 })
-export class ActiveLoans implements OnInit {
+export class ActiveLoans implements OnInit, OnDestroy {
 
   loans: Loan[] = [];
 
   isLoading = false;
   loadError = false;
+
+  private syncTimer: any = null;
+  private readonly syncInterval = 3000;
+  private isSyncing = false;
 
   constructor(
     private loanService: LoanService,
@@ -36,10 +41,39 @@ export class ActiveLoans implements OnInit {
 
   ngOnInit(): void {
     this.loadLoans();
+    this.startAutoSync();
   }
 
-  loadLoans(): void {
-    this.isLoading = true;
+  ngOnDestroy(): void {
+    this.stopAutoSync();
+  }
+
+  private startAutoSync(): void {
+    this.stopAutoSync();
+
+    this.syncTimer = setInterval(() => {
+      this.loadLoans(true);
+    }, this.syncInterval);
+  }
+
+  private stopAutoSync(): void {
+    if (this.syncTimer) {
+      clearInterval(this.syncTimer);
+      this.syncTimer = null;
+    }
+  }
+
+  loadLoans(silent: boolean = false): void {
+    if (this.isSyncing) {
+      return;
+    }
+
+    this.isSyncing = true;
+
+    if (!silent) {
+      this.isLoading = true;
+    }
+
     this.loadError = false;
 
     this.loanService.loadLoans().pipe(
@@ -49,7 +83,12 @@ export class ActiveLoans implements OnInit {
         return of([]);
       }),
       finalize(() => {
-        this.isLoading = false;
+        this.isSyncing = false;
+
+        if (!silent) {
+          this.isLoading = false;
+        }
+
         this.changeDetectorRef.detectChanges();
       })
     ).subscribe({

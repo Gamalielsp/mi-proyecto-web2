@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   ChangeDetectorRef
 } from '@angular/core';
 
@@ -29,13 +30,17 @@ interface WaitlistBookGroup {
   templateUrl: './waitlists.html',
   styleUrl: './waitlists.css'
 })
-export class Waitlists implements OnInit {
+export class Waitlists implements OnInit, OnDestroy {
 
   entries: WaitlistEntry[] = [];
   groupedEntries: WaitlistBookGroup[] = [];
 
   loading = false;
   loadError = false;
+
+  private syncTimer: any = null;
+  private readonly syncInterval = 3000;
+  private isSyncing = false;
 
   constructor(
     private waitlistService: WaitlistService,
@@ -44,10 +49,39 @@ export class Waitlists implements OnInit {
 
   ngOnInit(): void {
     this.loadEntries();
+    this.startAutoSync();
   }
 
-  loadEntries(): void {
-    this.loading = true;
+  ngOnDestroy(): void {
+    this.stopAutoSync();
+  }
+
+  private startAutoSync(): void {
+    this.stopAutoSync();
+
+    this.syncTimer = setInterval(() => {
+      this.loadEntries(true);
+    }, this.syncInterval);
+  }
+
+  private stopAutoSync(): void {
+    if (this.syncTimer) {
+      clearInterval(this.syncTimer);
+      this.syncTimer = null;
+    }
+  }
+
+  loadEntries(silent: boolean = false): void {
+    if (this.isSyncing) {
+      return;
+    }
+
+    this.isSyncing = true;
+
+    if (!silent) {
+      this.loading = true;
+    }
+
     this.loadError = false;
 
     this.waitlistService.loadWaitlist().pipe(
@@ -60,7 +94,12 @@ export class Waitlists implements OnInit {
         );
       }),
       finalize(() => {
-        this.loading = false;
+        this.isSyncing = false;
+
+        if (!silent) {
+          this.loading = false;
+        }
+
         this.changeDetectorRef.detectChanges();
       })
     ).subscribe({

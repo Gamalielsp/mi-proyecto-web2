@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { catchError, finalize, forkJoin, of } from 'rxjs';
@@ -29,7 +29,7 @@ type CareerDropdownTarget = 'newBook' | 'editBook' | 'newUser' | 'editUser';
   templateUrl: './inventory.html',
   styleUrl: './inventory.css'
 })
-export class InventoryComponent implements OnInit {
+export class InventoryComponent implements OnInit, OnDestroy {
 
   search = '';
   activeTab = 'books';
@@ -130,6 +130,10 @@ export class InventoryComponent implements OnInit {
   isConfirmationProcessing = false;
   isResettingPassword = false;
 
+  private syncTimer: any = null;
+  private readonly syncInterval = 3000;
+  private isSyncing = false;
+
   constructor(
     private bookService: BookService,
     private userService: UserService,
@@ -140,6 +144,48 @@ export class InventoryComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadInitialData();
+    this.startAutoSync();
+  }
+
+  ngOnDestroy(): void {
+    this.stopAutoSync();
+
+    if (this.toastTimer) {
+      clearTimeout(this.toastTimer);
+      this.toastTimer = null;
+    }
+  }
+
+  private startAutoSync(): void {
+    this.stopAutoSync();
+
+    this.syncTimer = setInterval(() => {
+      if (this.shouldSkipAutoSync()) {
+        return;
+      }
+
+      this.loadInitialData(true);
+    }, this.syncInterval);
+  }
+
+  private stopAutoSync(): void {
+    if (this.syncTimer) {
+      clearInterval(this.syncTimer);
+      this.syncTimer = null;
+    }
+  }
+
+  private shouldSkipAutoSync(): boolean {
+    return this.showBookModal ||
+      this.showUserModal ||
+      this.showEditBookModal ||
+      this.showEditUserModal ||
+      this.showConfirmationModal ||
+      this.showPasswordModal ||
+      this.isSavingBook ||
+      this.isSavingUser ||
+      this.isConfirmationProcessing ||
+      this.isResettingPassword;
   }
 
   @HostListener('document:click')
@@ -152,8 +198,17 @@ export class InventoryComponent implements OnInit {
     this.forceViewUpdate();
   }
 
-  loadInitialData(): void {
-    this.isLoading = true;
+  loadInitialData(silent: boolean = false): void {
+    if (this.isSyncing) {
+      return;
+    }
+
+    this.isSyncing = true;
+
+    if (!silent) {
+      this.isLoading = true;
+    }
+
     this.loadError = false;
 
     forkJoin({
@@ -175,7 +230,12 @@ export class InventoryComponent implements OnInit {
     })
       .pipe(
         finalize(() => {
-          this.isLoading = false;
+          this.isSyncing = false;
+
+          if (!silent) {
+            this.isLoading = false;
+          }
+
           this.forceViewUpdate();
         })
       )

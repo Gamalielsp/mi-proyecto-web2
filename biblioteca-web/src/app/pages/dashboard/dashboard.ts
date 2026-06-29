@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   ChangeDetectorRef,
   HostListener
 } from '@angular/core';
@@ -33,7 +34,7 @@ import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
-export class Dashboard implements OnInit {
+export class Dashboard implements OnInit, OnDestroy {
 
   search = '';
   career = 'Todas';
@@ -61,6 +62,10 @@ export class Dashboard implements OnInit {
   isLoading = false;
   loadError = false;
 
+  private syncTimer: any = null;
+  private readonly syncInterval = 3000;
+  private isSyncing = false;
+
   constructor(
     private bookService: BookService,
     private loanService: LoanService,
@@ -72,6 +77,30 @@ export class Dashboard implements OnInit {
 
   ngOnInit(): void {
     this.loadInitialData();
+    this.startAutoSync();
+  }
+
+  ngOnDestroy(): void {
+    this.stopAutoSync();
+  }
+
+  private startAutoSync(): void {
+    this.stopAutoSync();
+
+    this.syncTimer = setInterval(() => {
+      if (this.showFolio || this.reservingBookId !== null) {
+        return;
+      }
+
+      this.loadInitialData(true);
+    }, this.syncInterval);
+  }
+
+  private stopAutoSync(): void {
+    if (this.syncTimer) {
+      clearInterval(this.syncTimer);
+      this.syncTimer = null;
+    }
   }
 
   @HostListener('document:click', ['$event'])
@@ -83,8 +112,17 @@ export class Dashboard implements OnInit {
     }
   }
 
-  loadInitialData(): void {
-    this.isLoading = true;
+  loadInitialData(silent: boolean = false): void {
+    if (this.isSyncing) {
+      return;
+    }
+
+    this.isSyncing = true;
+
+    if (!silent) {
+      this.isLoading = true;
+    }
+
     this.loadError = false;
 
     forkJoin({
@@ -122,7 +160,12 @@ export class Dashboard implements OnInit {
     })
       .pipe(
         finalize(() => {
-          this.isLoading = false;
+          this.isSyncing = false;
+
+          if (!silent) {
+            this.isLoading = false;
+          }
+
           this.changeDetectorRef.detectChanges();
         })
       )
@@ -269,7 +312,7 @@ export class Dashboard implements OnInit {
           this.showFolio = true;
           this.reservingBookId = null;
 
-          this.loadInitialData();
+          this.loadInitialData(true);
         },
         error: error => {
           this.reservingBookId = null;

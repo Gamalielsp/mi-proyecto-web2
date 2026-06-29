@@ -70,7 +70,7 @@ export class MyBooks implements OnInit, OnDestroy {
 
     this.loadDataFromApi(true);
 
-    this.timerSubscription = interval(60000).subscribe(() => {
+    this.timerSubscription = interval(3000).subscribe(() => {
       this.loadDataFromApi(false);
     });
   }

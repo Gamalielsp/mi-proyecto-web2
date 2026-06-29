@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -17,9 +17,9 @@ import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
   templateUrl: './librarian-dashboard.html',
   styleUrl: './librarian-dashboard.css'
 })
-export class LibrarianDashboard implements OnInit {
+export class LibrarianDashboard implements OnInit, OnDestroy {
 
-  private apiBaseUrl = 'http://127.0.0.1:8000';
+  private apiBaseUrl = 'https://biblioteca-api-zppt.onrender.com';
 
   totalBooks = 0;
   availableBooks = 0;
@@ -34,6 +34,9 @@ export class LibrarianDashboard implements OnInit {
   loadError = false;
   lastUpdated = '';
 
+  private syncTimer: any = null;
+  private readonly syncInterval = 3000;
+
   constructor(
     private http: HttpClient,
     private changeDetectorRef: ChangeDetectorRef
@@ -41,9 +44,29 @@ export class LibrarianDashboard implements OnInit {
 
   ngOnInit(): void {
     this.loadDashboardData();
+    this.startAutoSync();
   }
 
-  loadDashboardData(): void {
+  ngOnDestroy(): void {
+    this.stopAutoSync();
+  }
+
+  private startAutoSync(): void {
+    this.stopAutoSync();
+
+    this.syncTimer = setInterval(() => {
+      this.loadDashboardData(true);
+    }, this.syncInterval);
+  }
+
+  private stopAutoSync(): void {
+    if (this.syncTimer) {
+      clearInterval(this.syncTimer);
+      this.syncTimer = null;
+    }
+  }
+
+  loadDashboardData(silent: boolean = false): void {
     if (this.isUpdating) {
       return;
     }
