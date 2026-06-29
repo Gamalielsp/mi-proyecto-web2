@@ -109,7 +109,7 @@
     *ngIf="filteredBooks.length > 0">
 
     <app-book-card
-      *ngFor="let book of filteredBooks"
+      *ngFor="let book of filteredBooks; trackBy: trackByBookId"
       [book]="book"
       [reserved]="isBookBlocked(book)"
       [waitlistLocked]="isBookLockedByWaitlist(book)"

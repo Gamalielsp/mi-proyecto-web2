@@ -211,6 +211,10 @@ export class Dashboard implements OnInit, OnDestroy {
     });
   }
 
+  trackByBookId(index: number, book: Book): number {
+    return book.id;
+  }
+
   isBookBlocked(book: Book): boolean {
     const currentUser = JSON.parse(
       localStorage.getItem('currentUser') || '{}'
