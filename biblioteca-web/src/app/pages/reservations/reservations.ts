@@ -6,23 +6,14 @@ import {
 } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
-import {
-  catchError,
-  finalize,
-  interval,
-  of,
-  Subscription
-} from 'rxjs';
+import { catchError, finalize, of } from 'rxjs';
 
 import { Reservation } from '../../models/reservation.model';
-
 import { ReservationService } from '../../services/reservation';
-import { LoanService } from '../../services/loan.service';
-import { WaitlistService } from '../../services/waitlist.service';
-import { BookService } from '../../services/book.service';
-import { UiFeedbackService } from '../../services/ui-feedback.service';
 
 import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
+
+type ReservationSection = 'pending' | 'delivered' | 'cancelled' | 'expired';
 
 @Component({
   selector: 'app-reservations',
@@ -37,52 +28,56 @@ import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
 export class Reservations implements OnInit, OnDestroy {
 
   reservations: Reservation[] = [];
-  history: Reservation[] = [];
-  loading = false;
-  loadError = false;
-  processingReservationId: number | null = null;
 
-  private timerSubscription?: Subscription;
-  private syncSubscription?: Subscription;
+  activeSection: ReservationSection = 'pending';
+
+  isLoading = false;
+  loadError = false;
+
+  private syncTimer: any = null;
+  private readonly syncInterval = 3000;
   private isSyncing = false;
 
   constructor(
     private reservationService: ReservationService,
-    private loanService: LoanService,
-    private waitlistService: WaitlistService,
-    private bookService: BookService,
-    private uiFeedback: UiFeedbackService,
     private changeDetectorRef: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-    this.loadReservationsFromApi();
-
-    this.timerSubscription = interval(1000).subscribe(() => {
-      this.loadReservations();
-      this.changeDetectorRef.detectChanges();
-    });
-
-    this.syncSubscription = interval(3000).subscribe(() => {
-      if (this.processingReservationId !== null) {
-        return;
-      }
-
-      this.loadReservationsFromApi(true);
-    });
+    this.loadReservations();
+    this.startAutoSync();
   }
 
   ngOnDestroy(): void {
-    this.timerSubscription?.unsubscribe();
-    this.syncSubscription?.unsubscribe();
+    this.stopAutoSync();
   }
 
-  loadReservationsFromApi(silent: boolean = false): void {
+  private startAutoSync(): void {
+    this.stopAutoSync();
+
+    this.syncTimer = setInterval(() => {
+      this.loadReservations(true);
+    }, this.syncInterval);
+  }
+
+  private stopAutoSync(): void {
+    if (this.syncTimer) {
+      clearInterval(this.syncTimer);
+      this.syncTimer = null;
+    }
+  }
+
+  loadReservations(silent: boolean = false): void {
     if (this.isSyncing) {
       return;
     }
 
     this.isSyncing = true;
+
+    if (!silent) {
+      this.isLoading = true;
+    }
+
     this.loadError = false;
 
     this.reservationService.loadReservations().pipe(
@@ -93,238 +88,274 @@ export class Reservations implements OnInit, OnDestroy {
       }),
       finalize(() => {
         this.isSyncing = false;
+
+        if (!silent) {
+          this.isLoading = false;
+        }
+
         this.changeDetectorRef.detectChanges();
       })
     ).subscribe({
-      next: () => {
-        this.loadReservations();
+      next: (data: Reservation[] | any) => {
+        const incomingReservations = Array.isArray(data) ? data : [];
+        this.reservations = this.sortReservationsNewestFirst(incomingReservations);
       },
       error: error => {
         console.error('Error general al cargar reservas:', error);
         this.loadError = true;
-        this.loadReservations();
       }
     });
   }
 
-  loadReservations(): void {
-    this.reservations =
-      this.sortReservationsNewestFirst(
-        this.reservationService.getPendingReservations()
-      );
-
-    this.history =
-      this.sortReservationsNewestFirst(
-        this.reservationService.getReservationHistory()
-      );
+  changeSection(section: ReservationSection): void {
+    this.activeSection = section;
   }
 
-  private sortReservationsNewestFirst(
-    reservations: Reservation[]
-  ): Reservation[] {
-    return [...reservations].sort((a, b) =>
-      this.getReservationOrderValue(b) -
-      this.getReservationOrderValue(a)
+  get pendingReservations(): Reservation[] {
+    return this.reservations.filter(reservation =>
+      this.normalizeStatus(reservation.status) === 'pending'
     );
   }
 
-  private getReservationOrderValue(
-    reservation: Reservation
-  ): number {
+  get deliveredReservations(): Reservation[] {
+    return this.reservations.filter(reservation =>
+      this.normalizeStatus(reservation.status) === 'delivered'
+    );
+  }
+
+  get cancelledReservations(): Reservation[] {
+    return this.reservations.filter(reservation =>
+      this.normalizeStatus(reservation.status) === 'cancelled'
+    );
+  }
+
+  get expiredReservations(): Reservation[] {
+    return this.reservations.filter(reservation =>
+      this.normalizeStatus(reservation.status) === 'expired'
+    );
+  }
+
+  get filteredReservations(): Reservation[] {
+    if (this.activeSection === 'pending') {
+      return this.pendingReservations;
+    }
+
+    if (this.activeSection === 'delivered') {
+      return this.deliveredReservations;
+    }
+
+    if (this.activeSection === 'cancelled') {
+      return this.cancelledReservations;
+    }
+
+    return this.expiredReservations;
+  }
+
+  get sectionTitle(): string {
+    if (this.activeSection === 'pending') {
+      return 'Reservas pendientes';
+    }
+
+    if (this.activeSection === 'delivered') {
+      return 'Reservas entregadas';
+    }
+
+    if (this.activeSection === 'cancelled') {
+      return 'Reservas canceladas';
+    }
+
+    return 'Reservas expiradas';
+  }
+
+  get emptyMessage(): string {
+    if (this.activeSection === 'pending') {
+      return 'No hay reservas pendientes.';
+    }
+
+    if (this.activeSection === 'delivered') {
+      return 'No hay reservas entregadas.';
+    }
+
+    if (this.activeSection === 'cancelled') {
+      return 'No hay reservas canceladas.';
+    }
+
+    return 'No hay reservas expiradas.';
+  }
+
+  trackByReservationId(index: number, reservation: Reservation): number {
+    return reservation.id;
+  }
+
+  private sortReservationsNewestFirst(reservations: Reservation[]): Reservation[] {
+    return [...reservations].sort((a, b) =>
+      this.getReservationOrderValue(b) - this.getReservationOrderValue(a)
+    );
+  }
+
+  private getReservationOrderValue(reservation: Reservation): number {
+    const dateValue = reservation.requestDate
+      ? new Date(reservation.requestDate).getTime()
+      : 0;
+
     const idValue = Number(reservation.id);
+
+    if (!Number.isNaN(dateValue) && dateValue > 0 && !Number.isNaN(idValue)) {
+      return dateValue + idValue / 10000000000000;
+    }
 
     if (!Number.isNaN(idValue) && idValue > 0) {
       return idValue;
     }
 
-    const dateTimeValue = new Date(
-      `${reservation.requestDate} ${reservation.requestTime}`
-    ).getTime();
-
-    if (!Number.isNaN(dateTimeValue)) {
-      return dateTimeValue;
-    }
-
-    const expiresAtValue = new Date(reservation.expiresAt).getTime();
-
-    if (!Number.isNaN(expiresAtValue)) {
-      return expiresAtValue;
-    }
-
-    return 0;
+    return Number.isNaN(dateValue) ? 0 : dateValue;
   }
 
-  confirmDelivery(reservation: Reservation): void {
-    if (this.processingReservationId !== null) {
-      return;
+  private normalizeStatus(status: string | undefined | null): ReservationSection | 'other' {
+    const rawStatus = String(status || '').trim().toLowerCase();
+
+    if (
+      rawStatus.includes('pendiente') ||
+      rawStatus === 'pending'
+    ) {
+      return 'pending';
     }
 
-    this.processingReservationId = reservation.id;
-    this.loading = true;
-
-    this.reservationService.markAsDelivered(reservation.id).pipe(
-      finalize(() => {
-        this.isSyncing = false;
-        this.changeDetectorRef.detectChanges();
-      })
-    ).subscribe({
-      next: deliveredReservation => {
-        const today = new Date();
-        const dueDate = new Date();
-
-        dueDate.setDate(today.getDate() + 7);
-
-        this.loanService.addLoan({
-          id: Date.now(),
-          folio: 'PRE-' + Math.floor(100000 + Math.random() * 900000),
-
-          studentName: deliveredReservation.studentName,
-          matricula: deliveredReservation.matricula,
-          userRole: deliveredReservation.userRole,
-
-          bookId: deliveredReservation.bookId,
-          bookTitle: deliveredReservation.bookTitle,
-          author: deliveredReservation.author,
-
-          borrowDate: today.toISOString().split('T')[0],
-          dueDate: dueDate.toISOString().split('T')[0],
-          daysLeft: 7,
-
-          renewed: false,
-          status: 'activo'
-        }).subscribe({
-          next: () => {
-            this.waitlistService.completeReservationByBookAndMatricula(
-              deliveredReservation.bookId,
-              deliveredReservation.matricula
-            );
-
-            this.waitlistService.notifyNextUser(deliveredReservation.bookId);
-
-            this.uiFeedback.success(
-              'Libro entregado correctamente. El préstamo ha iniciado.'
-            );
-
-            this.finishProcessing();
-            this.loadReservationsFromApi(true);
-          },
-          error: error => {
-            this.finishProcessing();
-            this.uiFeedback.error(
-              error?.error?.detail ||
-              'La reserva se marcó como entregada, pero no se pudo crear el préstamo.'
-            );
-          }
-        });
-      },
-      error: error => {
-        this.finishProcessing();
-        this.uiFeedback.error(error?.error?.detail || 'No se pudo confirmar la entrega.');
-      }
-    });
-  }
-
-  cancelReservation(reservation: Reservation): void {
-    if (this.processingReservationId !== null) {
-      return;
+    if (
+      rawStatus.includes('entregada') ||
+      rawStatus.includes('confirmada') ||
+      rawStatus.includes('prestamo iniciado') ||
+      rawStatus.includes('préstamo iniciado') ||
+      rawStatus === 'delivered'
+    ) {
+      return 'delivered';
     }
 
-    this.uiFeedback.confirm({
-      title: 'Cancelar reserva',
-      message: `¿Seguro que deseas rechazar o cancelar la reserva ${reservation.folio}?`,
-      confirmText: 'Cancelar reserva',
-      cancelText: 'Conservar',
-      type: 'danger'
-    }).subscribe(confirmed => {
-      if (!confirmed) {
-        return;
-      }
-
-      this.processingReservationId = reservation.id;
-      this.loading = true;
-
-      this.reservationService.cancelReservation(reservation.id).pipe(
-        finalize(() => {
-          this.changeDetectorRef.detectChanges();
-        })
-      ).subscribe({
-        next: cancelledReservation => {
-          this.bookService.loadBooks().subscribe({
-            next: () => {},
-            error: () => {}
-          });
-
-          this.waitlistService.completeReservationByBookAndMatricula(
-            cancelledReservation.bookId,
-            cancelledReservation.matricula
-          );
-
-          this.waitlistService.notifyNextUser(cancelledReservation.bookId);
-
-          this.uiFeedback.success(
-            'Reserva cancelada. El libro volvió al inventario y se notificó al siguiente usuario en lista de espera.'
-          );
-
-          this.finishProcessing();
-          this.loadReservationsFromApi(true);
-        },
-        error: error => {
-          this.finishProcessing();
-          this.uiFeedback.error(error?.error?.detail || 'No se pudo cancelar la reserva.');
-        }
-      });
-    });
-  }
-
-  private finishProcessing(): void {
-    this.loading = false;
-    this.processingReservationId = null;
-    this.changeDetectorRef.detectChanges();
-  }
-
-  getExpirationTime(reservation: Reservation): string {
-    return new Date(reservation.expiresAt).toLocaleTimeString();
-  }
-
-  getRemainingTime(reservation: Reservation): string {
-    if (reservation.status !== 'pendiente') {
-      return '00:00';
+    if (
+      rawStatus.includes('cancelada') ||
+      rawStatus === 'cancelled'
+    ) {
+      return 'cancelled';
     }
 
-    const now = Date.now();
-    const expiresAt = new Date(reservation.expiresAt).getTime();
-    const diff = expiresAt - now;
-
-    if (diff <= 0) {
-      return '00:00';
+    if (
+      rawStatus.includes('expirada') ||
+      rawStatus.includes('expirado') ||
+      rawStatus === 'expired'
+    ) {
+      return 'expired';
     }
 
-    const totalSeconds = Math.floor(diff / 1000);
-
-    const minutes = Math.floor(totalSeconds / 60)
-      .toString()
-      .padStart(2, '0');
-
-    const seconds = (totalSeconds % 60)
-      .toString()
-      .padStart(2, '0');
-
-    return `${minutes}:${seconds}`;
+    return 'other';
   }
 
-  getStatusText(status: Reservation['status']): string {
-    if (status === 'pendiente') {
+  getStatusText(status: string): string {
+    const normalized = this.normalizeStatus(status);
+
+    if (normalized === 'pending') {
       return 'Pendiente';
     }
 
-    if (status === 'entregado') {
+    if (normalized === 'delivered') {
       return 'Entregada';
     }
 
-    if (status === 'expirada') {
+    if (normalized === 'cancelled') {
+      return 'Cancelada';
+    }
+
+    if (normalized === 'expired') {
       return 'Expirada';
     }
 
-    return 'Cancelada';
+    return status || 'Sin estado';
+  }
+
+  getReservationMessage(reservation: Reservation): string {
+    const normalized = this.normalizeStatus(reservation.status);
+
+    if (normalized === 'pending') {
+      return 'Esta reserva sigue pendiente de entrega por parte del bibliotecario.';
+    }
+
+    if (normalized === 'delivered') {
+      return 'La entrega fue confirmada y el préstamo ya fue iniciado.';
+    }
+
+    if (normalized === 'cancelled') {
+      return 'La reserva fue cancelada y ya no se encuentra activa.';
+    }
+
+    if (normalized === 'expired') {
+      return 'La reserva venció porque no fue atendida dentro del tiempo permitido.';
+    }
+
+    return 'Movimiento registrado en el sistema.';
+  }
+
+  getCardClass(reservation: Reservation): string {
+    const normalized = this.normalizeStatus(reservation.status);
+
+    if (normalized === 'pending') {
+      return 'pending-card';
+    }
+
+    if (normalized === 'delivered') {
+      return 'delivered-card';
+    }
+
+    if (normalized === 'cancelled') {
+      return 'cancelled-card';
+    }
+
+    if (normalized === 'expired') {
+      return 'expired-card';
+    }
+
+    return '';
+  }
+
+  getStatusClass(reservation: Reservation): string {
+    const normalized = this.normalizeStatus(reservation.status);
+
+    if (normalized === 'pending') {
+      return 'status-pending';
+    }
+
+    if (normalized === 'delivered') {
+      return 'status-delivered';
+    }
+
+    if (normalized === 'cancelled') {
+      return 'status-cancelled';
+    }
+
+    if (normalized === 'expired') {
+      return 'status-expired';
+    }
+
+    return '';
+  }
+
+  getMessageClass(reservation: Reservation): string {
+    const normalized = this.normalizeStatus(reservation.status);
+
+    if (normalized === 'pending') {
+      return 'message-pending';
+    }
+
+    if (normalized === 'delivered') {
+      return 'message-delivered';
+    }
+
+    if (normalized === 'cancelled') {
+      return 'message-cancelled';
+    }
+
+    if (normalized === 'expired') {
+      return 'message-expired';
+    }
+
+    return '';
   }
 }

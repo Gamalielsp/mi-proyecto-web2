@@ -1,7 +1,8 @@
-  <div class="container">
+<div class="container">
 
-    <section class="hero">
+  <header class="page-header">
 
+    <div>
       <p class="eyebrow">Bibliotecario</p>
 
       <h1>Reservas</h1>
@@ -9,220 +10,141 @@
       <p class="subtitle">
         Valida solicitudes pendientes y consulta el historial de reservas procesadas.
       </p>
+    </div>
 
-    </section>
+  </header>
 
-    <!-- RESERVAS PENDIENTES -->
+  <nav class="section-tabs">
 
-    <section>
+    <button
+      type="button"
+      [class.active]="activeSection === 'pending'"
+      (click)="changeSection('pending')">
 
-      <h2>Reservas pendientes</h2>
+      <span class="tab-label tab-label-long">Pendientes</span>
+      <span class="tab-label tab-label-short">Pendientes</span>
+      <span>{{ pendingReservations.length }}</span>
 
-      <div
-        class="empty-state"
-        *ngIf="reservations.length === 0">
+    </button>
 
-        <div>✅</div>
+    <button
+      type="button"
+      [class.active]="activeSection === 'delivered'"
+      (click)="changeSection('delivered')">
 
-        <h2>No hay reservas pendientes</h2>
+      <span class="tab-label tab-label-long">Entregadas</span>
+      <span class="tab-label tab-label-short">Entregadas</span>
+      <span>{{ deliveredReservations.length }}</span>
+
+    </button>
+
+    <button
+      type="button"
+      [class.active]="activeSection === 'cancelled'"
+      (click)="changeSection('cancelled')">
+
+      <span class="tab-label tab-label-long">Canceladas</span>
+      <span class="tab-label tab-label-short">Canceladas</span>
+      <span>{{ cancelledReservations.length }}</span>
+
+    </button>
+
+    <button
+      type="button"
+      [class.active]="activeSection === 'expired'"
+      (click)="changeSection('expired')">
+
+      <span class="tab-label tab-label-long">Expiradas</span>
+      <span class="tab-label tab-label-short">Expiradas</span>
+      <span>{{ expiredReservations.length }}</span>
+
+    </button>
+
+  </nav>
+
+  <section
+    class="load-warning"
+    *ngIf="loadError">
+
+    Algunos datos no se pudieron actualizar. Verifica la conexión con el backend.
+
+  </section>
+
+  <section>
+
+    <h2>{{ sectionTitle }}</h2>
+
+    <p
+      class="empty-message"
+      *ngIf="!isLoading && filteredReservations.length === 0">
+
+      {{ emptyMessage }}
+
+    </p>
+
+    <div
+      class="card reservation-card"
+      *ngFor="let reservation of filteredReservations; trackBy: trackByReservationId"
+      [ngClass]="getCardClass(reservation)">
+
+      <div class="status-row">
+
+        <span
+          class="reservation-status"
+          [ngClass]="getStatusClass(reservation)">
+
+          {{ getStatusText(reservation.status) }}
+
+        </span>
+
+      </div>
+
+      <h3>{{ reservation.bookTitle }}</h3>
+
+      <p class="author-line">
+        {{ reservation.author }}
+      </p>
+
+      <div class="info-list">
+
+        <p class="folio">
+          Folio de reserva: {{ reservation.folio }}
+        </p>
 
         <p>
-          Cuando un usuario reserve un libro, aparecerá aquí para confirmar su entrega.
+          Usuario: {{ reservation.studentName }}
+        </p>
+
+        <p>
+          Matrícula / Control: {{ reservation.matricula }}
+        </p>
+
+        <p>
+          Fecha de solicitud: {{ reservation.requestDate }}
+        </p>
+
+        <p>
+          Hora de solicitud: {{ reservation.requestTime }}
+        </p>
+
+        <p>
+          Estado: {{ getStatusText(reservation.status) }}
         </p>
 
       </div>
 
-      <div class="reservations-list">
-
-        <div
-          class="reservation-card"
-          *ngFor="let reservation of reservations">
-
-          <div class="card-header">
-
-            <div class="reservation-icon">
-              🎟️
-            </div>
-
-            <div>
-              <span class="status-badge pending-badge">
-                Pendiente de entrega
-              </span>
-
-              <h3>{{ reservation.bookTitle }}</h3>
-
-              <p>{{ reservation.author }}</p>
-            </div>
-
-          </div>
-
-          <div class="details-grid">
-
-            <div class="detail">
-              <span>Folio de reserva</span>
-              <strong>{{ reservation.folio }}</strong>
-            </div>
-
-            <div class="detail">
-              <span>Usuario</span>
-              <strong>{{ reservation.studentName }}</strong>
-            </div>
-
-            <div class="detail">
-              <span>Matrícula / Control</span>
-              <strong>{{ reservation.matricula }}</strong>
-            </div>
-
-            <div class="detail">
-              <span>Rol</span>
-              <strong>{{ reservation.userRole }}</strong>
-            </div>
-
-            <div class="detail">
-              <span>Fecha solicitud</span>
-              <strong>{{ reservation.requestDate }}</strong>
-            </div>
-
-            <div class="detail">
-              <span>Hora solicitud</span>
-              <strong>{{ reservation.requestTime }}</strong>
-            </div>
-
-            <div class="detail warning-detail">
-              <span>Expira</span>
-              <strong>{{ getExpirationTime(reservation) }}</strong>
-            </div>
-
-            <div class="detail timer-detail">
-              <span>Tiempo restante</span>
-              <strong>
-                {{ getRemainingTime(reservation) }}
-              </strong>
-            </div>
-
-          </div>
-
-          <div class="notice">
-            El usuario debe presentar este folio en biblioteca. El préstamo comienza sólo cuando confirmas la entrega.
-          </div>
-
-          <div class="actions">
-
-            <button
-              class="deliver-btn"
-              [disabled]="processingReservationId === reservation.id"
-              (click)="confirmDelivery(reservation)">
-              {{ processingReservationId === reservation.id ? 'Procesando...' : 'Libro entregado' }}
-            </button>
-
-            <button
-              class="cancel-btn"
-              [disabled]="processingReservationId === reservation.id"
-              (click)="cancelReservation(reservation)">
-              Rechazar / cancelar
-            </button>
-
-          </div>
-
-        </div>
-
-      </div>
-
-    </section>
-
-    <!-- HISTORIAL DE RESERVAS -->
-
-    <section class="history-section">
-
-      <h2>Historial de reservas</h2>
-
       <div
-        class="empty-state"
-        *ngIf="history.length === 0">
+        class="reservation-message"
+        [ngClass]="getMessageClass(reservation)">
 
-        <div>📭</div>
-
-        <h2>No hay historial de reservas</h2>
-
-        <p>
-          Las reservas entregadas, canceladas o expiradas aparecerán aquí.
-        </p>
+        {{ getReservationMessage(reservation) }}
 
       </div>
 
-      <div class="reservations-list">
+    </div>
 
-        <div
-          class="reservation-card history-card"
-          *ngFor="let reservation of history"
-          [class.history-delivered]="reservation.status === 'entregado'"
-          [class.history-expired]="reservation.status === 'expirada'"
-          [class.history-cancelled]="reservation.status === 'cancelada'">
+  </section>
 
-          <div class="card-header">
+</div>
 
-            <div class="reservation-icon">
-              📄
-            </div>
-
-            <div>
-              <span
-                class="status-badge"
-                [class.delivered-badge]="reservation.status === 'entregado'"
-                [class.expired-badge]="reservation.status === 'expirada'"
-                [class.cancelled-badge]="reservation.status === 'cancelada'">
-
-                {{ getStatusText(reservation.status) }}
-
-              </span>
-
-              <h3>{{ reservation.bookTitle }}</h3>
-
-              <p>{{ reservation.author }}</p>
-            </div>
-
-          </div>
-
-          <div class="details-grid">
-
-            <div class="detail">
-              <span>Folio de reserva</span>
-              <strong>{{ reservation.folio }}</strong>
-            </div>
-
-            <div class="detail">
-              <span>Usuario</span>
-              <strong>{{ reservation.studentName }}</strong>
-            </div>
-
-            <div class="detail">
-              <span>Matrícula / Control</span>
-              <strong>{{ reservation.matricula }}</strong>
-            </div>
-
-            <div class="detail">
-              <span>Fecha solicitud</span>
-              <strong>{{ reservation.requestDate }}</strong>
-            </div>
-
-            <div class="detail">
-              <span>Hora solicitud</span>
-              <strong>{{ reservation.requestTime }}</strong>
-            </div>
-
-            <div class="detail">
-              <span>Expiraba</span>
-              <strong>{{ getExpirationTime(reservation) }}</strong>
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-
-    </section>
-
-  </div>
-
-  <app-mobile-nav></app-mobile-nav>
+<app-mobile-nav></app-mobile-nav>
