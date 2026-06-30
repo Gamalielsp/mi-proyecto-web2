@@ -4,23 +4,23 @@
 
 .container {
   width: 100%;
-  max-width: 1100px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 28px 20px 150px !important;
   box-sizing: border-box;
 }
 
 /* =========================================================
-   ENCABEZADO
+   ENCABEZADO IGUAL A MIS LIBROS
    ========================================================= */
 
-.hero {
+.page-header {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 28px;
   padding: 28px;
   box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
-  margin-bottom: 24px;
+  margin-bottom: 18px;
 }
 
 .eyebrow {
@@ -48,20 +48,173 @@ h1 {
 }
 
 /* =========================================================
-   LISTA Y TARJETAS
+   CINTA DE OPCIONES IGUAL A MIS LIBROS
    ========================================================= */
 
-.loans-list {
-  display: grid;
-  gap: 16px;
-}
+.section-tabs {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
 
-.loan-card {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 24px;
-  padding: 22px;
-  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+
+  padding: 10px;
+  margin-bottom: 22px;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+
+  box-sizing: border-box;
+}
+
+.section-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.section-tabs button {
+  flex: 1 1 0;
+  max-width: 240px;
+  min-width: 0;
+
+  border: none;
+  border-radius: 999px;
+
+  padding: 12px 16px;
+
+  background: transparent;
+  color: var(--muted);
+
+  cursor: pointer;
+  font-weight: 850;
+  font-size: 14px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+
+  white-space: nowrap;
+
+  box-shadow: none;
+  text-shadow: none;
+
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.section-tabs button:hover {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.section-tabs button.active {
+  background: var(--primary);
+  color: var(--btn-primary-text, white) !important;
+}
+
+.section-tabs button span:first-child,
+.section-tabs button .tab-label-long,
+.section-tabs button .tab-label-short {
+  background: transparent !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  color: inherit !important;
+}
+
+.section-tabs button span:last-child {
+  background: var(--primary-soft);
+  color: var(--primary);
+
+  min-width: 24px;
+  width: auto;
+  height: 24px;
+
+  padding: 0 7px;
+
+  border-radius: 999px;
+
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+
+  font-size: 12px;
+  font-weight: 850;
+  flex-shrink: 0;
+
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+.section-tabs button.active span:last-child {
+  background: rgba(255, 255, 255, 0.22) !important;
+  color: inherit !important;
+}
+
+.section-tabs button,
+.section-tabs button span {
+  text-shadow: none !important;
+}
+
+.tab-label-short {
+  display: none;
+}
+
+/* =========================================================
+   CONTENIDO
+   ========================================================= */
+
+section {
+  margin-top: 18px;
+}
+
+h2 {
+  font-size: 30px;
+  font-weight: 850;
+  color: var(--text);
+  margin-bottom: 14px;
+  letter-spacing: -0.8px;
+}
+
+.load-warning {
+  background: #fff7ed;
+  color: #9a3412;
+  border: 1px solid #fed7aa;
+  border-radius: 18px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.empty-message {
+  color: var(--muted);
+  background: var(--card);
+  border: 1px dashed var(--border);
+  border-radius: 20px;
+  padding: 18px;
+  line-height: 1.4;
+}
+
+/* =========================================================
+   TARJETAS
+   ========================================================= */
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.055);
   box-sizing: border-box;
   transition:
     transform 0.2s ease,
@@ -69,223 +222,222 @@ h1 {
     border-color 0.2s ease;
 }
 
-.loan-card:hover {
+.card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.1);
+  box-shadow: 0 16px 38px rgba(15, 23, 42, 0.09);
 }
 
-.loan-card.overdue {
+.loan-card {
+  border-left: 4px solid var(--primary);
+}
+
+.active-card {
+  border-color: rgba(22, 163, 74, 0.35);
+}
+
+.pending-return-card {
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.overdue-card {
   border-color: rgba(220, 38, 38, 0.35);
+  background: #fff8f8;
 }
 
-.loan-card.pending-return {
-  border-color: rgba(245, 158, 11, 0.38);
-}
-
-.card-header {
+.status-row {
   display: flex;
-  gap: 16px;
-  align-items: flex-start;
-  margin-bottom: 20px;
+  justify-content: flex-start;
+  margin-bottom: 10px;
 }
 
-.loan-icon {
-  width: 54px;
-  height: 54px;
-  border-radius: 18px;
-  background: var(--primary-soft);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 24px;
-  flex-shrink: 0;
-}
-
-.status-badge {
+.loan-status {
   display: inline-block;
-  margin-bottom: 8px;
   padding: 6px 11px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 850;
   line-height: 1.2;
 }
 
-.active-badge {
+.status-active {
   background: #dcfce7;
   color: #166534;
 }
 
-.overdue-badge {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.pending-badge {
+.status-pending {
   background: #fffbeb;
   color: #92400e;
+}
+
+.status-overdue {
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 h3 {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 850;
-  color: var(--text);
-  margin-bottom: 6px;
-  line-height: 1.12;
-  letter-spacing: -0.5px;
-  overflow-wrap: anywhere;
-}
-
-.card-header p {
-  color: var(--muted);
-  margin-bottom: 0;
-  line-height: 1.35;
-}
-
-/* =========================================================
-   DETALLES
-   ========================================================= */
-
-.details-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 12px;
-  margin-bottom: 18px;
-}
-
-.detail {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 14px;
-  min-width: 0;
-}
-
-.detail span {
-  display: block;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 750;
-  margin-bottom: 5px;
-  line-height: 1.2;
-}
-
-.detail strong {
-  display: block;
-  color: var(--text);
-  font-size: 14px;
-  line-height: 1.3;
-  overflow-wrap: anywhere;
-}
-
-.fine-detail {
-  border-color: rgba(220, 38, 38, 0.35);
-  background: #fef2f2;
-}
-
-.fine-detail span,
-.fine-detail strong {
-  color: #991b1b;
-}
-
-/* =========================================================
-   AVISOS
-   ========================================================= */
-
-.notice {
-  border-radius: 16px;
-  padding: 14px;
-  font-size: 14px;
-  font-weight: 650;
-  line-height: 1.4;
-}
-
-.warning-notice {
-  background: #fee2e2;
-  color: #991b1b;
-  border: 1px solid #fecaca;
-}
-
-.return-notice {
-  background: #fffbeb;
-  color: #92400e;
-  border: 1px solid #fde68a;
-}
-
-/* =========================================================
-   ESTADO VACÍO
-   ========================================================= */
-
-.empty-state {
-  background: var(--card);
-  border: 1px dashed var(--border);
-  border-radius: 24px;
-  padding: 42px 22px;
-  text-align: center;
-  color: var(--muted);
-}
-
-.empty-state div {
-  font-size: 44px;
-  margin-bottom: 12px;
-}
-
-.empty-state h2 {
   color: var(--text);
   margin-bottom: 8px;
-  font-size: 24px;
-  font-weight: 850;
+  letter-spacing: -0.4px;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
 }
 
-.empty-state p {
+.card p {
   color: var(--muted);
+  margin-bottom: 8px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.author-line {
+  margin-bottom: 12px !important;
+}
+
+/* =========================================================
+   INFORMACIÓN
+   ========================================================= */
+
+.info-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+}
+
+.info-list p {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 11px 12px;
   margin-bottom: 0;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.folio {
+  color: #2563eb !important;
+  font-weight: 800;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.pending-info {
+  color: #b45309 !important;
+  font-weight: 800;
+  background: #fffbeb !important;
+  border-color: #fde68a !important;
+}
+
+.overdue-info {
+  color: #991b1b !important;
+  font-weight: 800;
+  background: #fee2e2 !important;
+  border-color: #fecaca !important;
+}
+
+/* =========================================================
+   MENSAJE FINAL
+   ========================================================= */
+
+.loan-message {
+  margin-top: 12px;
+  padding: 13px;
+  border-radius: 15px;
+  font-weight: 650;
   line-height: 1.4;
+  font-size: 14px;
+}
+
+.message-active {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+}
+
+.message-pending {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+
+.message-overdue {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
 }
 
 /* =========================================================
    MODO OSCURO
    ========================================================= */
 
-:host-context(.dark) .active-badge {
+:host-context(.dark) .overdue-card,
+.dark .overdue-card {
+  background: rgba(127, 29, 29, 0.12);
+}
+
+:host-context(.dark) .message-active,
+.dark .message-active {
+  background: rgba(30, 64, 175, 0.2);
+  border-color: rgba(96, 165, 250, 0.28);
+  color: #bfdbfe;
+}
+
+:host-context(.dark) .message-pending,
+.dark .message-pending {
+  background: rgba(120, 53, 15, 0.18);
+  border-color: rgba(251, 191, 36, 0.24);
+  color: #fde68a;
+}
+
+:host-context(.dark) .message-overdue,
+.dark .message-overdue {
+  background: rgba(127, 29, 29, 0.22);
+  border-color: rgba(248, 113, 113, 0.25);
+  color: #fecaca;
+}
+
+:host-context(.dark) .pending-info,
+.dark .pending-info {
+  background: rgba(120, 53, 15, 0.18) !important;
+  border-color: rgba(251, 191, 36, 0.24) !important;
+  color: #fde68a !important;
+}
+
+:host-context(.dark) .overdue-info,
+.dark .overdue-info {
+  background: rgba(127, 29, 29, 0.22) !important;
+  border-color: rgba(248, 113, 113, 0.25) !important;
+  color: #fecaca !important;
+}
+
+:host-context(.dark) .status-active,
+.dark .status-active {
   background: rgba(22, 163, 74, 0.18);
   color: #bbf7d0;
 }
 
-:host-context(.dark) .overdue-badge {
-  background: rgba(220, 38, 38, 0.18);
-  color: #fecaca;
-}
-
-:host-context(.dark) .pending-badge {
+:host-context(.dark) .status-pending,
+.dark .status-pending {
   background: rgba(245, 158, 11, 0.16);
   color: #fcd34d;
 }
 
-:host-context(.dark) .fine-detail {
-  background: rgba(127, 29, 29, 0.22);
-  border-color: rgba(248, 113, 113, 0.25);
-}
-
-:host-context(.dark) .fine-detail span,
-:host-context(.dark) .fine-detail strong {
+:host-context(.dark) .status-overdue,
+.dark .status-overdue {
+  background: rgba(220, 38, 38, 0.18);
   color: #fecaca;
 }
 
-:host-context(.dark) .warning-notice {
-  background: rgba(127, 29, 29, 0.22);
-  color: #fecaca;
-  border-color: rgba(248, 113, 113, 0.25);
-}
-
-:host-context(.dark) .return-notice {
+:host-context(.dark) .load-warning,
+.dark .load-warning {
   background: rgba(120, 53, 15, 0.18);
   color: #fde68a;
   border-color: rgba(251, 191, 36, 0.24);
 }
 
 /* =========================================================
-   MÓVIL
+   RESPONSIVE
    ========================================================= */
 
 @media (max-width: 760px) {
@@ -293,213 +445,173 @@ h3 {
     padding: 10px 10px 100px !important;
   }
 
-  .hero {
-    padding: 14px;
-    border-radius: 19px;
+  .page-header {
+    padding: 16px;
+    border-radius: 20px;
     margin-bottom: 12px;
     box-shadow: none;
   }
 
   .eyebrow {
-    font-size: 9.5px;
+    font-size: 10px;
     letter-spacing: 0.8px;
     margin-bottom: 4px;
   }
 
   h1 {
-    font-size: 20px;
+    font-size: 24px;
     line-height: 1.08;
-    letter-spacing: -0.55px;
+    letter-spacing: -0.7px;
     margin-bottom: 6px;
   }
 
   .subtitle {
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.35;
   }
 
-  .loans-list {
-    gap: 10px;
+  .section-tabs {
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 8px;
+    margin-bottom: 14px;
+    border-radius: 18px;
   }
 
-  .loan-card {
+  .section-tabs button {
+    flex: 0 0 auto;
+    min-width: 132px;
+    max-width: none;
+    padding: 10px 12px;
+    font-size: 12px;
+    gap: 6px;
+  }
+
+  .section-tabs button span:last-child {
+    min-width: 21px;
+    height: 21px;
+    font-size: 10.5px;
+    padding: 0 6px;
+  }
+
+  .tab-label-long {
+    display: none !important;
+  }
+
+  .tab-label-short {
+    display: inline !important;
+  }
+
+  section {
+    margin-top: 12px;
+  }
+
+  h2 {
+    font-size: 22px;
+    margin-bottom: 10px;
+    letter-spacing: -0.5px;
+  }
+
+  .load-warning,
+  .empty-message {
     padding: 12px;
+    border-radius: 15px;
+    font-size: 12px;
+  }
+
+  .card {
+    padding: 14px;
     border-radius: 18px;
+    margin-bottom: 10px;
     box-shadow: none;
   }
 
-  .loan-card:hover {
+  .card:hover {
     transform: none;
     box-shadow: none;
   }
 
-  .card-header {
-    display: grid;
-    grid-template-columns: 38px 1fr;
-    gap: 10px;
-    margin-bottom: 12px;
-    align-items: start;
-  }
-
-  .loan-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 13px;
-    font-size: 18px;
-  }
-
-  .status-badge {
-    padding: 5px 8px;
-    font-size: 9.5px;
-    margin-bottom: 6px;
+  .loan-status {
+    padding: 5px 9px;
+    font-size: 10px;
   }
 
   h3 {
-    font-size: 17px;
-    letter-spacing: -0.35px;
-    margin-bottom: 4px;
+    font-size: 18px;
+    margin-bottom: 6px;
   }
 
-  .card-header p {
-    font-size: 11px;
-    line-height: 1.3;
+  .card p {
+    font-size: 12px;
   }
 
-  .details-grid {
+  .info-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
-    margin-bottom: 10px;
   }
 
-  .detail {
+  .info-list p {
     padding: 9px;
-    border-radius: 13px;
+    border-radius: 12px;
+    font-size: 11px;
   }
 
-  .detail:first-child,
-  .fine-detail {
+  .folio,
+  .pending-info,
+  .overdue-info {
     grid-column: 1 / -1;
   }
 
-  .detail span {
-    font-size: 9.5px;
-    margin-bottom: 4px;
-  }
-
-  .detail strong {
-    font-size: 11.2px;
-    line-height: 1.25;
-  }
-
-  .notice {
+  .loan-message {
     padding: 10px;
-    border-radius: 13px;
-    font-size: 11px;
-    line-height: 1.35;
-  }
-
-  .empty-state {
-    display: grid;
-    grid-template-columns: 32px 1fr;
-    column-gap: 10px;
-    row-gap: 3px;
-    text-align: left;
-    align-items: center;
-    padding: 14px;
-    border-radius: 17px;
-  }
-
-  .empty-state div {
-    grid-row: 1 / 3;
-    font-size: 24px;
-    margin-bottom: 0;
-    text-align: center;
-  }
-
-  .empty-state h2 {
-    font-size: 14px;
-    margin-bottom: 0;
-    line-height: 1.15;
-  }
-
-  .empty-state p {
-    font-size: 10.5px;
-    line-height: 1.3;
+    border-radius: 12px;
+    font-size: 11.5px;
   }
 }
-
-/* =========================================================
-   TELÉFONOS PEQUEÑOS
-   ========================================================= */
 
 @media (max-width: 420px) {
   .container {
     padding: 8px 8px 96px !important;
   }
 
-  .hero {
-    padding: 12px;
-    border-radius: 17px;
+  .page-header {
+    padding: 14px;
+    border-radius: 18px;
   }
 
   h1 {
-    font-size: 18px;
+    font-size: 21px;
   }
 
   .subtitle {
-    font-size: 10.4px;
+    font-size: 11px;
   }
 
-  .loan-card {
-    padding: 10px;
+  .section-tabs button {
+    min-width: 118px;
+    font-size: 11px;
+    padding: 9px 10px;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+
+  .card {
+    padding: 12px;
     border-radius: 16px;
   }
 
-  .card-header {
-    grid-template-columns: 34px 1fr;
-    gap: 8px;
-    margin-bottom: 10px;
-  }
-
-  .loan-icon {
-    width: 34px;
-    height: 34px;
-    border-radius: 12px;
+  h3 {
     font-size: 16px;
   }
 
-  .status-badge {
-    font-size: 9px;
-    padding: 4px 7px;
-  }
-
-  h3 {
-    font-size: 15.8px;
-  }
-
-  .card-header p {
-    font-size: 10.5px;
-  }
-
-  .details-grid {
+  .info-list {
     gap: 7px;
   }
 
-  .detail {
-    padding: 8px;
-    border-radius: 12px;
-  }
-
-  .detail span {
-    font-size: 9px;
-  }
-
-  .detail strong {
+  .info-list p {
     font-size: 10.5px;
-  }
-
-  .notice {
-    padding: 9px;
-    font-size: 10.3px;
+    padding: 8px;
   }
 }

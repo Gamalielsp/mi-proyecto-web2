@@ -13,6 +13,8 @@ import { LoanService } from '../../services/loan.service';
 
 import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
 
+type ActiveLoanSection = 'active' | 'pending' | 'overdue';
+
 @Component({
   selector: 'app-active-loans',
   standalone: true,
@@ -26,6 +28,8 @@ import { MobileNavComponent } from '../../components/mobile-nav/mobile-nav';
 export class ActiveLoans implements OnInit, OnDestroy {
 
   loans: Loan[] = [];
+
+  activeSection: ActiveLoanSection = 'active';
 
   isLoading = false;
   loadError = false;
@@ -99,12 +103,76 @@ export class ActiveLoans implements OnInit, OnDestroy {
       },
       error: error => {
         console.error('Error general al cargar préstamos activos:', error);
+
         this.loans = this.sortLoansNewestFirst(
           this.loanService.getActiveLoans()
         );
+
         this.loadError = true;
       }
     });
+  }
+
+  changeSection(section: ActiveLoanSection): void {
+    this.activeSection = section;
+  }
+
+  get activeLoans(): Loan[] {
+    return this.loans.filter(loan =>
+      loan.status === 'activo'
+    );
+  }
+
+  get pendingLoans(): Loan[] {
+    return this.loans.filter(loan =>
+      loan.status === 'devolucion_pendiente'
+    );
+  }
+
+  get overdueLoans(): Loan[] {
+    return this.loans.filter(loan =>
+      loan.status === 'vencido'
+    );
+  }
+
+  get filteredLoans(): Loan[] {
+    if (this.activeSection === 'active') {
+      return this.activeLoans;
+    }
+
+    if (this.activeSection === 'pending') {
+      return this.pendingLoans;
+    }
+
+    return this.overdueLoans;
+  }
+
+  get sectionTitle(): string {
+    if (this.activeSection === 'active') {
+      return 'Préstamos Activos';
+    }
+
+    if (this.activeSection === 'pending') {
+      return 'Pendientes de Devolución';
+    }
+
+    return 'Préstamos Vencidos';
+  }
+
+  get emptyMessage(): string {
+    if (this.activeSection === 'active') {
+      return 'No hay préstamos activos registrados.';
+    }
+
+    if (this.activeSection === 'pending') {
+      return 'No hay préstamos pendientes de devolución.';
+    }
+
+    return 'No hay préstamos vencidos registrados.';
+  }
+
+  trackByLoanId(index: number, loan: Loan): number {
+    return loan.id;
   }
 
   private sortLoansNewestFirst(loans: Loan[]): Loan[] {
@@ -151,6 +219,26 @@ export class ActiveLoans implements OnInit, OnDestroy {
       return 'Vencido';
     }
 
+    if (status === 'expirado') {
+      return 'Expirado';
+    }
+
     return 'Devuelto';
+  }
+
+  getLoanMessage(loan: Loan): string {
+    if (loan.status === 'activo') {
+      return 'Este préstamo se encuentra vigente dentro del periodo permitido.';
+    }
+
+    if (loan.status === 'devolucion_pendiente') {
+      return 'El usuario solicitó devolución. Falta validar físicamente el libro en biblioteca.';
+    }
+
+    if (loan.status === 'vencido') {
+      return 'Este préstamo superó su fecha límite. El usuario debe regularizar la devolución.';
+    }
+
+    return 'Movimiento registrado en el sistema.';
   }
 }

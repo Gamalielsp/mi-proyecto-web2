@@ -1,143 +1,185 @@
 <div class="container">
 
-  <section class="hero">
+  <header class="page-header">
 
-    <p class="eyebrow">Bibliotecario</p>
+    <div>
+      <p class="eyebrow">Bibliotecario</p>
 
-    <h1>Préstamos Activos</h1>
+      <h1>Préstamos</h1>
 
-    <p class="subtitle">
-      Consulta los préstamos vigentes, vencidos y pendientes de devolución.
-    </p>
+      <p class="subtitle">
+        Consulta los préstamos activos, devoluciones pendientes y préstamos vencidos.
+      </p>
+    </div>
+
+  </header>
+
+  <nav class="section-tabs">
+
+    <button
+      type="button"
+      [class.active]="activeSection === 'active'"
+      (click)="changeSection('active')">
+
+      <span class="tab-label tab-label-long">
+        Préstamos Activos
+      </span>
+
+      <span class="tab-label tab-label-short">
+        Activos
+      </span>
+
+      <span>{{ activeLoans.length }}</span>
+
+    </button>
+
+    <button
+      type="button"
+      [class.active]="activeSection === 'pending'"
+      (click)="changeSection('pending')">
+
+      <span class="tab-label tab-label-long">
+        Pendientes
+      </span>
+
+      <span class="tab-label tab-label-short">
+        Pendientes
+      </span>
+
+      <span>{{ pendingLoans.length }}</span>
+
+    </button>
+
+    <button
+      type="button"
+      [class.active]="activeSection === 'overdue'"
+      (click)="changeSection('overdue')">
+
+      <span class="tab-label tab-label-long">
+        Vencidos
+      </span>
+
+      <span class="tab-label tab-label-short">
+        Vencidos
+      </span>
+
+      <span>{{ overdueLoans.length }}</span>
+
+    </button>
+
+  </nav>
+
+  <section
+    class="load-warning"
+    *ngIf="loadError">
+
+    Algunos datos no se pudieron actualizar. Verifica la conexión con el backend.
 
   </section>
 
-  <div
-    class="empty-state"
-    *ngIf="loans.length === 0">
+  <section>
 
-    <div>📖</div>
+    <h2>{{ sectionTitle }}</h2>
 
-    <h2>No hay préstamos activos</h2>
+    <p
+      class="empty-message"
+      *ngIf="!isLoading && filteredLoans.length === 0">
 
-    <p>
-      Cuando el bibliotecario entregue un libro reservado, el préstamo aparecerá aquí.
+      {{ emptyMessage }}
+
     </p>
 
-  </div>
-
-  <div class="loans-list">
-
     <div
-      class="loan-card"
-      *ngFor="let loan of loans"
-      [class.overdue]="loan.status === 'vencido'"
-      [class.pending-return]="loan.status === 'devolucion_pendiente'">
+      class="card loan-card"
+      *ngFor="let loan of filteredLoans; trackBy: trackByLoanId"
+      [class.active-card]="loan.status === 'activo'"
+      [class.pending-return-card]="loan.status === 'devolucion_pendiente'"
+      [class.overdue-card]="loan.status === 'vencido'">
 
-      <div class="card-header">
+      <div class="status-row">
 
-        <div class="loan-icon">
-          📖
-        </div>
+        <span
+          class="loan-status"
+          [class.status-active]="loan.status === 'activo'"
+          [class.status-pending]="loan.status === 'devolucion_pendiente'"
+          [class.status-overdue]="loan.status === 'vencido'">
 
-        <div>
-          <span
-            class="status-badge"
-            [class.active-badge]="loan.status === 'activo'"
-            [class.overdue-badge]="loan.status === 'vencido'"
-            [class.pending-badge]="loan.status === 'devolucion_pendiente'">
+          {{ getStatusText(loan.status) }}
 
-            {{ getStatusText(loan.status) }}
-
-          </span>
-
-          <h3>{{ loan.bookTitle }}</h3>
-
-          <p>{{ loan.author }}</p>
-        </div>
+        </span>
 
       </div>
 
-      <div class="details-grid">
+      <h3>{{ loan.bookTitle }}</h3>
 
-        <div class="detail">
-          <span>Folio préstamo</span>
-          <strong>{{ loan.folio }}</strong>
-        </div>
+      <p class="author-line">
+        {{ loan.author }}
+      </p>
 
-        <div class="detail">
-          <span>Usuario</span>
-          <strong>{{ loan.studentName }}</strong>
-        </div>
+      <div class="info-list">
 
-        <div class="detail">
-          <span>Matrícula / Control</span>
-          <strong>{{ loan.matricula }}</strong>
-        </div>
+        <p class="folio">
+          Folio préstamo: {{ loan.folio }}
+        </p>
 
-        <div class="detail">
-          <span>Rol</span>
-          <strong>{{ loan.userRole }}</strong>
-        </div>
+        <p>
+          Usuario: {{ loan.studentName }}
+        </p>
 
-        <div class="detail">
-          <span>Fecha de préstamo</span>
-          <strong>{{ loan.borrowDate }}</strong>
-        </div>
+        <p>
+          Matrícula / Control: {{ loan.matricula }}
+        </p>
 
-        <div class="detail">
-          <span>Fecha límite</span>
-          <strong>{{ loan.dueDate }}</strong>
-        </div>
+        <p>
+          Rol: {{ loan.userRole }}
+        </p>
 
-        <div
-          class="detail"
+        <p>
+          Fecha de préstamo: {{ loan.borrowDate }}
+        </p>
+
+        <p>
+          Fecha límite: {{ loan.dueDate }}
+        </p>
+
+        <p
           *ngIf="loan.status !== 'vencido'">
+          Días restantes: {{ loan.daysLeft }}
+        </p>
 
-          <span>Días restantes</span>
-          <strong>{{ loan.daysLeft }}</strong>
-
-        </div>
-
-        <div
-          class="detail fine-detail"
+        <p
+          class="overdue-info"
           *ngIf="loan.status === 'vencido'">
+          Días de retraso: {{ loan.daysOverdue || 0 }}
+        </p>
 
-          <span>Días de retraso</span>
-          <strong>{{ loan.daysOverdue }}</strong>
-
-        </div>
-
-        <div
-          class="detail fine-detail"
+        <p
+          class="overdue-info"
           *ngIf="loan.fineAmount && loan.fineAmount > 0">
+          Multa acumulada: ${{ loan.fineAmount }}
+        </p>
 
-          <span>Multa acumulada</span>
-          <strong>${{ loan.fineAmount }}</strong>
-
-        </div>
-
-      </div>
-
-      <div
-        class="notice warning-notice"
-        *ngIf="loan.status === 'vencido'">
-
-        ⚠️ Este préstamo está vencido. El usuario no podrá solicitar nuevos libros hasta resolverlo.
+        <p
+          class="pending-info"
+          *ngIf="loan.status === 'devolucion_pendiente' && loan.returnRequestDate">
+          Solicitud de devolución: {{ loan.returnRequestDate }}
+        </p>
 
       </div>
 
       <div
-        class="notice return-notice"
-        *ngIf="loan.status === 'devolucion_pendiente'">
+        class="loan-message"
+        [class.message-active]="loan.status === 'activo'"
+        [class.message-pending]="loan.status === 'devolucion_pendiente'"
+        [class.message-overdue]="loan.status === 'vencido'">
 
-        ↩️ El usuario solicitó devolución. Debe entregar físicamente el libro en biblioteca.
+        {{ getLoanMessage(loan) }}
 
       </div>
 
     </div>
 
-  </div>
+  </section>
 
 </div>
 
