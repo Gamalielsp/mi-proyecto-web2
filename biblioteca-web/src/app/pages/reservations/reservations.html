@@ -1,25 +1,23 @@
 <div class="container">
 
-  <header class="page-header">
+  <section class="hero">
 
-    <div>
-      <p class="eyebrow">Bibliotecario</p>
+    <p class="eyebrow">Bibliotecario</p>
 
-      <h1>Reservas</h1>
+    <h1>Reservas</h1>
 
-      <p class="subtitle">
-        Valida solicitudes pendientes y consulta el historial de reservas procesadas.
-      </p>
-    </div>
+    <p class="subtitle">
+      Valida solicitudes pendientes y consulta el historial de reservas procesadas.
+    </p>
 
-  </header>
+  </section>
 
   <nav class="section-tabs">
 
     <button
       type="button"
-      [class.active]="activeSection === 'pending'"
-      (click)="changeSection('pending')">
+      [class.active]="activeTab === 'pendiente'"
+      (click)="setActiveTab('pendiente')">
 
       <span class="tab-label tab-label-long">Pendientes</span>
       <span class="tab-label tab-label-short">Pendientes</span>
@@ -29,8 +27,8 @@
 
     <button
       type="button"
-      [class.active]="activeSection === 'delivered'"
-      (click)="changeSection('delivered')">
+      [class.active]="activeTab === 'entregado'"
+      (click)="setActiveTab('entregado')">
 
       <span class="tab-label tab-label-long">Entregadas</span>
       <span class="tab-label tab-label-short">Entregadas</span>
@@ -40,8 +38,8 @@
 
     <button
       type="button"
-      [class.active]="activeSection === 'cancelled'"
-      (click)="changeSection('cancelled')">
+      [class.active]="activeTab === 'cancelada'"
+      (click)="setActiveTab('cancelada')">
 
       <span class="tab-label tab-label-long">Canceladas</span>
       <span class="tab-label tab-label-short">Canceladas</span>
@@ -51,8 +49,8 @@
 
     <button
       type="button"
-      [class.active]="activeSection === 'expired'"
-      (click)="changeSection('expired')">
+      [class.active]="activeTab === 'expirada'"
+      (click)="setActiveTab('expirada')">
 
       <span class="tab-label tab-label-long">Expiradas</span>
       <span class="tab-label tab-label-short">Expiradas</span>
@@ -74,70 +72,176 @@
 
     <h2>{{ sectionTitle }}</h2>
 
-    <p
-      class="empty-message"
-      *ngIf="!isLoading && filteredReservations.length === 0">
-
-      {{ emptyMessage }}
-
-    </p>
-
     <div
-      class="card reservation-card"
-      *ngFor="let reservation of filteredReservations; trackBy: trackByReservationId"
-      [ngClass]="getCardClass(reservation)">
+      class="empty-state"
+      *ngIf="!loading && filteredReservations.length === 0">
 
-      <div class="status-row">
-
-        <span
-          class="reservation-status"
-          [ngClass]="getStatusClass(reservation)">
-
-          {{ getStatusText(reservation.status) }}
-
-        </span>
-
+      <div>
+        {{ activeTab === 'pendiente' ? '✅' : '📭' }}
       </div>
 
-      <h3>{{ reservation.bookTitle }}</h3>
+      <h2>{{ emptyTitle }}</h2>
 
-      <p class="author-line">
-        {{ reservation.author }}
+      <p>
+        {{ emptyMessage }}
       </p>
 
-      <div class="info-list">
+    </div>
 
-        <p class="folio">
-          Folio de reserva: {{ reservation.folio }}
-        </p>
-
-        <p>
-          Usuario: {{ reservation.studentName }}
-        </p>
-
-        <p>
-          Matrícula / Control: {{ reservation.matricula }}
-        </p>
-
-        <p>
-          Fecha de solicitud: {{ reservation.requestDate }}
-        </p>
-
-        <p>
-          Hora de solicitud: {{ reservation.requestTime }}
-        </p>
-
-        <p>
-          Estado: {{ getStatusText(reservation.status) }}
-        </p>
-
-      </div>
+    <div class="reservations-list">
 
       <div
-        class="reservation-message"
-        [ngClass]="getMessageClass(reservation)">
+        class="reservation-card"
+        *ngFor="let reservation of filteredReservations; trackBy: trackByReservationId"
+        [class.history-card]="reservation.status !== 'pendiente'"
+        [ngClass]="getCardClass(reservation.status)">
 
-        {{ getReservationMessage(reservation) }}
+        <div class="card-header">
+
+          <div class="reservation-icon">
+            {{ reservation.status === 'pendiente' ? '🎟️' : '📄' }}
+          </div>
+
+          <div>
+
+            <span
+              class="status-badge"
+              [ngClass]="getStatusBadgeClass(reservation.status)">
+
+              {{ reservation.status === 'pendiente' ? 'Pendiente de entrega' : getStatusText(reservation.status) }}
+
+            </span>
+
+            <h3>{{ reservation.bookTitle }}</h3>
+
+            <p>{{ reservation.author }}</p>
+
+          </div>
+
+        </div>
+
+        <div class="details-grid">
+
+          <div class="detail">
+            <span>Folio de reserva</span>
+            <strong>{{ reservation.folio }}</strong>
+          </div>
+
+          <div class="detail">
+            <span>Usuario</span>
+            <strong>{{ reservation.studentName }}</strong>
+          </div>
+
+          <div class="detail">
+            <span>Matrícula / Control</span>
+            <strong>{{ reservation.matricula }}</strong>
+          </div>
+
+          <div
+            class="detail"
+            *ngIf="reservation.status === 'pendiente'">
+
+            <span>Rol</span>
+            <strong>{{ reservation.userRole }}</strong>
+
+          </div>
+
+          <div class="detail">
+            <span>Fecha solicitud</span>
+            <strong>{{ reservation.requestDate }}</strong>
+          </div>
+
+          <div class="detail">
+            <span>Hora solicitud</span>
+            <strong>{{ reservation.requestTime }}</strong>
+          </div>
+
+          <div
+            class="detail warning-detail"
+            *ngIf="reservation.status === 'pendiente'">
+
+            <span>Expira</span>
+            <strong>{{ getExpirationTime(reservation) }}</strong>
+
+          </div>
+
+          <div
+            class="detail timer-detail"
+            *ngIf="reservation.status === 'pendiente'">
+
+            <span>Tiempo restante</span>
+            <strong>
+              {{ getRemainingTime(reservation) }}
+            </strong>
+
+          </div>
+
+          <div
+            class="detail"
+            *ngIf="reservation.status !== 'pendiente'">
+
+            <span>Expiraba</span>
+            <strong>{{ getExpirationTime(reservation) }}</strong>
+
+          </div>
+
+        </div>
+
+        <div
+          class="notice"
+          *ngIf="reservation.status === 'pendiente'">
+
+          El usuario debe presentar este folio en biblioteca. El préstamo comienza sólo cuando confirmas la entrega.
+
+        </div>
+
+        <div
+          class="history-notice delivered-notice"
+          *ngIf="reservation.status === 'entregado'">
+
+          La entrega fue confirmada y el préstamo ya inició.
+
+        </div>
+
+        <div
+          class="history-notice cancelled-notice"
+          *ngIf="reservation.status === 'cancelada'">
+
+          Esta reserva fue cancelada o rechazada.
+
+        </div>
+
+        <div
+          class="history-notice expired-notice"
+          *ngIf="reservation.status === 'expirada'">
+
+          Esta reserva expiró porque no fue atendida dentro del tiempo permitido.
+
+        </div>
+
+        <div
+          class="actions"
+          *ngIf="reservation.status === 'pendiente'">
+
+          <button
+            class="deliver-btn"
+            [disabled]="processingReservationId === reservation.id"
+            (click)="confirmDelivery(reservation)">
+
+            {{ processingReservationId === reservation.id ? 'Procesando...' : 'Libro entregado' }}
+
+          </button>
+
+          <button
+            class="cancel-btn"
+            [disabled]="processingReservationId === reservation.id"
+            (click)="cancelReservation(reservation)">
+
+            Rechazar / cancelar
+
+          </button>
+
+        </div>
 
       </div>
 
